@@ -1,0 +1,66 @@
+<app-loader></app-loader>
+<div class="container-fluid px-2 px-sm-3 px-md-4 py-2 py-sm-3 py-md-4">
+  <div class="d-flex align-items-center gap-3 mb-3">
+    <button class="btn btn-sm btn-light" (click)="goBack()">
+      <i class="bi bi-arrow-left"></i>
+    </button>
+    <div class="flex-grow-1">
+      <h5 class="mb-0">Our Menu</h5>
+      <small class="text-muted">{{filteredItems.length}} items available</small>
+    </div>
+    <button class="btn btn-outline-primary btn-sm position-relative" (click)="goToCart()">
+      <i class="bi bi-cart me-1"></i>Cart
+      <span *ngIf="cartItemCount > 0" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
+        {{cartItemCount}}
+      </span>
+    </button>
+  </div>
+
+  <div class="input-group mb-3">
+    <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+    <input type="text" class="form-control border-start-0" placeholder="Search menu items..." [(ngModel)]="searchQuery" (ngModelChange)="onSearch()">
+  </div>
+
+  <div class="overflow-auto pb-2 mb-3 category-tabs" *ngIf="!isLoading">
+    <div class="d-flex gap-2" style="min-width: max-content;">
+      <button class="btn btn-sm rounded-3"
+        [class.btn-primary]="selectedCategory === null"
+        [class.btn-light]="selectedCategory !== null"
+        (click)="selectCategory(null)">
+        <i class="bi bi-grid me-1"></i>All
+      </button>
+      <button *ngFor="let cat of categories; trackBy: trackById"
+        class="btn btn-sm rounded-3"
+        [class.btn-primary]="selectedCategory === cat.id"
+        [class.btn-light]="selectedCategory !== cat.id"
+        (click)="selectCategory(cat.id)">
+        <i class="bi {{cat.icon || 'bi-basket'}} me-1"></i>{{cat.name}}
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary mb-3" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="text-muted small">Loading menu...</p>
+  </div>
+
+  <div *ngIf="!isLoading && filteredItems.length === 0" class="empty-state">
+    <i class="bi bi-inbox"></i>
+    <h5>No items found</h5>
+    <p>Try a different category or search term</p>
+  </div>
+
+  <div *ngIf="!isLoading && filteredItems.length > 0" class="row g-3">
+    <div *ngFor="let item of filteredItems; trackBy: trackById" class="col-12 col-sm-6 col-md-4 col-lg-3">
+      <app-menu-item-card
+        [item]="item"
+        [quantity]="getItemQuantity(item.id)"
+        (addToCart)="addToCart($event)"
+        (increment)="incrementItem($event)"
+        (decrement)="decrementItem($event)">
+      </app-menu-item-card>
+    </div>
+  </div>
+</div>

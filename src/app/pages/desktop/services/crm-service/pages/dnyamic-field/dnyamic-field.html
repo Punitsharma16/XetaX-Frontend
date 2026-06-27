@@ -1,0 +1,465 @@
+<div class="container-fluid px-3 px-md-4 py-3 py-md-4">
+  <div class="page-header" [class.d-none]="selectedField && windowWidth < 768">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-3 flex-shrink-0" style="width: 48px; height: 48px;">
+          <i class="bi bi-plus-circle text-primary fs-4"></i>
+        </div>
+        <div>
+          <h4 class="mb-1">Dynamic Field Generator</h4>
+          <p class="text-muted mb-0 small">Create and manage custom fields</p>
+        </div>
+      </div>
+      <div class="d-flex gap-2">
+        <div class="btn-group bg-light p-1 rounded-3">
+          <button class="btn btn-sm" [class.btn-primary]="currentView === 'grid'" [class.btn-light]="currentView !== 'grid'" (click)="setView('grid')"><i class="bi bi-grid"></i></button>
+          <button class="btn btn-sm" [class.btn-primary]="currentView === 'list'" [class.btn-light]="currentView !== 'list'" (click)="setView('list')"><i class="bi bi-list-ul"></i></button>
+        </div>
+        <button class="btn btn-primary btn-sm" (click)="addField()"><i class="bi bi-plus-circle me-1"></i>New Field</button>
+      </div>
+    </div>
+  </div>
+
+  <ng-container *ngIf="!isEditMode">
+    <div *ngIf="currentView === 'grid'" class="split-panel row g-0">
+      <div class="col-12 col-md-5 split-panel-list p-3" [class.d-none]="selectedField && windowWidth < 768" [class.d-md-block]="true">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h6 class="mb-0">Custom Fields</h6>
+            <small class="text-muted">{{fields.length}} total</small>
+          </div>
+        </div>
+        <div class="mb-3">
+          <input type="text" class="form-control form-control-sm" placeholder="Search fields..." [(ngModel)]="searchTerm" (ngModelChange)="filterFields()">
+        </div>
+        <div class="fields-list" style="max-height: 500px; overflow-y: auto;">
+          <div *ngFor="let field of filteredFields" class="list-item" [class.active]="selectedField?.id === field.id" (click)="selectField(field)">
+            <div class="field-type-indicator flex-shrink-0" [style.background-color]="getTypeColor(field.fieldDataType)">
+              <i [class]="'bi ' + getDataTypeIcon(field.fieldDataType)"></i>
+            </div>
+            <div class="flex-grow-1 min-width-0">
+              <div class="d-flex justify-content-between gap-1">
+                <h6 class="mb-0 text-truncate">{{field.fieldName}}</h6>
+                <small class="text-muted">{{field.fieldId | slice:0:8}}...</small>
+              </div>
+              <div class="d-flex flex-wrap gap-2 small text-muted mt-1">
+                <span class="badge bg-light text-dark border fw-normal">
+                  <i [class]="'bi me-1 ' + getDataTypeIcon(field.fieldDataType)"></i>{{field.fieldDataType}}
+                </span>
+                <span class="badge" [class.bg-success]="field.visible" [class.bg-secondary]="!field.visible">
+                  <i class="bi bi-{{field.visible ? 'eye' : 'eye-slash'}} me-1"></i>{{field.visible ? 'Visible' : 'Hidden'}}
+                </span>
+              </div>
+              <div class="small text-muted mt-1">
+                <i class="bi bi-asterisk me-1" [class.text-danger]="field.required"></i>{{field.required ? 'Required' : 'Optional'}} · Seq: {{field.sequence}}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-7 p-3 p-md-4" [class.d-none]="!selectedField && windowWidth < 768" [class.d-md-block]="true">
+        <ng-container *ngIf="selectedField && !isEditMode; else noField">
+          <button class="btn btn-outline-secondary btn-sm d-md-none mb-3" (click)="selectedField = null">
+            <i class="bi bi-arrow-left me-1"></i>Back to list
+          </button>
+          <div class="d-flex flex-wrap justify-content-between align-items-start border-bottom pb-3 mb-3 gap-2">
+            <div class="min-width-0">
+              <h4 class="mb-1 text-break">{{selectedField.fieldName}}</h4>
+              <div class="d-flex flex-wrap gap-2 mt-1">
+                <span class="badge" [style.background-color]="getTypeColor(selectedField.fieldDataType)">
+                  <i [class]="'bi me-1 ' + getDataTypeIcon(selectedField.fieldDataType)"></i>{{selectedField.fieldDataType}}
+                </span>
+                <span class="text-muted">ID: {{selectedField.fieldId}}</span>
+              </div>
+            </div>
+            <div class="d-flex gap-2 flex-wrap flex-shrink-0">
+              <button class="btn btn-outline-primary btn-sm" (click)="editField(selectedField)"><i class="bi bi-pencil"></i><span class="d-none d-sm-inline ms-1">Edit</span></button>
+              <button class="btn btn-outline-danger btn-sm" (click)="deleteField(selectedField.id)"><i class="bi bi-trash"></i></button>
+              <button class="btn btn-outline-secondary btn-sm" (click)="togglePreview()"><i class="bi bi-{{showPreview ? 'eye-slash' : 'eye'}}"></i></button>
+            </div>
+          </div>
+
+          <div class="card bg-light mb-4" *ngIf="showPreview">
+            <div class="card-body">
+              <h6 class="text-muted mb-3"><i class="bi bi-eye me-2"></i>Live Preview</h6>
+              <div class="p-3 bg-white rounded-3 border">
+                <label class="form-label fw-semibold">{{selectedField.fieldName}}<span class="text-danger" *ngIf="selectedField.required">*</span></label>
+                <ng-container [ngSwitch]="selectedField.fieldDataType">
+                  <input *ngSwitchCase="'Text'" type="text" class="form-control" [placeholder]="selectedField.placeHolder || 'Enter text'">
+                  <input *ngSwitchCase="'Number'" type="number" class="form-control" [placeholder]="selectedField.placeHolder || 'Enter number'">
+                  <input *ngSwitchCase="'Email'" type="email" class="form-control" [placeholder]="selectedField.placeHolder || 'Enter email'">
+                  <input *ngSwitchCase="'Date'" type="date" class="form-control">
+                  <select *ngSwitchCase="'Dropdown'" class="form-select"><option>{{selectedField.placeHolder || 'Select option'}}</option><option *ngFor="let opt of selectedField.option" [value]="opt.value">{{opt.label}}</option></select>
+                  <div *ngSwitchCase="'Checkbox'" class="form-check"><input type="checkbox" class="form-check-input"><label class="form-check-label">{{selectedField.placeHolder || selectedField.fieldName}}</label></div>
+                  <div *ngSwitchCase="'Radio'"><div *ngFor="let opt of selectedField.option" class="form-check"><input type="radio" class="form-check-input"><label class="form-check-label">{{opt.label}}</label></div></div>
+                  <textarea *ngSwitchCase="'Textarea'" class="form-control" rows="3" [placeholder]="selectedField.placeHolder || 'Enter text'"></textarea>
+                  <input *ngSwitchCase="'Phone'" type="tel" class="form-control" placeholder="Enter phone">
+                  <input *ngSwitchCase="'Url'" type="url" class="form-control" placeholder="Enter URL">
+                </ng-container>
+              </div>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-12">
+              <h6 class="section-title">Field Properties</h6>
+            </div>
+            <div class="col-6">
+              <small class="text-muted d-block mb-1">Field ID</small>
+              <code>{{selectedField.fieldId}}</code>
+            </div>
+            <div class="col-6">
+              <small class="text-muted d-block mb-1">Data Type</small>
+              <span class="badge" [style.background-color]="getTypeColor(selectedField.fieldDataType)">{{selectedField.fieldDataType}}</span>
+            </div>
+            <div class="col-6">
+              <small class="text-muted d-block mb-1">Placeholder</small>
+              <div>{{selectedField.placeHolder || '-'}}</div>
+            </div>
+            <div class="col-6">
+              <small class="text-muted d-block mb-1">Sequence</small>
+              <div>{{selectedField.sequence}}</div>
+            </div>
+            <div class="col-6">
+              <small class="text-muted d-block mb-1">Min Length</small>
+              <div>{{selectedField.minLength || 0}}</div>
+            </div>
+            <div class="col-6">
+              <small class="text-muted d-block mb-1">Max Length</small>
+              <div>{{selectedField.maxLength || '∞'}}</div>
+            </div>
+            <div class="col-6">
+              <small class="text-muted d-block mb-1">Pattern</small>
+              <code>{{selectedField.pattern || '-'}}</code>
+            </div>
+            <div class="col-6">
+              <small class="text-muted d-block mb-1">Account ID</small>
+              <div>{{selectedField.accountId || '-'}}</div>
+            </div>
+            <div class="col-12">
+              <hr class="section-divider">
+            </div>
+            <div class="col-6">
+              <small class="text-muted d-block mb-1">Required</small>
+              <span class="badge" [class.bg-success]="selectedField.required" [class.bg-secondary]="!selectedField.required">{{selectedField.required ? 'Yes' : 'No'}}</span>
+            </div>
+            <div class="col-6">
+              <small class="text-muted d-block mb-1">Visible</small>
+              <span class="badge" [class.bg-success]="selectedField.visible" [class.bg-secondary]="!selectedField.visible">{{selectedField.visible ? 'Yes' : 'No'}}</span>
+            </div>
+            <div class="col-12">
+              <hr class="section-divider">
+            </div>
+            <div class="col-3 text-center">
+              <small class="text-muted d-block mb-1">Tables</small>
+              <i class="bi fs-4" [class.bi-check-circle-fill.text-success]="selectedField.showTables" [class.bi-x-circle-fill.text-danger]="!selectedField.showTables"></i>
+            </div>
+            <div class="col-3 text-center">
+              <small class="text-muted d-block mb-1">Filter</small>
+              <i class="bi fs-4" [class.bi-check-circle-fill.text-success]="selectedField.showFilter" [class.bi-x-circle-fill.text-danger]="!selectedField.showFilter"></i>
+            </div>
+            <div class="col-3 text-center">
+              <small class="text-muted d-block mb-1">Report</small>
+              <i class="bi fs-4" [class.bi-check-circle-fill.text-success]="selectedField.showReport" [class.bi-x-circle-fill.text-danger]="!selectedField.showReport"></i>
+            </div>
+            <div class="col-3 text-center">
+              <small class="text-muted d-block mb-1">Excel</small>
+              <i class="bi fs-4" [class.bi-check-circle-fill.text-success]="selectedField.showInExcel" [class.bi-x-circle-fill.text-danger]="!selectedField.showInExcel"></i>
+            </div>
+            <div class="col-12" *ngIf="selectedField.option?.length">
+              <hr class="section-divider">
+              <small class="text-muted d-block mb-2">Options</small>
+              <div class="d-flex flex-wrap gap-1">
+                <span *ngFor="let opt of selectedField.option" class="badge bg-light text-dark border p-2">{{opt.label}} <span class="text-muted">({{opt.value}})</span></span>
+              </div>
+            </div>
+            <div class="col-12">
+              <hr class="section-divider">
+            </div>
+            <div class="col-6">
+              <small class="text-muted d-block mb-1">Updated By</small>
+              <div>{{selectedField.updateBy}}</div>
+            </div>
+            <div class="col-6">
+              <small class="text-muted d-block mb-1">Update Date</small>
+              <div>{{selectedField.updateDate}}</div>
+            </div>
+          </div>
+        </ng-container>
+        <ng-template #noField>
+          <div class="empty-state d-flex flex-column align-items-center justify-content-center h-100">
+            <i class="bi bi-plus-circle" style="font-size: 3rem;"></i>
+            <h5 class="mt-3">Select a field</h5>
+            <p class="small">Choose a field from the list or create a new one</p>
+            <button class="btn btn-primary btn-sm mt-2" (click)="addField()"><i class="bi bi-plus-circle me-1"></i>New Field</button>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+
+    <div *ngIf="currentView === 'list'" class="card">
+      <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h6 class="mb-0">Custom Fields</h6>
+            <small class="text-muted">{{fields.length}} total</small>
+          </div>
+          <input type="text" class="form-control form-control-sm" placeholder="Search..." [(ngModel)]="searchTerm" (ngModelChange)="filterFields()">
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th class="d-none d-sm-table-cell" style="width: 40px;">#</th>
+                <th style="width: 40px;">Type</th>
+                <th>Field Name</th>
+                <th class="d-none d-md-table-cell">Field ID</th>
+                <th class="d-none d-lg-table-cell">Data Type</th>
+                <th class="text-center">Required</th>
+                <th class="text-center">Visible</th>
+                <th class="text-center">Seq</th>
+                <th class="text-end" style="width: 40px;"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let f of filteredFields; let i = index">
+                <td class="d-none d-sm-table-cell text-muted">{{i + 1}}</td>
+                <td>
+                  <div class="field-type-indicator" style="width: 36px; height: 36px; font-size: .9rem; border-radius: 8px;" [style.background-color]="getTypeColor(f.fieldDataType)">
+                    <i [class]="'bi ' + getDataTypeIcon(f.fieldDataType)"></i>
+                  </div>
+                </td>
+                <td><span class="fw-semibold">{{f.fieldName}}</span></td>
+                <td class="d-none d-md-table-cell"><code>{{f.fieldId | slice:0:8}}..</code></td>
+                <td class="d-none d-lg-table-cell">
+                  <span class="badge" [style.background-color]="getTypeColor(f.fieldDataType)">{{f.fieldDataType}}</span>
+                </td>
+                <td class="text-center">
+                  <i class="bi" [class.bi-check-circle-fill.text-success]="f.required" [class.bi-x-circle-fill.text-danger]="!f.required"></i>
+                </td>
+                <td class="text-center">
+                  <i class="bi" [class.bi-eye-fill.text-success]="f.visible" [class.bi-eye-slash-fill.text-muted]="!f.visible"></i>
+                </td>
+                <td class="text-center">{{f.sequence}}</td>
+                <td class="text-end">
+                  <div class="dropdown">
+                    <button class="btn btn-sm btn-link text-muted p-0" data-bs-toggle="dropdown">
+                      <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li><a class="dropdown-item" href="#" (click)="$event.preventDefault();viewFieldDetails(f)"><i class="bi bi-eye me-2"></i>View</a></li>
+                      <li><a class="dropdown-item" href="#" (click)="$event.preventDefault();editField(f)"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li><a class="dropdown-item text-danger" href="#" (click)="$event.preventDefault();deleteField(f.id)"><i class="bi bi-trash me-2"></i>Delete</a></li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div *ngIf="filteredFields.length === 0" class="empty-state">
+          <i class="bi bi-plus-circle fs-2"></i>
+          <p class="mt-2 mb-0">No fields found</p>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <div class="modal fade" [class.show]="showDetailsModal" [style.display]="showDetailsModal ? 'block' : 'none'">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content" *ngIf="selectedField">
+        <div class="modal-header">
+          <h5 class="modal-title">Field Details</h5>
+          <button type="button" class="btn-close" (click)="closeDetailsModal()"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-4">
+            <div class="col-md-3 text-center mb-3">
+              <div [style.background-color]="getTypeColor(selectedField.fieldDataType)" style="width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 2rem; margin: 0 auto;">
+                <i [class]="'bi ' + getDataTypeIcon(selectedField.fieldDataType)"></i>
+              </div>
+            </div>
+            <div class="col-md-9">
+              <h4>{{selectedField.fieldName}}</h4>
+              <p class="text-muted">ID: <code>{{selectedField.fieldId}}</code></p>
+              <div class="row g-3 mt-3">
+                <div class="col-6"><strong>Data Type:</strong><br><span class="badge" [style.background-color]="getTypeColor(selectedField.fieldDataType)">{{selectedField.fieldDataType}}</span></div>
+                <div class="col-6"><strong>Sequence:</strong><br>{{selectedField.sequence}}</div>
+                <div class="col-6"><strong>Required:</strong><br><span class="badge" [class.bg-success]="selectedField.required" [class.bg-secondary]="!selectedField.required">{{selectedField.required ? 'Yes' : 'No'}}</span></div>
+                <div class="col-6"><strong>Visible:</strong><br><span class="badge" [class.bg-success]="selectedField.visible" [class.bg-secondary]="!selectedField.visible">{{selectedField.visible ? 'Yes' : 'No'}}</span></div>
+                <div class="col-6"><strong>Placeholder:</strong><br>{{selectedField.placeHolder || '-'}}</div>
+                <div class="col-6"><strong>Min/Max:</strong><br>{{selectedField.minLength || 0}} / {{selectedField.maxLength || '∞'}}</div>
+                <div class="col-6"><strong>Pattern:</strong><br><code>{{selectedField.pattern || '-'}}</code></div>
+                <div class="col-6"><strong>Account ID:</strong><br>{{selectedField.accountId || '-'}}</div>
+                <div class="col-6"><strong>Updated By:</strong><br>{{selectedField.updateBy}}</div>
+                <div class="col-6"><strong>Update Date:</strong><br>{{selectedField.updateDate}}</div>
+              </div>
+              <div class="row mt-3" *ngIf="selectedField.option?.length">
+                <div class="col-12"><hr><strong>Options:</strong><div class="d-flex flex-wrap gap-2 mt-2"><span *ngFor="let opt of selectedField.option" class="badge bg-light text-dark border p-2">{{opt.label}} <span class="text-muted">({{opt.value}})</span></span></div></div>
+              </div>
+              <div class="row mt-3">
+                <div class="col-12"><hr><strong>Visibility Settings:</strong></div>
+                <div class="col-3 mt-2 text-center"><div class="small text-muted">Tables</div><i class="bi fs-3" [class.bi-check-circle-fill.text-success]="selectedField.showTables" [class.bi-x-circle-fill.text-danger]="!selectedField.showTables"></i></div>
+                <div class="col-3 mt-2 text-center"><div class="small text-muted">Filter</div><i class="bi fs-3" [class.bi-check-circle-fill.text-success]="selectedField.showFilter" [class.bi-x-circle-fill.text-danger]="!selectedField.showFilter"></i></div>
+                <div class="col-3 mt-2 text-center"><div class="small text-muted">Report</div><i class="bi fs-3" [class.bi-check-circle-fill.text-success]="selectedField.showReport" [class.bi-x-circle-fill.text-danger]="!selectedField.showReport"></i></div>
+                <div class="col-3 mt-2 text-center"><div class="small text-muted">Excel</div><i class="bi fs-3" [class.bi-check-circle-fill.text-success]="selectedField.showInExcel" [class.bi-x-circle-fill.text-danger]="!selectedField.showInExcel"></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-light" (click)="closeDetailsModal()">Close</button>
+          <button class="btn btn-primary" (click)="editField(selectedField); closeDetailsModal()"><i class="bi bi-pencil me-1"></i>Edit Field</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade show" *ngIf="showDetailsModal"></div>
+
+  <div class="row justify-content-center" *ngIf="isEditMode">
+    <div class="col-12 col-lg-10">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">{{selectedField ? 'Edit Field' : 'Create New Field'}}</h5>
+          <button class="btn-close" (click)="cancelEdit()"></button>
+        </div>
+        <div class="card-body">
+          <form #fieldForm="ngForm" (ngSubmit)="onSubmit()">
+            <div class="row g-3">
+              <div class="col-12 col-md-4">
+                <label class="form-label">Field Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" [(ngModel)]="fieldModel.fieldName" name="fieldName" #fieldName="ngModel" required placeholder="Enter field name">
+                <div class="text-danger small mt-1" *ngIf="fieldName.invalid && fieldName.touched">Required</div>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label">Field ID</label>
+                <input type="text" class="form-control" [(ngModel)]="fieldModel.fieldId" name="fieldId" placeholder="Auto-generated">
+                <small class="text-muted d-block">Unique identifier</small>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label">Data Type <span class="text-danger">*</span></label>
+                <select class="form-select" [(ngModel)]="fieldModel.fieldDataType" name="fieldDataType" required>
+                  <option *ngFor="let type of dataTypes" [value]="type">{{type}}</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label">Placeholder</label>
+                <input type="text" class="form-control" [(ngModel)]="fieldModel.placeHolder" name="placeHolder" placeholder="Enter placeholder">
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label">Sequence</label>
+                <input type="number" class="form-control" [(ngModel)]="fieldModel.sequence" name="sequence" min="0" placeholder="Display order">
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label">Account ID</label>
+                <input type="number" class="form-control" [(ngModel)]="fieldModel.accountId" name="accountId" placeholder="Account ID">
+              </div>
+              <div class="col-12">
+                <hr class="section-divider">
+                <h6 class="text-muted">Validation Rules</h6>
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label">Min Length</label>
+                <input type="number" class="form-control" [(ngModel)]="fieldModel.minLength" name="minLength" min="0" placeholder="Min chars">
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label">Max Length</label>
+                <input type="number" class="form-control" [(ngModel)]="fieldModel.maxLength" name="maxLength" min="0" placeholder="Max chars">
+              </div>
+              <div class="col-12 col-md-4">
+                <label class="form-label">Regex Pattern</label>
+                <input type="text" class="form-control" [(ngModel)]="fieldModel.pattern" name="pattern" placeholder="e.g., ^[A-Za-z]+$">
+              </div>
+              <div class="col-12" *ngIf="['Dropdown', 'Radio', 'Checkbox'].includes(fieldModel.fieldDataType)">
+                <label class="form-label">Options</label>
+                <div class="border rounded-3 p-3 bg-light">
+                  <div class="row g-2 mb-2">
+                    <div class="col-md-5">
+                      <input type="text" class="form-control" placeholder="Label" [(ngModel)]="newOption.label" name="newLabel">
+                    </div>
+                    <div class="col-md-5">
+                      <input type="text" class="form-control" placeholder="Value" [(ngModel)]="newOption.value" name="newValue">
+                    </div>
+                    <div class="col-md-2">
+                      <button class="btn btn-primary w-100" type="button" (click)="addOption()">Add</button>
+                    </div>
+                  </div>
+                  <div class="mt-2">
+                    <div *ngFor="let opt of fieldModel.option; let i = index" class="d-flex justify-content-between align-items-center mb-1 p-2 bg-white rounded-3 border">
+                      <span>{{opt.label}} <span class="text-muted">({{opt.value}})</span></span>
+                      <button class="btn btn-sm btn-link text-danger" type="button" (click)="removeOption(i)"><i class="bi bi-x"></i></button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12">
+                <hr class="section-divider">
+                <h6 class="text-muted">Visibility Settings</h6>
+              </div>
+              <div class="col-12">
+                <div class="row">
+                  <div class="col-md-3">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="required" [(ngModel)]="fieldModel.required" name="required">
+                      <label class="form-check-label" for="required">Required</label>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="visible" [(ngModel)]="fieldModel.visible" name="visible">
+                      <label class="form-check-label" for="visible">Visible</label>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="showTables" [(ngModel)]="fieldModel.showTables" name="showTables">
+                      <label class="form-check-label" for="showTables">Show in Tables</label>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="showFilter" [(ngModel)]="fieldModel.showFilter" name="showFilter">
+                      <label class="form-check-label" for="showFilter">Show in Filter</label>
+                    </div>
+                  </div>
+                  <div class="col-md-3 mt-2">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="showReport" [(ngModel)]="fieldModel.showReport" name="showReport">
+                      <label class="form-check-label" for="showReport">Show in Report</label>
+                    </div>
+                  </div>
+                  <div class="col-md-3 mt-2">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="showInExcel" [(ngModel)]="fieldModel.showInExcel" name="showInExcel">
+                      <label class="form-check-label" for="showInExcel">Show in Excel</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12">
+                <hr class="section-divider">
+                <h6 class="text-muted">System Information</h6>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label">Updated By</label>
+                <input type="text" class="form-control bg-light" [(ngModel)]="fieldModel.updateBy" name="updateBy" readonly>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label">Update Date</label>
+                <input type="text" class="form-control bg-light" [(ngModel)]="fieldModel.updateDate" name="updateDate" readonly>
+              </div>
+            </div>
+            <div class="d-grid d-sm-flex gap-2 justify-content-end mt-4">
+              <button type="button" class="btn btn-light" (click)="cancelEdit()">Cancel</button>
+              <button type="submit" class="btn btn-primary" [disabled]="fieldForm.invalid">
+                <i class="bi bi-check-circle me-1"></i>{{selectedField ? 'Update' : 'Create'}} Field
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

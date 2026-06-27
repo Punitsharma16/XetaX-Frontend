@@ -1,0 +1,233 @@
+.bot-chips-row {
+  display: flex;
+  gap: 6px;
+  padding: 10px 12px 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.bot-chips-row::-webkit-scrollbar {
+  display: none;
+}
+
+.bot-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 450;
+  color: #475569;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.bot-chip:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.bot-chip.active {
+  background: #3b82f6;
+  border-color: #3b82f6;
+  color: #fff;
+}
+
+.bot-chip-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #94a3b8;
+  flex-shrink: 0;
+}
+
+.bot-chip-dot.online {
+  background: #22c55e;
+}
+
+.bot-chip.active .bot-chip-dot {
+  background: rgba(255,255,255,0.8);
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.user-item:hover {
+  background: rgba(59, 130, 246, 0.05);
+}
+
+.user-item.active {
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.chat-bg {
+  background: rgba(248, 250, 252, 0.4);
+}
+
+.message.sent {
+  border-bottom-right-radius: 4px !important;
+}
+
+.message:not(.sent) {
+  border-bottom-left-radius: 4px !important;
+}
+
+.typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 14px 18px !important;
+}
+
+.typing-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #94a3b8;
+  animation: typingBounce 1.4s infinite ease-in-out;
+}
+
+.typing-dot:nth-child(1) { animation-delay: 0s; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingBounce {
+  0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+  40% { transform: translateY(-6px); opacity: 1; }
+}
+
+/* ─── API Details Panel ─── */
+.api-details-panel {
+  border-bottom: 1px solid #e5e7eb;
+  background: #fafbfc;
+  flex-shrink: 0;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.api-details-body {
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.api-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.api-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.api-code-box {
+  background: #1f2937;
+  border-radius: 6px;
+  padding: 0.6rem 0.75rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  overflow-x: auto;
+}
+
+.api-code-box code,
+.api-code-box pre {
+  color: #e5e7eb;
+  font-size: 0.75rem;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  white-space: pre-wrap;
+  word-break: break-all;
+  flex: 1;
+  margin: 0;
+}
+
+.api-copy-btn {
+  background: rgba(255,255,255,0.1);
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.api-copy-btn:hover {
+  background: rgba(255,255,255,0.2);
+  color: #fff;
+}
+
+.api-endpoints {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.api-endpoint-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  padding: 0.35rem 0.5rem;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  flex-wrap: wrap;
+}
+
+.api-method {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+
+.api-method.post {
+  background: #fef2f2;
+  color: #dc2626;
+}
+
+.api-method.get {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.api-path {
+  font-size: 0.75rem;
+  color: #6366f1;
+  word-break: break-all;
+  flex: 1;
+  min-width: 0;
+}
+
+.api-desc {
+  color: #6b7280;
+  font-size: 0.72rem;
+  flex-basis: 100%;
+}

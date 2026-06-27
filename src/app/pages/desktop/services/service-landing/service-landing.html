@@ -1,0 +1,35 @@
+<div class="service-landing">
+  <div class="container-fluid px-3 px-md-4 py-4 py-md-5">
+    <div class="text-center mb-5">
+      <div class="d-inline-flex align-items-center justify-content-center rounded-4 mb-3 landing-icon-wrapper">
+        <i class="bi bi-grid-fill landing-main-icon"></i>
+      </div>
+      <h2 class="fw-bold mb-2">Welcome to CRM Platform</h2>
+      <p class="text-muted mb-0 mx-auto" style="max-width: 500px;">Select a service to get started. Each service provides specialized tools for your business needs.</p>
+    </div>
+
+    <div class="row g-4 justify-content-center">
+      <div class="col-12 col-sm-6 col-lg-3" *ngFor="let service of services">
+        <div class="service-card card border-0 h-100" (click)="navigateTo(service.route)" role="button">
+          <div class="service-card-bg" [style.background]="service.gradient"></div>
+          <div class="card-body p-4 position-relative">
+            <div class="service-icon-wrap mb-3" [style.background]="service.lightBg" [style.color]="service.color">
+              <i class="bi" [ngClass]="service.icon"></i>
+            </div>
+            <h5 class="fw-bold mb-2">{{ service.title }}</h5>
+            <p class="text-muted small mb-3">{{ service.description }}</p>
+            <div class="d-flex flex-wrap gap-2 mb-3">
+              <span class="feature-badge" *ngFor="let feature of service.features">
+                {{ feature }}
+              </span>
+            </div>
+            <div class="d-flex align-items-center gap-1 service-cta">
+              <span class="fw-semibold small">Open Service</span>
+              <i class="bi bi-arrow-right"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

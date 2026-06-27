@@ -21,11 +21,22 @@
             "assets": [
               {
                 "glob": "**/*",
+                "input": "src/assets",
+                "output": "assets"
+              },
+              {
+                "glob": "**/*",
                 "input": "public"
               }
             ],
             "styles": [
+              "src/custom-theme.scss",
+              "node_modules/bootstrap/dist/css/bootstrap.min.css",
+              "node_modules/bootstrap-icons/font/bootstrap-icons.css",
               "src/styles.css"
+            ],
+            "scripts": [
+              "node_modules/bootstrap/dist/js/bootstrap.bundle.min.js"
             ]
           },
           "configurations": {
@@ -33,13 +44,13 @@
               "budgets": [
                 {
                   "type": "initial",
-                  "maximumWarning": "500kB",
-                  "maximumError": "1MB"
+                  "maximumWarning": "800kB",
+                  "maximumError": "1.5MB"
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "4kB",
-                  "maximumError": "8kB"
+                  "maximumWarning": "30kB",
+                  "maximumError": "35kB"
                 }
               ],
               "outputHashing": "all"
@@ -59,7 +70,8 @@
               "buildTarget": "crm-app:build:production"
             },
             "development": {
-              "buildTarget": "crm-app:build:development"
+              "buildTarget": "crm-app:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"
@@ -88,5 +100,8 @@
         }
       }
     }
+  },
+  "cli": {
+    "analytics": "efa87cc3-2e3d-4f52-b2b3-7e5fc83f7760"
   }
 }

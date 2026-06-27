@@ -1,0 +1,9 @@
+<div class="d-flex align-items-center gap-2 bg-light rounded-3 p-1">
+  <button class="btn btn-sm btn-link text-muted p-0 px-1" (click)="decrement()" [disabled]="quantity <= min">
+    <i class="bi bi-dash"></i>
+  </button>
+  <span class="fw-semibold small" style="min-width: 20px; text-align: center;">{{quantity}}</span>
+  <button class="btn btn-sm btn-link text-muted p-0 px-1" (click)="increment()" [disabled]="quantity >= max">
+    <i class="bi bi-plus"></i>
+  </button>
+</div>

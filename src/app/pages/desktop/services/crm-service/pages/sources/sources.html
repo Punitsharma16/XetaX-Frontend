@@ -1,0 +1,400 @@
+<div class="container-fluid px-3 px-md-4 py-3 py-md-4">
+  <div class="page-header" [class.d-none]="selectedSource && windowWidth < 768">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <div class="d-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-3 flex-shrink-0" style="width: 48px; height: 48px;">
+          <i class="bi bi-diagram-3 text-primary fs-4"></i>
+        </div>
+        <div>
+          <h4 class="mb-1">Lead Sources</h4>
+          <p class="text-muted mb-0 small">Manage lead sources and allocation rules</p>
+        </div>
+      </div>
+      <div class="d-flex gap-2">
+        <div class="btn-group bg-light p-1 rounded-3">
+          <button class="btn btn-sm" [class.btn-primary]="currentView === 'grid'" [class.btn-light]="currentView !== 'grid'" (click)="setView('grid')"><i class="bi bi-grid"></i></button>
+          <button class="btn btn-sm" [class.btn-primary]="currentView === 'list'" [class.btn-light]="currentView !== 'list'" (click)="setView('list')"><i class="bi bi-list-ul"></i></button>
+        </div>
+        <button class="btn btn-primary btn-sm" (click)="openNewSourceModal()"><i class="bi bi-plus-circle me-1"></i>New Source</button>
+      </div>
+    </div>
+  </div>
+
+  <ng-container *ngIf="!isEditMode && !isAllocationMode">
+    <div *ngIf="currentView === 'grid'" class="split-panel row g-0">
+      <div class="col-12 col-md-5 split-panel-list p-3" [class.d-none]="selectedSource && windowWidth < 768" [class.d-md-block]="true">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h6 class="mb-0">Lead Sources</h6>
+            <small class="text-muted">{{sources.length}} total</small>
+          </div>
+        </div>
+        <div class="mb-3">
+          <input type="text" class="form-control form-control-sm" placeholder="Search sources..." [(ngModel)]="searchTerm" (ngModelChange)="filterSources()">
+        </div>
+        <div class="source-list" style="max-height: 500px; overflow-y: auto;">
+          <div *ngFor="let source of filteredSources" class="list-item" [class.active]="selectedSource?.id === source.id" (click)="selectSource(source)">
+            <div class="flex-shrink-0">
+              <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                <i class="bi bi-diagram-3 text-primary" style="font-size: 1.5rem;"></i>
+              </div>
+            </div>
+            <div class="flex-grow-1 min-width-0">
+              <div class="d-flex justify-content-between align-items-start gap-1">
+                <h6 class="mb-0 text-truncate">{{source.name}}</h6>
+                <small class="text-muted">#{{source.id}}</small>
+              </div>
+              <div class="d-flex flex-wrap gap-2 small text-muted mt-1">
+                <span class="badge bg-light text-dark border fw-normal px-2 py-1 text-truncate">
+                  <i class="bi bi-tag me-1"></i>{{source.desc || source.description || 'No description'}}
+                </span>
+                <span class="badge" [class.bg-success]="source.status === 1" [class.bg-danger]="source.status === 0">
+                  <i class="bi bi-{{source.status === 1 ? 'check-circle' : 'x-circle'}} me-1"></i>{{source.status === 1 ? 'Active' : 'Inactive'}}
+                </span>
+              </div>
+              <div class="small text-muted mt-1">
+                <i class="bi bi-person me-1"></i>{{source.assignBy || 'leadSource'}}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-7 p-3 p-md-4" [class.d-none]="!selectedSource && windowWidth < 768" [class.d-md-block]="true">
+        <ng-container *ngIf="selectedSource; else noSelection">
+          <button class="btn btn-outline-secondary btn-sm d-md-none mb-3" (click)="selectedSource = null">
+            <i class="bi bi-arrow-left me-1"></i>Back to list
+          </button>
+          <div class="d-flex flex-wrap justify-content-between align-items-start border-bottom pb-3 mb-3 gap-2">
+            <div class="min-width-0">
+              <h4 class="mb-1 text-break">{{selectedSource.name}}</h4>
+              <div class="d-flex flex-wrap gap-2">
+                <span class="badge" [class.bg-success]="selectedSource.status === 1" [class.bg-danger]="selectedSource.status === 0">
+                  <i class="bi bi-{{selectedSource.status === 1 ? 'check-circle' : 'x-circle'}} me-1"></i>{{selectedSource.status === 1 ? 'Active' : 'Inactive'}}
+                </span>
+                <span class="text-muted">ID: {{selectedSource.id}}</span>
+              </div>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+              <button type="button" class="btn btn-outline-primary btn-sm" (click)="openEditForm(selectedSource)"><i class="bi bi-pencil"></i><span class="d-none d-sm-inline ms-1">Edit</span></button>
+              <button type="button" class="btn btn-outline-success btn-sm" (click)="openAllocationModal(selectedSource)"><i class="bi bi-person-plus"></i><span class="d-none d-sm-inline ms-1">Assign</span></button>
+              <button type="button" class="btn btn-outline-danger btn-sm" (click)="deleteSource(selectedSource.id)"><i class="bi bi-trash"></i></button>
+            </div>
+          </div>
+          <div class="row g-3">
+            <div class="col-12">
+              <h6 class="section-title">Source Information</h6>
+            </div>
+            <div class="col-6">
+              <small class="text-muted d-block mb-1">Source ID</small>
+              <code>{{selectedSource.id}}</code>
+            </div>
+            <div class="col-6">
+              <small class="text-muted d-block mb-1">Parent ID</small>
+              {{selectedSource.parentId || 'None'}}
+            </div>
+            <div class="col-6">
+              <small class="text-muted d-block mb-1">Name</small>
+              {{selectedSource.name}}
+            </div>
+            <div class="col-6">
+              <small class="text-muted d-block mb-1">Description</small>
+              {{selectedSource.desc || selectedSource.description || 'No description'}}
+            </div>
+            <div class="col-6">
+              <small class="text-muted d-block mb-1">Status</small>
+              <span class="badge" [class.bg-success]="selectedSource.status === 1" [class.bg-danger]="selectedSource.status === 0">{{selectedSource.status === 1 ? 'Active' : 'Inactive'}}</span>
+            </div>
+            <div class="col-6">
+              <small class="text-muted d-block mb-1">Assign By</small>
+              {{selectedSource.assignBy || 'leadSource'}}
+            </div>
+            <div class="col-12">
+              <small class="text-muted d-block mb-1">Access Token</small>
+              <code class="text-break">{{selectedSource.accessToken}}</code>
+            </div>
+          </div>
+
+          <div class="row g-3 mt-4">
+            <div class="col-12">
+              <div class="d-flex justify-content-between align-items-center">
+                <h6 class="text-muted mb-0">Lead Allocation Rules</h6>
+                <button class="btn btn-primary btn-sm" (click)="openAllocationModal(selectedSource)"><i class="bi bi-plus-circle me-1"></i>Add Rule</button>
+              </div>
+            </div>
+            <div class="col-12" *ngIf="allocations.length > 0; else noAllocations">
+              <div *ngFor="let allocation of allocations" class="card bg-light mb-3">
+                <div class="card-body">
+                  <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+                    <div class="flex-grow-1">
+                      <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                        <h6 class="mb-0">{{allocation.name}}</h6>
+                        <span class="badge" [class.bg-success]="allocation.status" [class.bg-danger]="!allocation.status">{{allocation.status ? 'Active' : 'Inactive'}}</span>
+                      </div>
+                      <p class="small text-muted mb-2">{{allocation.description}}</p>
+                      <div class="row g-2 small">
+                        <div class="col-12 col-sm-6"><span class="text-muted">Type:</span> <span class="fw-semibold ms-1">{{allocation.allocationType === 1 ? 'Round Robin' : allocation.allocationType === 2 ? 'Load Balanced' : 'Priority Based'}}</span></div>
+                        <div class="col-12 col-sm-6"><span class="text-muted">Option:</span> <span class="fw-semibold ms-1">{{allocation.option}}</span></div>
+                        <div class="col-12 col-sm-6"><span class="text-muted">User:</span> <span class="fw-semibold ms-1">{{allocation.allocationUser || 'N/A'}}</span></div>
+                        <div class="col-12 col-sm-6"><span class="text-muted">Last User:</span> <span class="fw-semibold ms-1">{{allocation.lastUserId || 'None'}}</span></div>
+                        <div class="col-12 col-sm-6"><span class="text-muted">Initial Stage:</span> <span class="fw-semibold ms-1">{{allocation.initialStage}}</span></div>
+                        <div class="col-12 col-sm-6"><span class="text-muted">Initial Status:</span> <span class="fw-semibold ms-1">{{allocation.initialStatus}}</span></div>
+                      </div>
+                      <div class="mt-2" *ngIf="allocation.sendTextMessage">
+                        <span class="badge bg-info text-white me-1"><i class="bi bi-chat me-1"></i>SMS Template: {{allocation.templateId}}</span>
+                        <span class="badge bg-secondary text-white" *ngIf="allocation.otherPhonenumbers"><i class="bi bi-telephone me-1"></i>{{allocation.otherPhonenumbers}}</span>
+                      </div>
+                    </div>
+                    <div class="d-flex gap-2 flex-shrink-0">
+                      <button class="btn btn-sm btn-outline-primary" (click)="editAllocation(allocation)"><i class="bi bi-pencil"></i></button>
+                      <button class="btn btn-sm btn-outline-danger" (click)="deleteAllocation(allocation.id)"><i class="bi bi-trash"></i></button>
+                    </div>
+                  </div>
+                  <div class="mt-3 pt-3 border-top">
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                      <label class="small text-muted fw-semibold">Assign Lead to:</label>
+                      <select class="form-select form-select-sm w-auto" (change)="assignUserToSource($any($event.target).value, selectedSource.id)">
+                        <option value="">Select User</option>
+                        <option *ngFor="let user of availableUsers" [value]="user.id">{{user.name}} - {{user.role}}</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <ng-template #noAllocations>
+              <div class="col-12">
+                <div class="empty-state bg-light rounded-3 p-4">
+                  <i class="bi bi-diagram-3 text-muted" style="font-size: 2rem;"></i>
+                  <p class="mt-2 text-muted">No allocation rules configured</p>
+                  <button class="btn btn-outline-primary btn-sm" (click)="openAllocationModal(selectedSource)">Create First Rule</button>
+                </div>
+              </div>
+            </ng-template>
+          </div>
+        </ng-container>
+        <ng-template #noSelection>
+          <div class="empty-state d-flex flex-column align-items-center justify-content-center h-100">
+            <i class="bi bi-diagram-3 fs-1"></i>
+            <h5 class="mt-3">Select a source</h5>
+            <p class="small">Choose a source from the list</p>
+            <button class="btn btn-primary btn-sm mt-2" (click)="openNewSourceModal()"><i class="bi bi-plus-circle me-1"></i>Create New Source</button>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+
+    <div *ngIf="currentView === 'list'" class="card">
+      <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+          <div>
+            <h6 class="mb-0">Lead Sources</h6>
+            <small class="text-muted">{{sources.length}} total</small>
+          </div>
+          <div style="max-width: 300px;" class="mw-100">
+            <input type="text" class="form-control form-control-sm" placeholder="Search sources..." [(ngModel)]="searchTerm" (ngModelChange)="filterSources()">
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th class="d-none d-sm-table-cell" style="width: 40px;">#</th>
+                <th style="width: 40px;"></th>
+                <th>Name</th>
+                <th class="d-none d-md-table-cell">Description</th>
+                <th class="d-none d-lg-table-cell">Assign By</th>
+                <th>Status</th>
+                <th class="text-end" style="width: 40px;"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let source of filteredSources; let i = index">
+                <td class="d-none d-sm-table-cell text-muted">{{i + 1}}</td>
+                <td>
+                  <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                    <i class="bi bi-diagram-3 text-primary small"></i>
+                  </div>
+                </td>
+                <td><span class="fw-semibold">{{source.name}}</span><small class="d-md-none text-muted d-block">#{{source.id}}</small></td>
+                <td class="d-none d-md-table-cell">{{source.desc || source.description || '-'}}</td>
+                <td class="d-none d-lg-table-cell">{{source.assignBy || 'leadSource'}}</td>
+                <td>
+                  <span class="badge" [class.bg-success]="source.status === 1" [class.bg-danger]="source.status === 0">
+                    {{source.status === 1 ? 'Active' : 'Inactive'}}
+                  </span>
+                </td>
+                <td class="text-end">
+                  <div class="dropdown">
+                    <button class="btn btn-sm btn-link text-muted p-0" data-bs-toggle="dropdown"><i class="bi bi-three-dots-vertical"></i></button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li><a class="dropdown-item" href="#" (click)="$event.preventDefault();selectSource(source)">View Details</a></li>
+                      <li><a class="dropdown-item" href="#" (click)="$event.preventDefault();openEditForm(source)">Edit</a></li>
+                      <li><a class="dropdown-item" href="#" (click)="$event.preventDefault();openAllocationModal(source)">Add Allocation</a></li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li><a class="dropdown-item text-danger" href="#" (click)="$event.preventDefault();deleteSource(source.id)">Delete</a></li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div *ngIf="filteredSources.length === 0" class="empty-state">
+          <i class="bi bi-diagram-3" style="font-size: 2rem;"></i>
+          <p class="mt-2 mb-0">No sources found</p>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <div class="row justify-content-center" *ngIf="isEditMode">
+    <div class="col-12 col-lg-10">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">{{selectedSource ? 'Edit Source' : 'Create New Source'}}</h5>
+          <button type="button" class="btn-close" (click)="closeModal()"></button>
+        </div>
+        <div class="card-body">
+          <form #sourceForm="ngForm" (ngSubmit)="onSubmit()">
+            <div class="row g-3">
+              <div class="col-12 col-md-6 col-lg-4">
+                <label class="form-label">Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="name" name="name" [(ngModel)]="sourceModel.name" #name="ngModel" required placeholder="Enter source name">
+                <div *ngIf="name.invalid && name.touched" class="text-danger small mt-1">Required</div>
+              </div>
+              <div class="col-12 col-md-6 col-lg-4">
+                <label class="form-label">Parent ID</label>
+                <input type="number" class="form-control" id="parentId" name="parentId" [(ngModel)]="sourceModel.parentId" placeholder="Enter parent ID">
+              </div>
+              <div class="col-12 col-md-6 col-lg-4">
+                <label class="form-label">Description</label>
+                <input type="text" class="form-control" id="description" name="description" [(ngModel)]="sourceModel.description" placeholder="Enter description">
+              </div>
+              <div class="col-12 col-md-6 col-lg-4">
+                <label class="form-label">Assign By</label>
+                <input type="text" class="form-control" id="assignBy" name="assignBy" [(ngModel)]="sourceModel.assignBy" placeholder="e.g., leadSource">
+              </div>
+              <div class="col-12 col-md-6 col-lg-4">
+                <label class="form-label">Access Token</label>
+                <input type="text" class="form-control" id="accessToken" name="accessToken" [(ngModel)]="sourceModel.accessToken" placeholder="Auto-generated if empty">
+              </div>
+              <div class="col-12 col-md-6 col-lg-4">
+                <div class="form-check form-switch mt-2">
+                  <input class="form-check-input" type="checkbox" id="status" name="status" [(ngModel)]="sourceModel.status" [checked]="sourceModel.status === 1">
+                  <label class="form-check-label" for="status">Active Source</label>
+                </div>
+              </div>
+              <div class="col-12">
+                <hr class="section-divider">
+                <h6 class="text-muted mb-3">System Information</h6>
+              </div>
+              <div class="col-12 col-md-4" *ngIf="selectedSource">
+                <label class="form-label">Source ID</label>
+                <input type="text" class="form-control bg-light" [value]="selectedSource.id" readonly>
+              </div>
+            </div>
+            <div class="d-grid d-sm-flex gap-2 justify-content-end mt-4">
+              <button type="button" class="btn btn-light" (click)="closeModal()">Cancel</button>
+              <button type="submit" class="btn btn-primary" [disabled]="sourceForm.invalid">
+                <i class="bi bi-check-circle me-1"></i>{{selectedSource ? 'Update' : 'Create'}} Source
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row justify-content-center" *ngIf="isAllocationMode">
+    <div class="col-12 col-lg-10">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">{{selectedAllocation ? 'Edit Allocation Rule' : 'Create Allocation Rule'}}</h5>
+          <button type="button" class="btn-close" (click)="closeModal()"></button>
+        </div>
+        <div class="card-body">
+          <form #allocationForm="ngForm" (ngSubmit)="onSubmit()">
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label class="form-label">Rule Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" name="allocationName" [(ngModel)]="allocationModel.name" required placeholder="e.g., Exhibition Team A">
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label">Description</label>
+                <input type="text" class="form-control" name="allocationDescription" [(ngModel)]="allocationModel.description" placeholder="Rule description">
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label">Allocation Type</label>
+                <select class="form-select" name="allocationType" [(ngModel)]="allocationModel.allocationType">
+                  <option [value]="1">Round Robin</option>
+                  <option [value]="2">Load Balanced</option>
+                  <option [value]="3">Priority Based</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label">Option</label>
+                <input type="text" class="form-control" name="option" [(ngModel)]="allocationModel.option" placeholder="e.g., round_robin">
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label">Initial Stage</label>
+                <input type="text" class="form-control" name="initialStage" [(ngModel)]="allocationModel.initialStage" placeholder="New Lead">
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label">Initial Status</label>
+                <input type="text" class="form-control" name="initialStatus" [(ngModel)]="allocationModel.initialStatus" placeholder="Uncontacted">
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label">Template ID</label>
+                <input type="text" class="form-control" name="templateId" [(ngModel)]="allocationModel.templateId" placeholder="temp_001">
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label">Other Phones</label>
+                <input type="text" class="form-control" name="otherPhonenumbers" [(ngModel)]="allocationModel.otherPhonenumbers" placeholder="+1234567890">
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label">Assign to User</label>
+                <select class="form-select" name="lastUserId" [(ngModel)]="allocationModel.lastUserId">
+                  <option [value]="0">Select User</option>
+                  <option *ngFor="let user of availableUsers" [value]="user.id">{{user.name}} - {{user.role}}</option>
+                </select>
+              </div>
+              <div class="col-12 col-md-6">
+                <label class="form-label">Allocation User/Team</label>
+                <input type="text" class="form-control" name="allocationUser" [(ngModel)]="allocationModel.allocationUser" placeholder="Team name">
+              </div>
+              <div class="col-12">
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="sendTextMessage" name="sendTextMessage" [(ngModel)]="allocationModel.sendTextMessage">
+                      <label class="form-check-label" for="sendTextMessage">Send SMS</label>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" id="sendTextMessageOther" name="sendTextMessageOther" [(ngModel)]="allocationModel.sendTextMessageOther">
+                      <label class="form-check-label" for="sendTextMessageOther">Send to Other Numbers</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-12">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="allocationStatus" name="allocationStatus" [(ngModel)]="allocationModel.status">
+                  <label class="form-check-label" for="allocationStatus">Active Rule</label>
+                </div>
+              </div>
+            </div>
+            <div class="d-grid d-sm-flex gap-2 justify-content-end mt-4">
+              <button type="button" class="btn btn-light" (click)="closeModal()">Cancel</button>
+              <button type="submit" class="btn btn-primary" [disabled]="allocationForm.invalid">
+                <i class="bi bi-check-circle me-1"></i>{{selectedAllocation ? 'Update' : 'Create'}} Rule
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

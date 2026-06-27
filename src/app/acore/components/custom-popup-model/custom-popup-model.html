@@ -1,0 +1,17 @@
+<div aria-labelledby="myModalLabel" class="modal fade show upload_quotation" [id]="basicSetting.id" role="dialog"
+    tabindex="-1" aria-modal="true">
+    <div class="modal-dialog modal-md" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title w-100 small-title">{{basicSetting.title}}</h5>
+                <button aria-label="Close" class="btn-close" (click)="closeModal()">
+                    <!-- <span aria-hidden="true">
+                        <i class="las la-times"></i>
+                    </span> -->
+                </button>
+            </div>
+            <ng-container *ngTemplateOutlet="template">
+            </ng-container>
+        </div>
+    </div>
+</div>

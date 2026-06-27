@@ -1,0 +1,16 @@
+.card {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  border-radius: 20px;
+}
+.time-slot {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 12px;
+}
+.time-slot:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}

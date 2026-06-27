@@ -1,0 +1,87 @@
+.service-landing {
+  min-height: calc(100vh - 2rem);
+  display: flex;
+  align-items: center;
+}
+
+.landing-icon-wrapper {
+  width: 72px;
+  height: 72px;
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.landing-main-icon {
+  font-size: 2rem;
+  color: #3b82f6;
+}
+
+.service-card {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 20px;
+}
+
+.service-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+}
+
+.service-card-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  border-radius: 20px 20px 0 0;
+  opacity: 0.9;
+}
+
+.service-icon-wrap {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+  font-size: 1.5rem;
+}
+
+.feature-badge {
+  display: inline-block;
+  background: rgba(0, 0, 0, 0.04);
+  color: #64748b;
+  font-size: 0.75rem;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 450;
+}
+
+.service-cta {
+  color: #3b82f6;
+  transition: gap 0.2s ease;
+}
+
+.service-card:hover .service-cta {
+  gap: 8px !important;
+}
+
+.service-cta i {
+  font-size: 0.85rem;
+  transition: transform 0.2s ease;
+}
+
+.service-card:hover .service-cta i {
+  transform: translateX(3px);
+}
+
+@media (max-width: 575.98px) {
+  .service-landing {
+    min-height: auto;
+  }
+}

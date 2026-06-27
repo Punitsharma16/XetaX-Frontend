@@ -1,0 +1,89 @@
+<div class="container-fluid px-3 px-md-4 py-3 py-md-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <h6 class="mb-0"><i class="bi bi-folder me-2 text-primary"></i>Documents</h6>
+    <button class="btn btn-primary btn-sm" (click)="addDocument()"><i class="bi bi-plus-circle me-1"></i>Upload</button>
+  </div>
+
+  <div *ngIf="documents.length > 0; else emptyDocs">
+    <div class="row g-3">
+      <div class="col-12 col-md-6" *ngFor="let doc of documents">
+        <div class="card h-100">
+          <div class="card-body">
+            <div class="d-flex gap-3">
+              <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
+                <i class="bi fs-3 text-primary"
+                  [class.bi-file-pdf]="doc.type === 'PDF'"
+                  [class.bi-file-word]="doc.type === 'DOC'"
+                  [class.bi-file-excel]="doc.type === 'XLS'"
+                  [class.bi-file-image]="doc.type === 'IMAGE'"
+                  [class.bi-file-text]="!doc.type"></i>
+              </div>
+              <div class="flex-grow-1 min-width-0">
+                <h6 class="mb-1 text-truncate">{{doc.name}}</h6>
+                <div class="d-flex flex-wrap gap-2 mb-2 small text-muted">
+                  <span>{{doc.size}}</span>
+                  <span>·</span>
+                  <span>{{doc.uploadDate | date:'mediumDate'}}</span>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                  <a [href]="doc.url" target="_blank" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye me-1"></i>View</a>
+                  <a [href]="doc.url" download class="btn btn-sm btn-outline-secondary"><i class="bi bi-download"></i></a>
+                  <button class="btn btn-sm btn-outline-danger" (click)="deleteDocument(doc.id)"><i class="bi bi-trash"></i></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #emptyDocs>
+    <div class="empty-state py-4">
+      <i class="bi bi-folder fs-2"></i>
+      <p class="mt-2 mb-0">No documents uploaded</p>
+    </div>
+  </ng-template>
+
+  <div class="modal fade" [class.show]="showDocumentForm" [style.display]="showDocumentForm ? 'block' : 'none'">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Upload Document</h5>
+          <button type="button" class="btn-close" (click)="closeDocumentForm()"></button>
+        </div>
+        <form #documentForm="ngForm" (ngSubmit)="saveDocument()">
+          <div class="modal-body">
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label">Document Name <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" [(ngModel)]="documentModel.name" name="name" required>
+              </div>
+              <div class="col-12">
+                <label class="form-label">File</label>
+                <input type="file" class="form-control" (change)="onFileSelected($event)" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png">
+              </div>
+              <div class="col-12">
+                <label class="form-label">Type</label>
+                <select class="form-select" [(ngModel)]="documentModel.type" name="type">
+                  <option value="PDF">PDF</option>
+                  <option value="DOC">Word Document</option>
+                  <option value="XLS">Excel Sheet</option>
+                  <option value="IMAGE">Image</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer d-grid d-sm-flex">
+            <button type="button" class="btn btn-light" (click)="closeDocumentForm()">Cancel</button>
+            <button type="submit" class="btn btn-primary" [disabled]="documentForm.invalid">
+              <i class="bi bi-check-circle me-1"></i>Upload
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div class="modal-backdrop fade show" *ngIf="showDocumentForm"></div>
+</div>

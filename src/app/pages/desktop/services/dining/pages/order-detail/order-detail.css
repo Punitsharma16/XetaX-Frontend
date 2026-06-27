@@ -1,0 +1,30 @@
+.timeline-item:not(:last-child) .flex-grow-1 {
+  border-left: 2px solid #e2e8f0;
+  margin-left: -1px;
+  padding-left: 1rem;
+}
+
+.timeline-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+  background: #f1f5f9;
+  color: #94a3b8;
+  border: 2px solid #e2e8f0;
+  z-index: 1;
+}
+
+.timeline-dot.completed {
+  background: #22c55e;
+  color: #fff;
+  border-color: #22c55e;
+}
+
+.timeline-dot.active {
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+}

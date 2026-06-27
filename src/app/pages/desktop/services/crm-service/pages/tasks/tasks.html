@@ -1,0 +1,382 @@
+<div *ngIf="isPageMode; else childMode">
+  <div class="container-fluid px-3 px-md-4 py-3 py-md-4">
+    <div class="page-header">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="d-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-3 flex-shrink-0" style="width: 48px; height: 48px;">
+            <i class="bi bi-check-circle text-primary fs-4"></i>
+          </div>
+          <div>
+            <h4 class="mb-1">Task Management</h4>
+            <p class="text-muted mb-0 small">Organize and track your team's tasks</p>
+          </div>
+        </div>
+        <div class="d-flex gap-2">
+          <div class="btn-group bg-light p-1 rounded-3">
+            <button *ngFor="let view of viewOptions" class="btn btn-sm" [class.btn-primary]="currentView === view" [class.btn-light]="currentView !== view" (click)="setView(view)">
+              <i [class]="'bi bi-' + (view === 'kanban' ? 'kanban' : view)"></i>
+              <span class="d-none d-md-inline ms-1">{{view | titlecase}}</span>
+            </button>
+          </div>
+          <button class="btn btn-primary btn-sm" (click)="addTask()">
+            <i class="bi bi-plus-lg me-1"></i>New Task
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div *ngFor="let stat of stats" class="col-6 col-lg-3">
+        <div class="stat-card h-100">
+          <div class="d-flex align-items-center gap-3">
+            <div class="stat-icon bg-{{stat.color}} bg-opacity-10 text-{{stat.color}}">
+              <i [class]="'bi ' + stat.icon"></i>
+            </div>
+            <div>
+              <span class="text-muted small d-block">{{stat.label}}</span>
+              <h3 class="mb-0">{{stat.value}}</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+              <input type="text" class="form-control border-start-0" placeholder="Search tasks..." [(ngModel)]="filters.search" (ngModelChange)="applyFilters()">
+            </div>
+          </div>
+          <div class="col-md-2">
+            <select class="form-select form-select-sm" [(ngModel)]="filters.status" (ngModelChange)="applyFilters()">
+              <option value="">All Status</option>
+              <option *ngFor="let stage of taskStages" [value]="stage">{{stage | titlecase}}</option>
+            </select>
+          </div>
+          <div class="col-md-2">
+            <button class="btn btn-outline-secondary btn-sm w-100" (click)="clearFilters()">
+              <i class="bi bi-x-circle me-1"></i>Clear
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-4">
+      <div [class]="selectedTaskDetail ? 'col-12 col-lg-5' : 'col-12'">
+        <div *ngIf="currentView === 'kanban'" class="kanban-board">
+          <div cdkDropListGroup class="d-flex gap-3 overflow-auto pb-3" style="min-height: 500px;">
+            <div *ngFor="let stage of taskStages" class="col" style="min-width: 280px;">
+              <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center py-3">
+                  <h6 class="mb-0">{{stage | titlecase}}</h6>
+                  <span class="badge rounded-pill" [ngClass]="getStatusBadge(stage)">{{getTasksByStage(stage).length}}</span>
+                </div>
+                <div class="card-body p-2" cdkDropList [id]="stage" [cdkDropListData]="getTasksByStage(stage)" (cdkDropListDropped)="onDrop($event)">
+                  <div *ngFor="let task of getTasksByStage(stage)" cdkDrag>
+                    <div class="card mb-2 lead-card shadow-sm" (click)="viewTask(task)">
+                      <div class="card-body p-3">
+                        <div class="d-flex justify-content-between mb-2">
+                          <h6 class="mb-0">{{task.subject}}</h6>
+                          <small class="text-muted">{{getUserName(task.assignedTo)}}</small>
+                        </div>
+                        <div class="small text-muted mb-2 text-truncate">
+                          {{task.message}}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                          <i class="bi bi-bell" [class.text-success]="task.txtMsgNotification" [class.text-muted]="!task.txtMsgNotification"></i>
+                          <small class="text-muted">{{task.dateTimeTask | date:'shortDate'}}</small>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="currentView === 'grid'" class="row g-3">
+          <div *ngFor="let task of filteredTasks" class="col-12 col-md-6" [class.col-xl-4]="!selectedTaskDetail" [class.col-xl-6]="selectedTaskDetail">
+            <div class="card lead-card h-100" (click)="viewTask(task)">
+              <div class="card-body">
+                <div class="d-flex justify-content-between mb-3">
+                  <div class="d-flex gap-3 min-width-0 align-items-center">
+                    <div class="avatar-initials bg-primary bg-opacity-10 text-primary fw-bold" style="width: 48px; height: 48px; font-size: 1rem;">
+                      {{getInitials(task.subject)}}
+                    </div>
+                    <div class="min-width-0">
+                      <h6 class="mb-0 text-truncate">{{task.subject}}</h6>
+                      <small class="text-muted text-truncate d-block">{{getUserName(task.assignedTo)}}</small>
+                    </div>
+                  </div>
+                  <div class="dropdown" (click)="$event.stopPropagation()">
+                    <button class="btn btn-sm btn-link text-muted p-0" data-bs-toggle="dropdown">
+                      <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li><a class="dropdown-item" href="#" (click)="$event.preventDefault();viewTask(task)"><i class="bi bi-eye me-2"></i>View</a></li>
+                      <li><a class="dropdown-item" href="#" (click)="$event.preventDefault();editTask(task)"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li><a class="dropdown-item text-danger" href="#" (click)="$event.preventDefault();deleteTask(task.id)"><i class="bi bi-trash me-2"></i>Delete</a></li>
+                    </ul>
+                  </div>
+                </div>
+                <div class="mb-3">
+                  <div class="d-flex gap-2 mb-1 small">
+                    <i class="bi bi-chat-dots text-muted flex-shrink-0"></i>
+                    <span class="text-truncate">{{task.message}}</span>
+                  </div>
+                  <div class="d-flex gap-2 small">
+                    <i class="bi bi-clock text-muted flex-shrink-0"></i>
+                    <span>{{task.dateTimeTask | date:'mediumDate'}}</span>
+                  </div>
+                </div>
+                <div class="d-flex gap-2 mb-3 flex-wrap">
+                  <span class="badge border-0" [ngClass]="getStatusBadge(getTaskStatus(task))">
+                    <i [class]="'bi me-1 ' + getStatusIcon(getTaskStatus(task))"></i>{{getTaskStatus(task) | titlecase}}
+                  </span>
+                  <i class="bi bi-bell" [class.text-success]="task.txtMsgNotification" [class.text-muted]="!task.txtMsgNotification"></i>
+                </div>
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top small">
+                  <span class="text-muted"><i class="bi bi-person-circle me-1"></i>{{getUserName(task.assignedTo)}}</span>
+                  <small class="text-muted">{{task.createDate | date:'shortDate'}}</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="filteredTasks.length === 0" class="empty-state">
+          <i class="bi bi-inbox"></i>
+          <h5>No tasks found</h5>
+          <p>Try adjusting your filters or create a new task</p>
+          <button class="btn btn-primary" (click)="addTask()"><i class="bi bi-plus-lg me-1"></i>New Task</button>
+        </div>
+      </div>
+
+      <div *ngIf="selectedTaskDetail" class="col-12 col-lg-7">
+        <div class="card details-card">
+          <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <button class="btn btn-outline-secondary btn-sm" (click)="closeDetail()">
+              <i class="bi bi-arrow-left me-1"></i>Back
+            </button>
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-primary btn-sm" (click)="editTask(selectedTaskDetail)">
+                <i class="bi bi-pencil me-1"></i>Edit
+              </button>
+              <button class="btn btn-outline-danger btn-sm" (click)="deleteTask(selectedTaskDetail.id)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="d-flex gap-3 mb-4">
+              <div class="avatar-initials bg-primary bg-opacity-10 text-primary fw-bold" style="width: 64px; height: 64px; font-size: 1.5rem;">
+                {{getInitials(selectedTaskDetail.subject)}}
+              </div>
+              <div class="min-width-0">
+                <h4 class="mb-1 text-break">{{selectedTaskDetail.subject}}</h4>
+                <div class="d-flex gap-2 flex-wrap align-items-center">
+                  <span class="badge border-0" [ngClass]="getStatusBadge(getTaskStatus(selectedTaskDetail))">
+                    <i [class]="'bi me-1 ' + getStatusIcon(getTaskStatus(selectedTaskDetail))"></i>{{getTaskStatus(selectedTaskDetail) | titlecase}}
+                  </span>
+                  <i class="bi bi-bell" [class.text-success]="selectedTaskDetail.txtMsgNotification" [class.text-muted]="!selectedTaskDetail.txtMsgNotification"></i>
+                  <span class="text-muted small"><i class="bi bi-person me-1"></i>{{getUserName(selectedTaskDetail.assignedTo)}}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="row g-4">
+              <div class="col-md-6">
+                <div class="card bg-light mb-4">
+                  <div class="card-body">
+                      <h6 class="text-primary mb-3">
+                        <i class="bi bi-chat-dots me-2"></i>Description
+                      </h6>
+                    <p class="mb-0">{{selectedTaskDetail.message || 'No description provided'}}</p>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card bg-light mb-4">
+                  <div class="card-body">
+                      <h6 class="text-primary mb-3">
+                        <i class="bi bi-info-circle me-2"></i>Task Details
+                      </h6>
+                    <div class="mb-2">
+                      <small class="text-muted d-block mb-1">Task ID</small>
+                      <code>{{selectedTaskDetail.id}}</code>
+                    </div>
+                    <div class="mb-2">
+                      <small class="text-muted d-block mb-1">Assigned To</small>
+                      <div class="d-flex align-items-center gap-1">
+                        <i class="bi bi-person-circle text-secondary"></i> {{getUserName(selectedTaskDetail.assignedTo)}}
+                      </div>
+                    </div>
+                    <div>
+                      <small class="text-muted d-block mb-1">SMS Notification</small>
+                      <i class="bi bi-bell me-1" [class.text-success]="selectedTaskDetail.txtMsgNotification" [class.text-muted]="!selectedTaskDetail.txtMsgNotification"></i>
+                      {{selectedTaskDetail.txtMsgNotification ? 'Enabled' : 'Disabled'}}
+                    </div>
+                  </div>
+                </div>
+                <div class="card bg-light">
+                  <div class="card-body">
+                      <h6 class="text-primary mb-3">
+                        <i class="bi bi-clock-history me-2"></i>Timeline
+                      </h6>
+                    <div class="row g-3">
+                      <div class="col-6">
+                        <small class="text-muted d-block mb-1">Due Date</small>
+                        <div class="fw-medium">{{selectedTaskDetail.dateTimeTask | date:'mediumDate'}}</div>
+                        <small class="text-muted">{{selectedTaskDetail.dateTimeTask | date:'shortTime'}}</small>
+                      </div>
+                    </div>
+                    <hr>
+                    <div class="row g-3">
+                      <div class="col-6">
+                        <small class="text-muted d-block mb-1">Created</small>
+                        <div class="fw-medium">{{selectedTaskDetail.createDate | date:'mediumDate'}}</div>
+                        <small class="text-muted">{{selectedTaskDetail.createDate | date:'shortTime'}}</small>
+                      </div>
+                      <div class="col-6">
+                        <small class="text-muted d-block mb-1">Updated</small>
+                        <div class="fw-medium">{{selectedTaskDetail.updateDate | date:'mediumDate'}}</div>
+                        <small class="text-muted">{{selectedTaskDetail.updateDate | date:'shortTime'}}</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<ng-template #childMode>
+  <div class="tasks-container">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h6 class="mb-0"><i class="bi bi-check-circle me-2 text-primary"></i>Tasks</h6>
+      <button class="btn btn-primary btn-sm" (click)="addTask()"><i class="bi bi-plus-circle me-1"></i>New Task</button>
+    </div>
+
+    <div *ngIf="tasks.length > 0; else emptyTasks">
+      <div class="card">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th style="width: 50px;" class="text-center">Done</th>
+                <th>Subject</th>
+                <th class="d-none d-md-table-cell">Assigned To</th>
+                <th class="d-none d-lg-table-cell">Due Date</th>
+                <th class="text-center" style="width: 40px;"><i class="bi bi-bell"></i></th>
+                <th class="text-end" style="width: 40px;"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let task of tasks">
+                <td class="text-center">
+                  <div class="form-check d-flex justify-content-center">
+                    <input class="form-check-input" type="checkbox" [(ngModel)]="task.read" (change)="toggleTaskStatus(task)">
+                  </div>
+                </td>
+                <td>
+                  <div>
+                    <span [class.text-decoration-line-through]="task.read" class="fw-medium">{{task.subject}}</span>
+                    <small class="d-block text-muted text-truncate" style="max-width: 200px;">{{task.message | slice:0:30}}...</small>
+                  </div>
+                </td>
+                <td class="d-none d-md-table-cell">{{getUserName(task.assignedTo)}}</td>
+                <td class="d-none d-lg-table-cell">{{task.dateTimeTask | date:'medium'}}</td>
+                <td class="text-center">
+                  <i class="bi bi-bell" [class.text-success]="task.txtMsgNotification" [class.text-muted]="!task.txtMsgNotification"></i>
+                </td>
+                <td class="text-end">
+                  <div class="dropdown">
+                    <button class="btn btn-sm btn-link text-muted p-0" data-bs-toggle="dropdown">
+                      <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                      <li><a class="dropdown-item" href="#" (click)="$event.preventDefault();editTask(task)"><i class="bi bi-pencil me-2"></i>Edit</a></li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li><a class="dropdown-item text-danger" href="#" (click)="$event.preventDefault();deleteTask(task.id)"><i class="bi bi-trash me-2"></i>Delete</a></li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #emptyTasks>
+      <div class="empty-state py-4">
+        <i class="bi bi-check-circle fs-2"></i>
+        <p class="mt-2 mb-0">No tasks yet</p>
+      </div>
+    </ng-template>
+  </div>
+</ng-template>
+
+<div class="modal fade" [class.show]="showTaskForm" [style.display]="showTaskForm ? 'block' : 'none'">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">{{selectedTask ? 'Edit' : 'New'}} Task</h5>
+        <button type="button" class="btn-close" (click)="closeTaskForm()"></button>
+      </div>
+      <form #taskForm="ngForm" (ngSubmit)="saveTask()">
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Subject <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" [(ngModel)]="taskModel.subject" name="subject" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Message</label>
+              <textarea class="form-control" rows="3" [(ngModel)]="taskModel.message" name="message"></textarea>
+            </div>
+            <div class="col-12" *ngIf="isPageMode">
+              <label class="form-label">Status</label>
+              <select class="form-select" [(ngModel)]="taskModel.status" name="status">
+                <option *ngFor="let stage of taskStages" [value]="stage">{{stage | titlecase}}</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Assigned To</label>
+              <select class="form-select" [(ngModel)]="taskModel.assignedTo" name="assignedTo">
+                <option *ngFor="let user of users" [value]="user.id">{{user.name}}</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Due Date & Time</label>
+              <input type="datetime-local" class="form-control" [(ngModel)]="taskModel.dateTimeTask" name="dateTimeTask">
+            </div>
+            <div class="col-12">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="txtNotification" [(ngModel)]="taskModel.txtMsgNotification" name="txtNotification">
+                <label class="form-check-label" for="txtNotification">Send SMS Notification</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" (click)="closeTaskForm()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="taskForm.invalid">
+            <i class="bi bi-check-circle me-1"></i>{{selectedTask ? 'Update' : 'Create'}}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop fade show" *ngIf="showTaskForm"></div>
