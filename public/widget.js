@@ -152,6 +152,7 @@
     inputEl.value = '';
     addUserMessage(text);
     showTyping();
+
     
     sendEl.disabled = true;
 
