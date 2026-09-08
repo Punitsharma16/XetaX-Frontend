@@ -1,0 +1,12 @@
+{
+  // Cloudflare Workers (static assets) config for the XetaX CRM panel.
+  // Build:  npm ci && npx ng build --configuration production
+  // Deploy: npx wrangler deploy   (Cloudflare runs both from the dashboard)
+  "name": "xetax-frontend",
+  "compatibility_date": "2025-09-01",
+  "assets": {
+    "directory": "./dist/xetax-crm-ui/browser",
+    // Angular routes like /app/records/... must fall back to index.html
+    "not_found_handling": "single-page-application"
+  }
+}
