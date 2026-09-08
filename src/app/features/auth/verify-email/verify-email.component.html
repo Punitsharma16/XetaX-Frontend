@@ -1,0 +1,88 @@
+<div class="auth-page">
+  <aside class="auth-aside d-none d-lg-flex">
+    <div class="auth-aside__inner">
+      <div class="auth-brand">
+        <span class="auth-brand__mark">X</span>
+        <div>
+          <div class="auth-brand__name">XetaX</div>
+          <div class="auth-brand__sub">Customer Relationship Suite</div>
+        </div>
+      </div>
+      <div class="auth-aside__copy">
+        <h2 class="text-white mb-3">One last step.</h2>
+        <p class="auth-aside__lead">
+          We sent a 6-digit code to your email. Enter it to activate your workspace —
+          this keeps your account, and your customers' data, tied to an inbox you control.
+        </p>
+        <ul class="auth-points">
+          <li><i class="bi bi-envelope-check"></i> Code valid for 15 minutes</li>
+          <li><i class="bi bi-shield-lock"></i> Nobody else can claim this email</li>
+          <li><i class="bi bi-lightning-charge"></i> You're signed in the moment it's confirmed</li>
+        </ul>
+      </div>
+      <p class="auth-aside__foot mb-0">© {{ 2026 }} XetaX. All rights reserved.</p>
+    </div>
+  </aside>
+
+  <main class="auth-main">
+    <button type="button" class="btn btn-light btn-icon auth-theme" (click)="toggleTheme()"
+      [attr.aria-label]="theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'">
+      <i class="bi" [class.bi-sun]="theme() === 'dark'" [class.bi-moon-stars]="theme() !== 'dark'"></i>
+    </button>
+
+    <div class="auth-card">
+      <div class="d-lg-none auth-brand mb-4">
+        <span class="auth-brand__mark">X</span>
+        <div>
+          <div class="auth-brand__name text-body">XetaX</div>
+          <div class="auth-brand__sub">Customer Relationship Suite</div>
+        </div>
+      </div>
+
+      <h1 class="h4 mb-1">Confirm your email</h1>
+      <p class="text-muted mb-4" style="font-size: 0.8125rem">
+        We sent a 6-digit code to <b>{{ email() }}</b>. Enter it below.
+      </p>
+
+      @if (serverError()) {
+        <div class="alert alert-danger d-flex align-items-start gap-2 py-2 px-3" role="alert">
+          <i class="bi bi-exclamation-circle-fill"></i>
+          <span style="font-size: 0.8125rem">{{ serverError() }}</span>
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="confirm()" novalidate>
+        <div class="mb-4">
+          <label class="form-label" for="veOtp">6-digit code</label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-123"></i></span>
+            <input id="veOtp" type="text" inputmode="numeric" maxlength="6" class="form-control"
+              formControlName="otp" placeholder="e.g. 483920" autocomplete="one-time-code" autofocus
+              [class.is-invalid]="form.controls.otp.invalid && form.controls.otp.touched" />
+          </div>
+          @if (form.controls.otp.invalid && form.controls.otp.touched) {
+            <div class="text-danger mt-1" style="font-size: 0.75rem">Enter the 6-digit code from the email.</div>
+          }
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100" [disabled]="submitting()">
+          @if (submitting()) {
+            <span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Verifying…
+          } @else {
+            <i class="bi bi-check2-circle"></i> Confirm & continue
+          }
+        </button>
+
+        <button type="button" class="btn btn-link w-100 mt-2" style="font-size: 0.8125rem"
+          (click)="resend()" [disabled]="resending()">
+          @if (resending()) { Sending… } @else { Didn't get the code? Send it again }
+        </button>
+      </form>
+
+      <div class="auth-divider"><span>Wrong email?</span></div>
+      <a class="btn btn-outline-secondary w-100" routerLink="/register">
+        <i class="bi bi-arrow-left"></i> Back to sign up
+      </a>
+    </div>
+  </main>
+</div>

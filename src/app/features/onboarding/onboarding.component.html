@@ -1,0 +1,367 @@
+<div class="ob">
+  <!-- ---------------------------------------------------------- header -->
+  <div class="ob__head">
+    <div class="min-w-0">
+      <h1 class="page-title d-flex align-items-center gap-2">
+        <i class="bi bi-rocket-takeoff"></i>
+        {{ finished() ? "You're set" : 'Set up your workspace' }}
+      </h1>
+      <p class="page-subtitle mb-0">
+        @if (finished()) {
+          Everything else can be changed later from the menu on the left.
+        } @else {
+          A few quick steps to get XetaX working for your business. Every step is optional.
+        }
+      </p>
+    </div>
+    @if (!finished()) {
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="skipAll()">
+        Skip for now
+      </button>
+    }
+  </div>
+
+  <!-- --------------------------------------------------------- stepper -->
+  <div class="card ag-card ob__stepper">
+    <ol class="ob__steps">
+      @for (s of steps; track s.label; let i = $index) {
+        <li
+          class="ob__step"
+          [class.is-active]="step() === i"
+          [class.is-done]="step() > i"
+        >
+          <button type="button" class="ob__step-btn" (click)="goTo(i)" [attr.aria-current]="step() === i ? 'step' : null">
+            <span class="ob__step-num">
+              @if (step() > i) { <i class="bi bi-check-lg"></i> } @else { {{ i + 1 }} }
+            </span>
+            <span class="ob__step-label">
+              <i class="bi me-1" [class]="s.icon"></i>{{ s.label }}
+            </span>
+          </button>
+        </li>
+      }
+    </ol>
+    <div class="ob__progress" role="progressbar" [attr.aria-valuenow]="progress()" aria-valuemin="0" aria-valuemax="100">
+      <div class="ob__progress-bar" [style.width.%]="progress()"></div>
+    </div>
+  </div>
+
+  <!-- ------------------------------------------------------------ body -->
+  <div class="card ag-card ob__body">
+    @switch (step()) {
+
+      <!-- ==================================================== 1. profile -->
+      @case (0) {
+        <div class="ob__intro">
+          <div class="ob__intro-mark"><i class="bi bi-stars"></i></div>
+          <div>
+            <h2 class="ob__title">Welcome{{ user()?.name ? ', ' + user()!.name.split(' ')[0] : '' }}</h2>
+            <p class="ob__blurb">
+              XetaX is a CRM you shape to your business: build forms for whatever you track
+              (leads, customers, orders, tickets), move records through your own pipeline stages,
+              and let automations send WhatsApp messages, emails and documents for you. An AI
+              assistant and website chatbot handle the routine conversations, and your team gets
+              exactly the access you give them.
+            </p>
+          </div>
+        </div>
+
+        <h3 class="ob__section">Your business details</h3>
+        <p class="text-muted small mb-3">Shown on invoices, documents and messages you send. You can edit this any time from My profile.</p>
+
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="ob-company">Company name</label>
+            <input id="ob-company" class="form-control" [(ngModel)]="company" placeholder="Acme Traders" autocomplete="organization" />
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="ob-phone">Phone</label>
+            <input id="ob-phone" class="form-control" [(ngModel)]="phone" placeholder="+91 98765 43210" autocomplete="tel" />
+          </div>
+          <div class="col-12">
+            <label class="form-label">Signed in as</label>
+            <div class="form-control-plaintext text-muted small">
+              {{ user()?.name }} · {{ user()?.email }}
+            </div>
+          </div>
+        </div>
+
+        <div class="ob__actions">
+          <span class="ob__actions-left"></span>
+          <button type="button" class="btn btn-link text-muted" (click)="next()">Skip this step</button>
+          <button type="button" class="btn ag-btn" [disabled]="savingProfile()" (click)="saveProfile()">
+            @if (savingProfile()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            @else { <i class="bi bi-check2 me-1"></i> }
+            Save &amp; continue
+          </button>
+        </div>
+      }
+
+      <!-- =================================================== 2. template -->
+      @case (1) {
+        <h2 class="ob__title">Pick a template or start blank</h2>
+        <p class="ob__blurb">
+          A template creates a ready-made form with its fields, pipeline stages and draft automations
+          in one click. You can rename or change everything afterwards.
+        </p>
+
+        @if (applied(); as result) {
+          <div class="ob__result">
+            <div class="ob__result-icon" [style.background]="(result.form.color || '#4f46e5') + '22'" [style.color]="result.form.color || '#4f46e5'">
+              <i class="bi" [class]="result.form.icon || 'bi-table'"></i>
+            </div>
+            <div class="min-w-0 flex-grow-1">
+              <div class="fw-bold">{{ result.form.name }} is ready</div>
+              <div class="ob__result-meta">
+                {{ result.fieldCount }} field{{ result.fieldCount === 1 ? '' : 's' }} ·
+                {{ result.stageCount }} stage{{ result.stageCount === 1 ? '' : 's' }} ·
+                {{ result.automationCount }} draft automation{{ result.automationCount === 1 ? '' : 's' }}
+              </div>
+              @if (result.note) { <div class="ob__result-note">{{ result.note }}</div> }
+            </div>
+            <a class="btn btn-outline-secondary btn-sm" [routerLink]="['/app/forms', result.form.id]">
+              <i class="bi bi-gear me-1"></i>Open form
+            </a>
+          </div>
+        } @else {
+          @if (templates() === null) {
+            <div class="ob__tpl-grid">
+              @for (i of [1, 2, 3]; track i) {
+                <div class="ob__tpl ob__tpl--skeleton">
+                  <div class="skeleton" style="width: 40px; height: 40px; border-radius: 12px"></div>
+                  <div class="skeleton mt-3" style="height: 12px; width: 55%"></div>
+                  <div class="skeleton mt-2" style="height: 10px; width: 85%"></div>
+                </div>
+              }
+            </div>
+          } @else if (!templates()!.length) {
+            <div class="text-muted small py-3">
+              @if (templatesFailed()) { Templates could not be loaded right now. }
+              @else { No templates are available yet. }
+              You can still build a form by hand.
+            </div>
+          } @else {
+            <div class="ob__tpl-grid">
+              @for (t of templates()!; track t.key) {
+                <div class="ob__tpl">
+                  <span class="ob__tpl-icon" [style.background]="t.color + '22'" [style.color]="t.color">
+                    <i class="bi" [class]="t.icon"></i>
+                  </span>
+                  <div class="ob__tpl-name">{{ t.name }}</div>
+                  @if (t.tagline) { <div class="ob__tpl-tag">{{ t.tagline }}</div> }
+                  <div class="ob__tpl-desc">{{ t.description }}</div>
+                  <div class="ob__tpl-meta">
+                    {{ t.fields.length || 0 }} fields · {{ t.stages.length || 0 }} stages ·
+                    {{ t.automations.length || 0 }} automations
+                  </div>
+                  <button type="button" class="btn ag-btn btn-sm mt-auto" [disabled]="applyingKey() !== null" (click)="applyTemplate(t)">
+                    @if (applyingKey() === t.key) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                    @else { <i class="bi bi-magic me-1"></i> }
+                    Use this
+                  </button>
+                </div>
+              }
+            </div>
+          }
+
+          <div class="ob__blank">
+            <i class="bi bi-file-earmark-plus"></i>
+            <span>Prefer to design it yourself?</span>
+            <a routerLink="/app/forms" class="fw-semibold">Start blank</a>
+            <span class="text-muted">— create a form and add fields as you go.</span>
+          </div>
+        }
+
+        <div class="ob__actions">
+          <button type="button" class="btn btn-outline-secondary" (click)="back()">
+            <i class="bi bi-arrow-left me-1"></i>Back
+          </button>
+          <span class="ob__actions-left"></span>
+          @if (!applied()) {
+            <button type="button" class="btn btn-link text-muted" (click)="next()">Skip this step</button>
+          }
+          <button type="button" class="btn ag-btn" (click)="next()">
+            Next<i class="bi bi-arrow-right ms-1"></i>
+          </button>
+        </div>
+      }
+
+      <!-- =================================================== 3. channels -->
+      @case (2) {
+        <h2 class="ob__title">Connect your channels <span class="ob__optional">optional</span></h2>
+        <p class="ob__blurb">
+          Each one opens its own settings page. Connect what you use today — the rest can wait.
+        </p>
+
+        <div class="ob__channels">
+          <a class="ob__channel" routerLink="/app/whatsapp">
+            <span class="ob__channel-icon ob__channel-icon--wa"><i class="bi bi-whatsapp"></i></span>
+            <span class="min-w-0 flex-grow-1">
+              <span class="ob__channel-name">WhatsApp</span>
+              <span class="ob__channel-desc">Chat with customers and run campaigns from your business number.</span>
+              <span class="ob__channel-status" [class.is-on]="channels()?.whatsapp?.connected">
+                @if (channels() === null) { Checking… }
+                @else if (channels()!.whatsapp.connected) { <i class="bi bi-check-circle-fill me-1"></i>Connected }
+                @else { Not connected yet }
+              </span>
+            </span>
+            <i class="bi bi-chevron-right ob__channel-go"></i>
+          </a>
+
+          <a class="ob__channel" routerLink="/app/profile">
+            <span class="ob__channel-icon ob__channel-icon--mail"><i class="bi bi-envelope-at"></i></span>
+            <span class="min-w-0 flex-grow-1">
+              <span class="ob__channel-name">Email (SMTP)</span>
+              <span class="ob__channel-desc">Invites, documents and automations send from your own address.</span>
+              <span class="ob__channel-status" [class.is-on]="channels()?.emailConfigured">
+                @if (channels() === null) { Checking… }
+                @else if (channels()!.emailConfigured) { <i class="bi bi-check-circle-fill me-1"></i>Configured }
+                @else { Not set up yet }
+              </span>
+            </span>
+            <i class="bi bi-chevron-right ob__channel-go"></i>
+          </a>
+
+          <a class="ob__channel" routerLink="/app/agents">
+            <span class="ob__channel-icon ob__channel-icon--ai"><i class="bi bi-robot"></i></span>
+            <span class="min-w-0 flex-grow-1">
+              <span class="ob__channel-name">Website AI agent</span>
+              <span class="ob__channel-desc">A chatbot that answers visitors on your website, 24/7.</span>
+              <span class="ob__channel-status" [class.is-on]="(channels()?.agents ?? 0) > 0">
+                @if (channels() === null) { Checking… }
+                @else if (channels()!.agents > 0) {
+                  <i class="bi bi-check-circle-fill me-1"></i>{{ channels()!.agents }} agent{{ channels()!.agents === 1 ? '' : 's' }} live
+                }
+                @else { No agent yet }
+              </span>
+            </span>
+            <i class="bi bi-chevron-right ob__channel-go"></i>
+          </a>
+        </div>
+
+        <div class="ob__actions">
+          <button type="button" class="btn btn-outline-secondary" (click)="back()">
+            <i class="bi bi-arrow-left me-1"></i>Back
+          </button>
+          <span class="ob__actions-left"></span>
+          <button type="button" class="btn btn-link text-muted" (click)="next()">Skip this step</button>
+          <button type="button" class="btn ag-btn" (click)="next()">
+            Next<i class="bi bi-arrow-right ms-1"></i>
+          </button>
+        </div>
+      }
+
+      <!-- ======================================================= 4. team -->
+      @case (3) {
+        <h2 class="ob__title">Invite your team <span class="ob__optional">optional</span></h2>
+        <p class="ob__blurb">
+          Add a teammate with a role. Roles decide what each person can see and do — you can
+          create custom roles later under Users.
+        </p>
+
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="ob-m-name">Name</label>
+            <input id="ob-m-name" class="form-control" [(ngModel)]="mName" placeholder="Priya Sharma" autocomplete="off" />
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="ob-m-email">Email</label>
+            <input id="ob-m-email" type="email" class="form-control" [(ngModel)]="mEmail" placeholder="priya@company.com" autocomplete="off" />
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="ob-m-pass">Temporary password</label>
+            <input id="ob-m-pass" type="password" class="form-control" [(ngModel)]="mPassword" placeholder="At least 6 characters" autocomplete="new-password" />
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label" for="ob-m-role">Role</label>
+            <select id="ob-m-role" class="form-select" [(ngModel)]="mRoleId">
+              @if (!rolesLoaded()) {
+                <option [ngValue]="null" disabled>Loading roles…</option>
+              } @else if (!roles().length) {
+                <option [ngValue]="null" disabled>No roles yet — create one under Users</option>
+              } @else {
+                @for (role of roles(); track role.id) {
+                  <option [ngValue]="role.id">{{ role.name }}</option>
+                }
+              }
+            </select>
+          </div>
+          <div class="col-12">
+            <button type="button" class="btn btn-outline-primary" [disabled]="savingMember() || !roles().length" (click)="addMember()">
+              @if (savingMember()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+              @else { <i class="bi bi-person-plus me-1"></i> }
+              Add member
+            </button>
+          </div>
+        </div>
+
+        @if (addedMembers().length) {
+          <h3 class="ob__section mt-4">Added in this session</h3>
+          <ul class="ob__members">
+            @for (m of addedMembers(); track m.userId) {
+              <li class="ob__member">
+                <span class="ob__member-avatar">{{ (m.name || '?').charAt(0).toUpperCase() }}</span>
+                <span class="min-w-0 flex-grow-1">
+                  <span class="d-block fw-semibold text-truncate">{{ m.name }}</span>
+                  <span class="d-block text-muted small text-truncate">{{ m.email }}</span>
+                </span>
+                <span class="badge badge-soft-primary">{{ m.roleName }}</span>
+              </li>
+            }
+          </ul>
+        }
+
+        <div class="ob__actions">
+          <button type="button" class="btn btn-outline-secondary" (click)="back()">
+            <i class="bi bi-arrow-left me-1"></i>Back
+          </button>
+          <span class="ob__actions-left"></span>
+          @if (!addedMembers().length) {
+            <button type="button" class="btn btn-link text-muted" (click)="next()">Skip</button>
+          }
+          <button type="button" class="btn ag-btn" (click)="next()">
+            Finish<i class="bi bi-arrow-right ms-1"></i>
+          </button>
+        </div>
+      }
+
+      <!-- ===================================================== finished -->
+      @default {
+        <div class="ob__done">
+          <div class="ob__done-mark"><i class="bi bi-check-lg"></i></div>
+          <h2 class="ob__title">You're set</h2>
+          <p class="ob__blurb">
+            Your workspace is ready. Here are the places most owners go next.
+          </p>
+
+          <div class="ob__links">
+            <a class="ob__link" routerLink="/app/records">
+              <span class="ob__link-icon" style="--c: #4f46e5"><i class="bi bi-collection"></i></span>
+              <span class="ob__link-name">Records</span>
+              <span class="ob__link-desc">Add your first lead, customer or order.</span>
+            </a>
+            <a class="ob__link" routerLink="/app/automations">
+              <span class="ob__link-icon" style="--c: #f59e0b"><i class="bi bi-lightning-charge"></i></span>
+              <span class="ob__link-name">Automations</span>
+              <span class="ob__link-desc">Switch on the draft rules your template created.</span>
+            </a>
+            <a class="ob__link" routerLink="/app/ai">
+              <span class="ob__link-icon" style="--c: #8b5cf6"><i class="bi bi-stars"></i></span>
+              <span class="ob__link-name">AI Assistant</span>
+              <span class="ob__link-desc">Ask it to build forms or find records in plain language.</span>
+            </a>
+          </div>
+
+          <div class="ob__actions ob__actions--center">
+            <button type="button" class="btn btn-outline-secondary" (click)="back()">
+              <i class="bi bi-arrow-left me-1"></i>Back
+            </button>
+            <button type="button" class="btn ag-btn" (click)="finish()">
+              <i class="bi bi-speedometer2 me-1"></i>Go to dashboard
+            </button>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

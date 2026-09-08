@@ -85,6 +85,11 @@ export class LoginComponent {
       },
       error: (err) => {
         this.submitting.set(false);
+        if (err?.status === 403 && err?.error?.message === 'EMAIL_NOT_VERIFIED') {
+          this.toast.info('Confirm your email first', 'We just sent you a fresh code.');
+          this.router.navigate(['/verify-email'], { queryParams: { email: email.trim().toLowerCase() } });
+          return;
+        }
         // Credential failures are shown inline; the interceptor already
         // toasted the transport-level detail.
         this.serverError.set(

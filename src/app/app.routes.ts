@@ -31,6 +31,14 @@ export const routes: Routes = [
       import('./features/auth/register/register.component').then((m) => m.RegisterComponent),
   },
 
+  {
+    path: 'verify-email',
+    title: 'Confirm your email · XetaX CRM',
+    canActivate: [guestGuard],
+    loadComponent: () =>
+      import('./features/auth/verify-email/verify-email.component').then((m) => m.VerifyEmailComponent),
+  },
+
   // Google sign-in lands here with tokens in the URL fragment.
   {
     path: 'oauth/callback',
@@ -63,6 +71,14 @@ export const routes: Routes = [
         title: 'Dashboard · XetaX CRM',
         loadComponent: () =>
           import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
+      },
+
+      // ---- First-run setup wizard (also reachable from the user menu) ----
+      {
+        path: 'onboarding',
+        title: 'Setup guide · XetaX CRM',
+        loadComponent: () =>
+          import('./features/onboarding/onboarding.component').then((m) => m.OnboardingComponent),
       },
 
       // ---- AI Assistant ----

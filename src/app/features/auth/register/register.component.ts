@@ -118,7 +118,14 @@ export class RegisterComponent {
         company: raw.company.trim() || undefined,
       })
       .subscribe({
-        next: () => {
+        next: (created) => {
+          // With SMTP configured the account starts unverified — the backend
+          // already mailed a 6-digit code; confirming it signs the user in.
+          if (created?.emailVerified === false) {
+            this.submitting.set(false);
+            this.router.navigate(['/verify-email'], { queryParams: { email: raw.email.trim().toLowerCase(), sent: 1 } });
+            return;
+          }
           // Sign the new account straight in; if that second call fails the
           // account still exists, so fall back to the login screen.
           this.auth.login({ email: raw.email.trim(), password: raw.password }, true).subscribe({

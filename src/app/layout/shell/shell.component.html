@@ -184,6 +184,11 @@
                 <i class="bi bi-person me-2"></i>My profile
               </a>
             </li>
+            <li>
+              <a class="dropdown-item" routerLink="/app/onboarding" [queryParams]="{ reopen: 1 }">
+                <i class="bi bi-rocket-takeoff me-2"></i>Setup guide
+              </a>
+            </li>
             <li><hr class="dropdown-divider" /></li>
             <li>
               <button type="button" class="dropdown-item text-danger" (click)="logout()">

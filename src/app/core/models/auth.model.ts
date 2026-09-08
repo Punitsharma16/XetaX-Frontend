@@ -41,6 +41,8 @@ export interface AuthUser {
 
   /** Serialised as `enable`; `isEnable` kept for tolerance. */
   enable?: boolean;
+  /** false = sign-up email not confirmed yet (null/undefined = legacy, verified). */
+  emailVerified?: boolean | null;
   isEnable?: boolean;
 
   /** Serialised as `admin`; `isAdmin` kept for tolerance. */

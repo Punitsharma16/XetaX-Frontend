@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../core/authentication/auth.service';
 import { CrmApiService } from '../../core/services/crm-api.service';
 import { PermissionService } from '../../core/services/permission.service';
+import { ONBOARDING_DONE_KEY } from '../onboarding/onboarding-storage';
 
 /* Shape of GET /api/dashboard/summary — one round trip for the whole page. */
 interface StageSlice {
@@ -82,6 +83,7 @@ export class DashboardComponent {
   private readonly api = inject(CrmApiService);
   private readonly auth = inject(AuthService);
   private readonly perms = inject(PermissionService);
+  private readonly router = inject(Router);
 
   readonly user = this.auth.user;
   /* Owner (from /api/team/me) or legacy isAdmin flag — gates admin-only cards. */
@@ -226,8 +228,29 @@ export class DashboardComponent {
       ? 'Good afternoon'
       : 'Good evening';
 
+  /** Guards the first-run redirect so it fires at most once per dashboard visit. */
+  private onboardingChecked = false;
+
   constructor() {
     this.load();
+    // First-run: a workspace owner with no forms yet is taken to the setup
+    // wizard once. The wizard sets a per-user flag when finished or skipped,
+    // so this never loops; /api/team/me failing (context null) means no redirect.
+    effect(() => {
+      const summary = this.summary();
+      if (this.onboardingChecked || !summary || !this.perms.loaded()) return;
+      this.onboardingChecked = true;
+      if (!this.perms.isOwner() || summary.forms > 0) return;
+      const userId = this.user()?.id;
+      if (!userId) return;
+      let done = false;
+      try {
+        done = !!localStorage.getItem(ONBOARDING_DONE_KEY(userId));
+      } catch {
+        done = true; // no storage => cannot remember a skip, so never redirect
+      }
+      if (!done) this.router.navigate(['/app/onboarding']);
+    });
   }
 
   load(): void {
