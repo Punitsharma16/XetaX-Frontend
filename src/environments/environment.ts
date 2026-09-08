@@ -16,11 +16,11 @@ export const environment = {
   production: true,
 
   /** Backend root (kept for anything still reading it). */
-  gatewayUrl: 'http://localhost:8085',
+  gatewayUrl: 'https://api.xetax.in',
 
   /** Auth endpoints root — /auth/v1/** and /auth/api/v1/**. */
-  authBaseUrl: 'http://localhost:8085',
+  authBaseUrl: 'https://api.xetax.in',
 
   /** CRM endpoints root — /api/forms, /api/record, /stage, ... */
-  crmBaseUrl: 'http://localhost:8085',
+  crmBaseUrl: 'https://api.xetax.in',
 };
