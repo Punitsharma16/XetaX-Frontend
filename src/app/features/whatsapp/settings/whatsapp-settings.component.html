@@ -1,0 +1,388 @@
+<app-page-header
+  title="WhatsApp"
+  icon="bi-whatsapp"
+  subtitle="Connect your business number, get templates approved, and message customers."
+/>
+
+<app-whatsapp-nav />
+
+@if (error()) {
+  <app-error-state>
+    <button class="btn btn-outline-secondary btn-sm" (click)="reload()">Retry</button>
+  </app-error-state>
+} @else if (loading()) {
+  <div class="card wa-card p-4">
+    <div class="skeleton mb-2" style="height: 16px; width: 35%"></div>
+    <div class="skeleton" style="height: 12px; width: 60%"></div>
+  </div>
+} @else {
+  <!-- ============================================== connection hero card -->
+  <div class="card wa-card wa-hero mb-3" [class.wa-hero--on]="connected">
+    <div class="card-body d-flex flex-wrap align-items-center gap-3 py-4">
+      <div class="wa-hero__icon" [class.wa-hero__icon--on]="connected">
+        <i class="bi bi-whatsapp"></i>
+      </div>
+
+      <div class="flex-grow-1 min-w-0">
+        @if (connected) {
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="wa-hero__title">{{ config()?.verifiedName || 'WhatsApp Business' }}</span>
+            <span class="wa-chip wa-chip--on"><i class="bi bi-check-circle-fill"></i> Connected</span>
+          </div>
+          <div class="wa-hero__meta">
+            <span><i class="bi bi-telephone"></i> {{ config()?.displayPhoneNumber }}</span>
+            @if (config()?.qualityRating) {
+              <span><i class="bi bi-heart-pulse"></i> Quality: {{ config()?.qualityRating }}</span>
+            }
+            @if (config()?.connectedAt) {
+              <span><i class="bi bi-calendar-check"></i> Since {{ config()?.connectedAt | date: 'mediumDate' }}</span>
+            }
+          </div>
+        } @else {
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="wa-hero__title">Not connected</span>
+            @if (config()?.status === 'ERROR') {
+              <span class="wa-chip wa-chip--bad"><i class="bi bi-x-circle-fill"></i> Error</span>
+            }
+          </div>
+          <div class="wa-hero__meta">
+            <span>{{ config()?.lastError || 'Link your WhatsApp Business account to start messaging.' }}</span>
+          </div>
+        }
+      </div>
+
+      <div class="d-flex gap-2 flex-wrap">
+        @if (connected) {
+          <button class="btn btn-outline-danger btn-sm" (click)="disconnect()">
+            <i class="bi bi-plug me-1"></i>Disconnect
+          </button>
+        } @else {
+          <button class="btn wa-btn" [disabled]="connecting()" (click)="launchSignup()">
+            @if (connecting()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            } @else {
+              <i class="bi bi-whatsapp me-1"></i>
+            }
+            Connect with Meta
+          </button>
+          <button class="btn btn-outline-secondary btn-sm align-self-center" (click)="showManual.set(!showManual())">
+            Manual setup
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (!connected && meta() && !meta()?.configured) {
+      <div class="wa-hero__note">
+        <i class="bi bi-exclamation-triangle me-1"></i>
+        The Meta app is not configured on the server — set
+        <code>META_APP_ID</code>, <code>META_APP_SECRET</code>,
+        <code>META_WHATSAPP_CONFIG_ID</code> in the backend env, or use a system-user
+        token via Manual setup.
+      </div>
+    }
+
+    @if (!connected && showManual()) {
+      <div class="card-footer wa-manual">
+        <div class="row g-2 align-items-end">
+          <div class="col-12 col-lg-4">
+            <label class="form-label small">Permanent access token</label>
+            <input class="form-control form-control-sm" type="password" [(ngModel)]="manualToken" placeholder="EAAG…" />
+          </div>
+          <div class="col-6 col-lg-3">
+            <label class="form-label small">WABA id</label>
+            <input class="form-control form-control-sm" [(ngModel)]="manualWabaId" />
+          </div>
+          <div class="col-6 col-lg-3">
+            <label class="form-label small">Phone number id</label>
+            <input class="form-control form-control-sm" [(ngModel)]="manualPhoneId" />
+          </div>
+          <div class="col-12 col-lg-2">
+            <button class="btn wa-btn btn-sm w-100" [disabled]="connecting()" (click)="manualConnect()">
+              Connect
+            </button>
+          </div>
+        </div>
+        <div class="form-text">The token is encrypted on the server and is never shown again.</div>
+      </div>
+    }
+  </div>
+
+  <!-- ============================================ live setup checklist -->
+  @if (!setupDone()) {
+    <div class="card wa-card mb-3">
+      <div class="card-header wa-card__head d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <span class="fw-semibold"><i class="bi bi-list-check me-1"></i>Setup checklist</span>
+        <a class="btn wa-btn btn-sm" [href]="setupHelpUrl" target="_blank" rel="noopener">
+          <i class="bi bi-headset me-1"></i>Book a free setup call — we'll do it for you
+        </a>
+      </div>
+      <div class="card-body py-2">
+        @for (step of setupSteps(); track step.key; let i = $index) {
+          <div class="wa-check" [class.wa-check--done]="step.done">
+            <button type="button" class="wa-check__row" (click)="toggleSetupStep(step.key)">
+              <span class="wa-check__icon">
+                @if (step.done) { <i class="bi bi-check-circle-fill"></i> }
+                @else { <span class="wa-check__num">{{ i + 1 }}</span> }
+              </span>
+              <span class="wa-check__title">{{ step.title }}</span>
+              <span class="wa-check__state">{{ step.done ? 'Done' : 'Pending' }}</span>
+              <i class="bi wa-check__chev" [class.bi-chevron-down]="setupOpenKey() !== step.key" [class.bi-chevron-up]="setupOpenKey() === step.key"></i>
+            </button>
+            @if (setupOpenKey() === step.key) {
+              <div class="wa-check__how">{{ step.how }}</div>
+            }
+          </div>
+        }
+        <div class="wa-check__note">
+          <i class="bi bi-info-circle me-1"></i>
+          Message charges are billed by Meta at their actual rate — XetaX adds <b>zero markup</b>.
+          Service replies inside the 24-hour window are free.
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ==================================================== usage & spend -->
+  @if (connected && usage(); as u) {
+    <div class="card wa-card mb-3">
+      <div class="card-header wa-card__head">
+        <span class="fw-semibold"><i class="bi bi-graph-up me-1"></i>Usage &amp; spend — {{ u.month }}</span>
+        @if (u.spend.available) {
+          <span class="wa-spend">₹{{ u.spend.total }} <small>this month (Meta official)</small></span>
+        } @else {
+          <span class="text-muted small">{{ u.spend.note }}</span>
+        }
+      </div>
+      <div class="card-body py-3">
+        <div class="wa-usage-tiles">
+          @for (tile of usageTiles(); track tile.label) {
+            <div class="wa-usage-tile">
+              <div class="wa-usage-tile__value">{{ tile.value }}</div>
+              <div class="wa-usage-tile__label"><i class="bi me-1" [class]="tile.icon"></i>{{ tile.label }}</div>
+            </div>
+          }
+        </div>
+
+        @if (spendCategories().length || u.categories.length) {
+          <div class="wa-usage-cats mt-3">
+            @for (entry of spendCategories(); track entry.category) {
+              <span class="wa-chip">{{ entry.category }} · ₹{{ entry.cost }}</span>
+            }
+            @for (entry of u.categories; track entry.category) {
+              <span class="wa-chip">{{ entry.category }} templates · {{ entry.messages }} sent</span>
+            }
+            <span class="wa-chip wa-chip--on">Free-text · {{ u.counts.freeText }} (24h window, free)</span>
+          </div>
+        }
+      </div>
+      <div class="wa-hint">
+        <i class="bi bi-info-circle me-1"></i>
+        Service replies (24h window) free hote hain; template messages category rate se charge
+        conversations. The spend figure comes from Meta's analytics API (cached for 1 hour) —
+        on a postpaid account it is this month's running bill, not a balance.
+      </div>
+    </div>
+  }
+
+  <!-- ======================================================== templates -->
+  @if (connected) {
+    <div class="card wa-card">
+      <div class="card-header wa-card__head">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <span class="fw-semibold"><i class="bi bi-file-earmark-text me-1"></i>Message templates</span>
+          @if (templates().length) {
+            <span class="wa-chip wa-chip--on">{{ approvedCount() }} approved</span>
+            @if (pendingCount()) {
+              <span class="wa-chip wa-chip--wait">{{ pendingCount() }} in review</span>
+            }
+            @if (rejectedCount()) {
+              <span class="wa-chip wa-chip--bad">{{ rejectedCount() }} rejected</span>
+            }
+          }
+        </div>
+        <div class="d-flex gap-2">
+          <button class="btn wa-btn btn-sm" (click)="openTemplateModal()">
+            <i class="bi bi-plus-lg me-1"></i>New template
+          </button>
+          <button class="btn btn-outline-secondary btn-sm" [disabled]="syncing()" (click)="syncTemplates()">
+            @if (syncing()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            } @else {
+              <i class="bi bi-arrow-repeat me-1"></i>
+            }
+            Sync
+          </button>
+        </div>
+      </div>
+
+      @if (templates().length) {
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0 wa-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Language</th>
+                <th>Category</th>
+                <th>Approval status</th>
+                <th class="text-end"></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (template of templates(); track template.id) {
+                <tr>
+                  <td class="fw-medium">{{ template.name }}</td>
+                  <td class="text-muted">{{ template.language }}</td>
+                  <td><span class="wa-cat">{{ template.category || '—' }}</span></td>
+                  <td>
+                    @switch (template.status) {
+                      @case ('APPROVED') {
+                        <span class="wa-chip wa-chip--on"><i class="bi bi-check-circle-fill"></i> Approved</span>
+                      }
+                      @case ('PENDING') {
+                        <span class="wa-chip wa-chip--wait"><i class="bi bi-hourglass-split"></i> In review</span>
+                      }
+                      @case ('REJECTED') {
+                        <span class="wa-chip wa-chip--bad" [title]="template.rejectionReason || ''">
+                          <i class="bi bi-x-circle-fill"></i> Rejected
+                        </span>
+                      }
+                      @default {
+                        <span class="wa-chip">{{ template.status || 'Unknown' }}</span>
+                      }
+                    }
+                  </td>
+                  <td class="text-end">
+                    <button
+                      class="btn btn-link btn-sm text-danger p-0"
+                      title="Delete on Meta and locally"
+                      (click)="deleteTemplate(template)"
+                    >
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="wa-hint">
+          <i class="bi bi-lightbulb me-1"></i>
+          Approval usually takes minutes to 24h — press "Sync" to pull the latest status.
+          24-hour window ke bahar wale customers ko sirf <strong>approved</strong> template hi
+          any time.
+        </div>
+      } @else {
+        <div class="card-body">
+          <app-empty-state
+            icon="bi-file-earmark-plus"
+            title="No templates yet"
+            message="Create your first template and submit it to Meta for approval — you need one to message customers outside the 24-hour window."
+          />
+          <div class="text-center pb-2">
+            <button class="btn wa-btn" (click)="openTemplateModal()">
+              <i class="bi bi-plus-lg me-1"></i>Create first template
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+}
+
+<!-- --------------------------------------------------- new template modal -->
+<app-modal
+  [open]="tplOpen()"
+  title="New message template"
+  icon="bi-file-earmark-plus"
+  size="lg"
+  (closed)="tplOpen.set(false)"
+>
+  <div class="row g-3">
+    <div class="col-12 col-md-6">
+      <label class="form-label">Template name</label>
+      <input class="form-control" [(ngModel)]="tplName" placeholder="order_update" />
+      <div class="form-text">Lowercase letters, numbers, underscores (Meta rule).</div>
+    </div>
+    <div class="col-6 col-md-3">
+      <label class="form-label">Category</label>
+      <select class="form-select" [(ngModel)]="tplCategory">
+        <option value="MARKETING">Marketing</option>
+        <option value="UTILITY">Utility</option>
+        <option value="AUTHENTICATION">Authentication (OTP)</option>
+      </select>
+    </div>
+    <div class="col-6 col-md-3">
+      <label class="form-label">Language</label>
+      <select class="form-select" [(ngModel)]="tplLanguage">
+        <option value="en">English (en)</option>
+        <option value="en_US">English US (en_US)</option>
+        <option value="hi">Hindi (hi)</option>
+      </select>
+    </div>
+
+    <div class="col-12">
+      <div class="wa-cat-hint">
+        @switch (tplCategory) {
+          @case ('MARKETING') {
+            <i class="bi bi-megaphone me-1"></i><strong>Marketing</strong> — offers, promotions,
+            re-engagement. Normal Meta review; content rules are strict.
+          }
+          @case ('UTILITY') {
+            <i class="bi bi-receipt me-1"></i><strong>Utility</strong> — order/appointment
+            updates, account alerts. Fastest approval, sometimes instant.
+          }
+          @case ('AUTHENTICATION') {
+            <i class="bi bi-shield-lock me-1"></i><strong>Authentication</strong> — OTP codes.
+            Meta's fixed structure is auto-generated (copy-code button + 10-min expiry) —
+            just provide a name and language.
+          }
+        }
+      </div>
+    </div>
+
+    @if (tplCategory !== 'AUTHENTICATION') {
+      <div class="col-12">
+        <label class="form-label">Header <span class="text-muted fw-normal">(optional)</span></label>
+        <input class="form-control" [(ngModel)]="tplHeader" placeholder="Order update" maxlength="60" />
+      </div>
+      <div class="col-12">
+        <label class="form-label">Body</label>
+        <textarea
+          class="form-control"
+          rows="4"
+          [(ngModel)]="tplBody"
+          placeholder="Hi {{ '{' }}{{ '{' }}1{{ '}' }}{{ '}' }}, your order {{ '{' }}{{ '{' }}2{{ '}' }}{{ '}' }} has been shipped."
+        ></textarea>
+        <div class="form-text">
+          Variables ke liye {{ '{' }}{{ '{' }}1{{ '}' }}{{ '}' }},
+          {{ '{' }}{{ '{' }}2{{ '}' }}{{ '}' }}… in the body. Detected:
+          <strong>{{ tplVariableCount() }}</strong>
+        </div>
+      </div>
+      @if (tplVariableCount() > 0) {
+        <div class="col-12">
+          <label class="form-label">Example values <span class="text-muted fw-normal">(comma-separated, one per variable)</span></label>
+          <input class="form-control" [(ngModel)]="tplExamples" placeholder="Punit, ORD-1042" />
+          <div class="form-text">Meta reviewers yehi examples dekhte hain — approval ke liye zaroori.</div>
+        </div>
+      }
+      <div class="col-12">
+        <label class="form-label">Footer <span class="text-muted fw-normal">(optional)</span></label>
+        <input class="form-control" [(ngModel)]="tplFooter" placeholder="XetaX CRM" maxlength="60" />
+      </div>
+    }
+  </div>
+
+  <div modalFooter class="d-flex justify-content-end gap-2">
+    <button class="btn btn-outline-secondary" (click)="tplOpen.set(false)">Cancel</button>
+    <button class="btn wa-btn" [disabled]="tplSaving()" (click)="submitTemplate()">
+      @if (tplSaving()) {
+        <span class="spinner-border spinner-border-sm me-1"></span>
+      } @else {
+        <i class="bi bi-send me-1"></i>
+      }
+      Submit for approval
+    </button>
+  </div>
+</app-modal>

@@ -1,0 +1,224 @@
+<app-page-header
+  title="Team"
+  icon="bi-people"
+  subtitle="Add members and design roles — you decide who can do what."
+>
+  @if (tab() === 'members') {
+    <button class="btn tm-btn btn-sm" (click)="openMemberModal()">
+      <i class="bi bi-person-plus me-1"></i>Add member
+    </button>
+  } @else {
+    <button class="btn tm-btn btn-sm" (click)="openRoleModal(null)">
+      <i class="bi bi-shield-plus me-1"></i>New role
+    </button>
+  }
+</app-page-header>
+
+<div class="tm-tabs mb-3">
+  <button class="tm-tabs__pill" [class.is-active]="tab() === 'members'" (click)="tab.set('members')">
+    <i class="bi bi-people"></i> Members
+    @if (members().length) { <span class="tm-count">{{ members().length }}</span> }
+  </button>
+  <button class="tm-tabs__pill" [class.is-active]="tab() === 'roles'" (click)="tab.set('roles')">
+    <i class="bi bi-shield-lock"></i> Roles
+    @if (roles().length) { <span class="tm-count">{{ roles().length }}</span> }
+  </button>
+</div>
+
+@if (error()) {
+  <app-error-state>
+    <button class="btn btn-outline-secondary btn-sm" (click)="load()">Retry</button>
+  </app-error-state>
+} @else if (loading()) {
+  <div class="card tm-card p-3"><app-table-skeleton [rows]="4" [cols]="4" /></div>
+} @else if (tab() === 'members') {
+
+  <!-- ------------------------------------------------------- MEMBERS -->
+  @if (!members().length) {
+    <div class="card tm-card p-3">
+      <app-empty-state
+        icon="bi-people"
+        title="No team members yet"
+        message="Add a member and give them a role — they will work on your CRM data within that role."
+      />
+      <div class="text-center pb-3">
+        <button class="btn tm-btn" (click)="openMemberModal()">
+          <i class="bi bi-person-plus me-1"></i>Add first member
+        </button>
+      </div>
+    </div>
+  } @else {
+    <div class="card tm-card">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Member</th>
+              <th>Email</th>
+              <th style="width: 220px">Role</th>
+              <th class="text-end"></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (member of members(); track member.userId) {
+              <tr>
+                <td>
+                  <span class="tm-avatar">{{ (member.name || '?').charAt(0).toUpperCase() }}</span>
+                  <span class="fw-medium ms-2">{{ member.name }}</span>
+                </td>
+                <td class="text-muted">{{ member.email }}</td>
+                <td>
+                  <select
+                    class="form-select form-select-sm"
+                    [value]="member.roleId"
+                    (change)="changeRole(member, $any($event.target).value)"
+                  >
+                    @for (role of assignableRoles(); track role.id) {
+                      <option [value]="role.id">{{ role.name }}</option>
+                    }
+                  </select>
+                </td>
+                <td class="text-end">
+                  <button class="btn btn-link btn-sm text-danger p-0" title="Remove"
+                          (click)="removeMember(member)">
+                    <i class="bi bi-person-dash"></i>
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <div class="tm-hint">
+        <i class="bi bi-info-circle me-1"></i>
+        Members see and edit your workspace data — their role decides how much.
+        Role changes apply instantly.
+      </div>
+    </div>
+  }
+
+} @else {
+
+  <!-- --------------------------------------------------------- ROLES -->
+  <div class="tm-roles">
+    @for (role of roles(); track role.id) {
+      <div class="card tm-card tm-role">
+        <div class="tm-role__head">
+          <span class="tm-role__name">
+            <i class="bi me-1" [class.bi-shield-fill-check]="role.system" [class.bi-shield]="!role.system"></i>
+            {{ role.name }}
+          </span>
+          @if (role.system) {
+            <span class="badge text-bg-primary">System</span>
+          }
+        </div>
+        <div class="tm-role__meta">
+          {{ permCount(role) }} · {{ role.memberCount }} member{{ role.memberCount === 1 ? '' : 's' }}
+        </div>
+        @if (!role.system) {
+          <div class="tm-role__perms">
+            @for (permission of role.permissions.slice(0, 6); track permission) {
+              <span class="tm-chip">{{ permission }}</span>
+            }
+            @if (role.permissions.length > 6) {
+              <span class="tm-chip">+{{ role.permissions.length - 6 }} more</span>
+            }
+          </div>
+          <div class="tm-role__actions">
+            <button class="btn btn-outline-secondary btn-sm" (click)="openRoleModal(role)">
+              <i class="bi bi-pencil me-1"></i>Edit
+            </button>
+            <button class="btn btn-outline-danger btn-sm" [disabled]="role.memberCount > 0"
+                    (click)="deleteRole(role)"
+                    [title]="role.memberCount > 0 ? 'Members use this role — change their role first' : 'Delete'">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+        } @else {
+          <div class="tm-role__perms"><span class="tm-chip tm-chip--all">Sab kuch allowed</span></div>
+        }
+      </div>
+    }
+  </div>
+}
+
+<!-- ------------------------------------------------------ member modal -->
+<app-modal [open]="memberOpen()" title="Add team member" icon="bi-person-plus" size="md"
+           (closed)="memberOpen.set(false)">
+  <div class="row g-3">
+    <div class="col-12 col-md-6">
+      <label class="form-label">Name</label>
+      <input class="form-control" [(ngModel)]="mName" placeholder="Ravi Kumar" />
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label">Role</label>
+      <select class="form-select" [(ngModel)]="mRoleId">
+        @for (role of assignableRoles(); track role.id) {
+          <option [ngValue]="role.id">{{ role.name }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label">Email <span class="text-muted fw-normal">(login id)</span></label>
+      <input type="email" class="form-control" [(ngModel)]="mEmail" placeholder="ravi@company.com" />
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label">Password</label>
+      <input type="text" class="form-control" [(ngModel)]="mPassword" placeholder="6+ characters" />
+      <div class="form-text">Share it with the member — they should change it after their first login.</div>
+    </div>
+  </div>
+  <div modalFooter class="d-flex justify-content-end gap-2">
+    <button class="btn btn-outline-secondary" (click)="memberOpen.set(false)">Cancel</button>
+    <button class="btn tm-btn" [disabled]="savingMember()" (click)="createMember()">
+      @if (savingMember()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+      @else { <i class="bi bi-check2 me-1"></i> }
+      Create member
+    </button>
+  </div>
+</app-modal>
+
+<!-- -------------------------------------------------------- role modal -->
+<app-modal [open]="roleOpen()" [title]="editingRole ? 'Edit role' : 'New role'"
+           icon="bi-shield-lock" size="lg" (closed)="roleOpen.set(false)">
+  <div class="mb-3">
+    <label class="form-label">Role name</label>
+    <input class="form-control" [(ngModel)]="rName" placeholder="SALES AGENT" />
+  </div>
+
+  <label class="form-label">Permissions — tick everything this role may do</label>
+  <div class="tm-perm-groups">
+    @for (group of catalogGroups(); track group) {
+      <div class="tm-perm-group">
+        <button type="button" class="tm-perm-group__head" (click)="toggleGroup(group)">
+          <i class="bi"
+             [class.bi-check-square-fill]="groupState(group) === 'all'"
+             [class.bi-dash-square-fill]="groupState(group) === 'some'"
+             [class.bi-square]="groupState(group) === 'none'"></i>
+          {{ group }}
+        </button>
+        @for (permission of catalog()[group]; track permission.key) {
+          <label class="tm-perm">
+            <input type="checkbox" class="form-check-input"
+                   [checked]="rPerms.has(permission.key)"
+                   (change)="togglePerm(permission.key)" />
+            <span>{{ permission.label }}</span>
+            <code>{{ permission.key }}</code>
+          </label>
+        }
+      </div>
+    }
+  </div>
+
+  <div modalFooter class="d-flex justify-content-between align-items-center w-100">
+    <span class="text-muted small">{{ rPerms.size }} permissions selected</span>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-secondary" (click)="roleOpen.set(false)">Cancel</button>
+      <button class="btn tm-btn" [disabled]="savingRole()" (click)="saveRole()">
+        @if (savingRole()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+        @else { <i class="bi bi-check2 me-1"></i> }
+        {{ editingRole ? 'Save changes' : 'Create role' }}
+      </button>
+    </div>
+  </div>
+</app-modal>

@@ -1,0 +1,98 @@
+<app-page-header
+  title="Documents"
+  icon="bi-folder2-open"
+  subtitle="Upload once, attach anywhere — quotations, brochures, price lists. DOCX files can auto-fill record data."
+/>
+
+<!-- upload card -->
+<div class="card mb-3">
+  <div class="card-body">
+    <div class="row g-2 align-items-end">
+      <div class="col-12 col-md-4">
+        <label class="form-label" for="docFile">File <span class="text-danger">*</span></label>
+        <input id="docFile" type="file" class="form-control"
+               accept=".pdf,.png,.jpg,.jpeg,.docx,.xlsx,.csv,.txt"
+               (change)="onFilePicked($event)" />
+      </div>
+      <div class="col-12 col-md-4">
+        <label class="form-label" for="docName">Display name</label>
+        <input id="docName" class="form-control" [(ngModel)]="uploadName" placeholder="e.g. Price list 2026" />
+      </div>
+      <div class="col-12 col-md-4">
+        <button class="btn btn-primary" [disabled]="uploading()" (click)="upload()">
+          @if (uploading()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+          @else { <i class="bi bi-upload me-1"></i> }
+          Upload
+        </button>
+      </div>
+      <div class="col-12">
+        <small class="text-muted">
+          <i class="bi bi-magic me-1"></i>Tip: upload a <b>.docx</b> with placeholders like
+          <code>{{ '{' }}{{ '{' }}full_name{{ '}' }}{{ '}' }}</code> — when sent from a record,
+          they are replaced with that record's data. Max 5 MB.
+        </small>
+      </div>
+    </div>
+  </div>
+</div>
+
+@if (loading()) {
+  <app-table-skeleton [rows]="4" [cols]="4" />
+} @else if (failed()) {
+  <app-error-state message="Could not load documents." (retry)="load()" />
+} @else if (!documents().length) {
+  <app-empty-state
+    icon="bi-folder2-open"
+    title="No documents yet"
+    message="Upload your quotation, brochure or price list — then send it from any contact or record."
+  />
+} @else {
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 docs-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>File</th>
+            <th>Size</th>
+            <th>Variables</th>
+            <th>Uploaded</th>
+            <th class="text-end" style="width: 110px">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (document of documents(); track document.id) {
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi doc-icon" [class]="icon(document)"></i>
+                  <span class="fw-semibold">{{ document.name }}</span>
+                </div>
+              </td>
+              <td class="text-muted">{{ document.originalFilename }}</td>
+              <td class="text-muted">{{ (document.size || 0) / 1024 | number: '1.0-0' }} KB</td>
+              <td>
+                @if (document.supportsVariables) {
+                  <span class="badge badge-soft-primary" title="{{ '{' }}{{ '{' }}field_key{{ '}' }}{{ '}' }} placeholders are filled from record data">
+                    <i class="bi bi-magic me-1"></i>Supported
+                  </span>
+                } @else {
+                  <span class="text-muted" style="font-size: 0.75rem">—</span>
+                }
+              </td>
+              <td class="text-muted">{{ document.createdAt | date: 'd MMM y' }}</td>
+              <td class="text-end text-nowrap">
+                <button class="btn btn-light btn-sm" title="Download" (click)="download(document)">
+                  <i class="bi bi-download"></i>
+                </button>
+                <button class="btn btn-light btn-sm text-danger" title="Delete" (click)="remove(document)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}

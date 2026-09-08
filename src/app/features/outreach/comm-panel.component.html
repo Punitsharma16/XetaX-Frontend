@@ -1,0 +1,168 @@
+<div class="row g-3">
+  <!-- ------------------------------------------------------ WhatsApp chat -->
+  <div class="col-12 col-xl-6">
+    <div class="card h-100 d-flex flex-column">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-whatsapp me-2 text-success"></i>WhatsApp
+          @if (phone()) { <small class="text-muted ms-1">{{ phone() }}</small> }
+        </span>
+        <button class="btn btn-light btn-sm" (click)="refresh()" title="Refresh">
+          <i class="bi bi-arrow-clockwise"></i>
+        </button>
+      </div>
+
+      @if (!phone()) {
+        <div class="card-body text-center text-muted py-4">
+          <i class="bi bi-telephone-x d-block mb-2" style="font-size: 1.3rem"></i>
+          No phone number saved — add one to start chatting.
+        </div>
+      } @else {
+        <div class="comm-chat">
+          @if (chatLoading()) {
+            <div class="text-center text-muted py-3"><span class="spinner-border spinner-border-sm"></span></div>
+          } @else if (!chat().length) {
+            <div class="text-center text-muted py-3" style="font-size: 0.8rem">
+              No conversation yet — send the first message below.
+            </div>
+          } @else {
+            @for (message of chat(); track message.id) {
+              <div class="comm-bubble" [class.comm-bubble--out]="message.direction === 'OUTBOUND'">
+                @if (message.templateName) {
+                  <span class="comm-bubble__tpl"><i class="bi bi-file-text me-1"></i>{{ message.templateName }}</span>
+                }
+                @if (message.body) { <div>{{ message.body }}</div> }
+                <small>
+                  {{ message.createdAt | date: 'd MMM, h:mm a' }}
+                  @if (message.direction === 'OUTBOUND') { · {{ message.status }} }
+                </small>
+              </div>
+            }
+          }
+        </div>
+
+        <!-- composer -->
+        <div class="comm-composer">
+          <select class="form-select form-select-sm mb-2" [(ngModel)]="waTemplate">
+            <option value="">Free text (within the 24h window)</option>
+            @for (template of approvedTemplates(); track template.id) {
+              <option [value]="template.name">Template: {{ template.name }} ({{ template.language }})</option>
+            }
+          </select>
+          @if (!waTemplate) {
+            <textarea class="form-control form-control-sm" rows="2" [(ngModel)]="waMessage"
+                      placeholder="Write a message…"></textarea>
+            <div class="d-flex gap-1 mt-2 align-items-center flex-wrap">
+              <small class="text-muted me-1" style="font-size: 0.68rem" title="The customer taps these to reply in one click">
+                <i class="bi bi-hand-index-thumb"></i> Quick replies:
+              </small>
+              <input class="form-control form-control-sm comm-btn-input" [(ngModel)]="waButtons[0]" placeholder="Button 1" maxlength="20" />
+              <input class="form-control form-control-sm comm-btn-input" [(ngModel)]="waButtons[1]" placeholder="Button 2" maxlength="20" />
+              <input class="form-control form-control-sm comm-btn-input" [(ngModel)]="waButtons[2]" placeholder="Button 3" maxlength="20" />
+            </div>
+            <div class="d-flex align-items-center gap-2 mt-2 flex-wrap">
+              <select class="form-select form-select-sm comm-doc-select" [(ngModel)]="waDocumentId">
+                <option value="">📎 Attach a document (optional)</option>
+                @for (doc of documents(); track doc.id) {
+                  <option [value]="doc.id">{{ doc.name }}</option>
+                }
+              </select>
+              @if (recordId() && selectedWaDoc()?.supportsVariables) {
+                <label class="comm-personalize">
+                  <input type="checkbox" class="form-check-input" [(ngModel)]="personalizeDoc" />
+                  Fill variables with this record's data
+                </label>
+              }
+            </div>
+          } @else {
+            <div class="text-muted" style="font-size: 0.72rem">
+              <i class="bi bi-info-circle me-1"></i>Approved templates can be sent any time — no 24h window needed.
+            </div>
+          }
+          <div class="d-flex justify-content-end mt-2">
+            <button class="btn btn-success btn-sm" [disabled]="waSending()" (click)="sendWhatsApp()">
+              @if (waSending()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+              @else { <i class="bi bi-send me-1"></i> }
+              Send WhatsApp
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- -------------------------------------------------------- email side -->
+  <div class="col-12 col-xl-6">
+    <div class="card h-100 d-flex flex-column">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <span><i class="bi bi-envelope me-2"></i>Emails
+          @if (email()) { <small class="text-muted ms-1">{{ email() }}</small> }
+        </span>
+        @if (email()) {
+          <button class="btn btn-primary btn-sm" (click)="emailComposerOpen.set(!emailComposerOpen())">
+            <i class="bi bi-pencil-square me-1"></i>Send email
+          </button>
+        }
+      </div>
+
+      @if (!email()) {
+        <div class="card-body text-center text-muted py-4">
+          <i class="bi bi-envelope-x d-block mb-2" style="font-size: 1.3rem"></i>
+          No email address saved — add one to send emails.
+        </div>
+      } @else {
+        @if (emailComposerOpen()) {
+          <div class="comm-composer comm-composer--top">
+            <input class="form-control form-control-sm mb-2" [(ngModel)]="emailSubject" placeholder="Subject" />
+            <textarea class="form-control form-control-sm" rows="3" [(ngModel)]="emailBody"
+                      placeholder="Message…"></textarea>
+            <div class="d-flex align-items-center gap-2 mt-2 flex-wrap">
+              <select class="form-select form-select-sm comm-doc-select" [(ngModel)]="emailDocumentId">
+                <option value="">📎 Attach a document (optional)</option>
+                @for (doc of documents(); track doc.id) {
+                  <option [value]="doc.id">{{ doc.name }}</option>
+                }
+              </select>
+              @if (recordId() && selectedEmailDoc()?.supportsVariables) {
+                <label class="comm-personalize">
+                  <input type="checkbox" class="form-check-input" [(ngModel)]="personalizeDoc" />
+                  Fill variables with this record's data
+                </label>
+              }
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-2">
+              <button class="btn btn-outline-secondary btn-sm" (click)="emailComposerOpen.set(false)">Cancel</button>
+              <button class="btn btn-primary btn-sm" [disabled]="emailSending()" (click)="sendEmail()">
+                @if (emailSending()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                @else { <i class="bi bi-send me-1"></i> }
+                Send
+              </button>
+            </div>
+          </div>
+        }
+
+        <div class="comm-emails">
+          @if (emailsLoading()) {
+            <div class="text-center text-muted py-3"><span class="spinner-border spinner-border-sm"></span></div>
+          } @else if (!emails().length) {
+            <div class="text-center text-muted py-3" style="font-size: 0.8rem">
+              No emails have been sent to this address yet.
+            </div>
+          } @else {
+            @for (log of emails(); track log.id) {
+              <div class="comm-email" [class.comm-email--failed]="log.status === 'FAILED'">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="badge" [class.badge-soft-success]="log.status === 'SENT'"
+                        [class.badge-soft-danger]="log.status === 'FAILED'">{{ log.status }}</span>
+                  <b class="text-truncate">{{ log.subject || '(no subject)' }}</b>
+                  <small class="text-muted ms-auto text-nowrap">{{ log.createdAt | date: 'd MMM, h:mm a' }}</small>
+                </div>
+                @if (log.body) { <div class="comm-email__body">{{ log.body }}</div> }
+                @if (log.error) { <small class="text-danger">{{ log.error }}</small> }
+              </div>
+            }
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

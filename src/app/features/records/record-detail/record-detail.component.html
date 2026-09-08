@@ -1,0 +1,222 @@
+@if (loading()) {
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="skeleton mb-2" style="height: 14px; width: 30%"></div>
+      <div class="skeleton" style="height: 10px; width: 55%"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-body">
+      <div class="skeleton" style="height: 160px"></div>
+    </div>
+  </div>
+} @else if (failed() || !record()) {
+  <div class="card">
+    <app-error-state
+      title="Record not found"
+      message="It may have been deleted, or the CRM service is unavailable."
+    >
+      <a class="btn btn-primary" [routerLink]="['/app/records', slug()]">
+        <i class="bi bi-arrow-left"></i> Back to records
+      </a>
+    </app-error-state>
+  </div>
+} @else {
+  <app-page-header
+    [title]="recordTitle()"
+    [subtitle]="(form()?.name || 'Record') + ' · edit record'"
+    icon="bi-collection"
+  >
+    <a class="btn btn-outline-secondary" [routerLink]="['/app/records', slug()]">
+      <i class="bi bi-arrow-left"></i> Back
+    </a>
+    <button type="button" class="btn btn-outline-primary" (click)="startMeeting()">
+      <i class="bi bi-camera-video me-1"></i>Meeting
+    </button>
+    @if (onFinalStage()) {
+      <a class="btn btn-outline-success"
+         [routerLink]="['/app/invoices/new']"
+         [queryParams]="{ recordId: record()?.id, customer: recordTitle(), phone: commPhone() || '', email: commEmail() || '' }">
+        <i class="bi bi-receipt me-1"></i>New invoice
+      </a>
+    }
+  </app-page-header>
+
+  <!-- ------------------------------------------------- stage pipeline strip -->
+  @if (stages().length) {
+    <div class="card mb-3">
+      <div class="card-body py-3">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+          <span class="stage-strip-label">
+            <i class="bi bi-signpost-split me-1"></i>Pipeline — click a stage to move this record
+          </span>
+          @if (movingStage()) {
+            <span class="text-muted" style="font-size: 0.72rem">
+              <span class="spinner-border spinner-border-sm me-1"></span> Moving…
+            </span>
+          }
+        </div>
+
+        <div class="stage-strip">
+          @for (stage of stages(); track stage.id) {
+            <button
+              type="button"
+              class="stage-step"
+              [class.stage-step--current]="isCurrent(stage)"
+              [style.--stage-color]="stage.color || '#4f46e5'"
+              [disabled]="movingStage() || isCurrent(stage)"
+              (click)="moveToStage(stage)"
+              [title]="isCurrent(stage) ? 'Current stage' : 'Move to ' + stage.name"
+            >
+              <span class="stage-step__dot"></span>
+              {{ stage.name }}
+              @if (stage.isFinal) {
+                <i class="bi bi-flag-fill stage-step__flag" title="Final stage"></i>
+              }
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ------------------------------------------------------------------
+       Two-column layout: the work (fields + communication) stays in the main
+       column; history and tasks live in the sidebar with their own scroll,
+       so a long activity trail never pushes WhatsApp/email off the page.
+       Below xl the sidebar stacks after the main column.
+  ------------------------------------------------------------------- -->
+  <div class="row g-3 align-items-start">
+    <!-- ------------------------------------------------------ main column -->
+    <div class="col-12 col-xl-8 d-flex flex-column gap-3">
+      <!-- record fields -->
+      <div class="card mb-0">
+        <div class="card-header bg-transparent d-flex align-items-center justify-content-between">
+          <h6 class="mb-0 section-title"><i class="bi bi-card-list me-2"></i>Record details</h6>
+          <span class="text-secondary" style="font-size: 0.72rem">
+            Created {{ record()?.createdAt | date: 'dd MMM yyyy' }}
+          </span>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="editorGroup()" (ngSubmit)="save()" novalidate id="recordDetailEditor">
+            <div class="row g-3">
+              @for (field of editorFields(); track field.id) {
+                <div
+                  class="col-12"
+                  [class.col-md-6]="
+                    field.fieldType !== 'TEXTAREA' &&
+                    field.fieldType !== 'JSON' &&
+                    field.fieldType !== 'MULTI_SELECT' &&
+                    field.fieldType !== 'CHECKBOX'
+                  "
+                >
+                  <app-dynamic-field [field]="field" [group]="editorGroup()" />
+                </div>
+              }
+            </div>
+          </form>
+        </div>
+
+        <div class="card-footer d-flex justify-content-end gap-2">
+          <button type="button" class="btn btn-outline-secondary" (click)="backToList()" [disabled]="saving()">
+            Cancel
+          </button>
+          <button type="submit" form="recordDetailEditor" class="btn btn-primary" [disabled]="saving()">
+            @if (saving()) {
+              <span class="spinner-border spinner-border-sm"></span> Saving…
+            } @else {
+              <i class="bi bi-check2"></i> Save record
+            }
+          </button>
+        </div>
+      </div>
+
+      <!-- communication (WhatsApp chat + emails) -->
+      <app-comm-panel
+        [phone]="commPhone()"
+        [email]="commEmail()"
+        [personName]="recordTitle()"
+        [recordId]="record()?.id"
+      />
+    </div>
+
+    <!-- --------------------------------------------------------- sidebar -->
+    <div class="col-12 col-xl-4 d-flex flex-column gap-3 record-sidebar">
+      <!-- AI conversation: summary + pending suggestion (only when a bot talked to this person) -->
+      @if (aiSession(); as ai) {
+        <div class="card mb-0 ai-card">
+          <div class="card-header bg-transparent d-flex align-items-center justify-content-between">
+            <h6 class="mb-0 section-title"><i class="bi bi-stars me-2"></i>AI conversation</h6>
+            <span class="badge rounded-pill text-bg-light border">
+              <i class="bi {{ ai.channel === 'WHATSAPP' ? 'bi-whatsapp' : 'bi-globe2' }} me-1"></i>{{ ai.channel === 'WHATSAPP' ? 'WhatsApp' : 'Website' }}
+            </span>
+          </div>
+          <div class="card-body">
+            @if (ai.pendingStageId) {
+              <div class="alert alert-warning py-2 px-3 mb-3">
+                <div class="small fw-semibold"><i class="bi bi-lightbulb me-1"></i>AI suggests moving to
+                  <b>{{ ai.pendingStageName }}</b></div>
+                <div class="d-flex gap-2 mt-2">
+                  <button class="btn btn-sm btn-primary" (click)="applyAiSuggestion()" [disabled]="applyingSuggestion()">
+                    <i class="bi bi-check2 me-1"></i>Apply
+                  </button>
+                  <button class="btn btn-sm btn-outline-secondary" (click)="dismissAiSuggestion()">Dismiss</button>
+                </div>
+              </div>
+            }
+            @if (ai.summary) {
+              <div class="ai-summary">{{ ai.summary }}</div>
+              @if (ai.summaryAt) {
+                <div class="text-secondary mt-2" style="font-size: 0.7rem">Updated {{ ai.summaryAt | date: 'dd MMM, h:mm a' }}</div>
+              }
+            } @else {
+              <div class="text-secondary small">Conversation in progress — a summary is saved once the chat goes quiet.</div>
+            }
+            <div class="text-secondary mt-2" style="font-size: 0.72rem">
+              Status: {{ ai.status === 'HUMAN' ? ('with ' + (ai.acceptedByName || 'your team')) : (ai.status === 'WAITING_HUMAN' ? 'waiting for your team' : (ai.status === 'RESOLVED' ? 'closed' : 'assistant is handling')) }}
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- tasks & reminders -->
+      <app-task-panel [recordId]="record()?.id" [linkedName]="recordTitle()" />
+
+      <!-- activity trail — its own scroll, never pushes anything down -->
+      <div class="card mb-0">
+        <div class="card-header bg-transparent d-flex align-items-center justify-content-between">
+          <h6 class="mb-0 section-title"><i class="bi bi-clock-history me-2"></i>Activity</h6>
+          @if (activity().length) {
+            <span class="badge rounded-pill text-bg-light border">{{ activity().length }}</span>
+          }
+        </div>
+        <div class="card-body p-0">
+          @if (activity().length) {
+            <div class="activity-scroll">
+              <ul class="list-unstyled mb-0 activity-list">
+                @for (item of activity(); track item.id) {
+                  <li class="activity-row">
+                    <span class="activity-ico"><i class="bi {{ activityIcon(item.type) }}"></i></span>
+                    <div class="activity-body">
+                      <div class="activity-text">{{ item.detail }}</div>
+                      <div class="activity-meta">
+                        {{ item.actorName || 'System' }} · {{ item.createdAt | date: 'dd MMM, h:mm a' }}
+                      </div>
+                    </div>
+                  </li>
+                }
+              </ul>
+            </div>
+          } @else {
+            <div class="text-secondary text-center py-4" style="font-size: 0.8rem">
+              <i class="bi bi-clock-history d-block mb-1 fs-5"></i>
+              No activity yet — changes to this record will show up here.
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+

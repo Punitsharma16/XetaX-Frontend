@@ -1,0 +1,196 @@
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 992px) {
+  .auth-page {
+    grid-template-columns: minmax(380px, 42%) 1fr;
+  }
+}
+
+/* ------------------------------------------------------------- left panel */
+
+.auth-aside {
+  position: relative;
+  background:
+    radial-gradient(900px 500px at 15% 10%, rgba(129, 140, 248, 0.35), transparent 60%),
+    linear-gradient(160deg, #312e81 0%, #1e1b4b 55%, #0f172a 100%);
+  color: #fff;
+  overflow: hidden;
+}
+
+.auth-aside::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: radial-gradient(circle at 30% 25%, #000 0%, transparent 75%);
+  pointer-events: none;
+}
+
+.auth-aside__inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2.75rem;
+  width: 100%;
+}
+
+.auth-aside__copy {
+  max-width: 420px;
+}
+
+.auth-aside__lead {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.9375rem;
+  line-height: 1.65;
+}
+
+.auth-points {
+  list-style: none;
+  padding: 0;
+  margin: 1.75rem 0 0;
+  display: grid;
+  gap: 0.7rem;
+}
+
+.auth-points li {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.875rem;
+}
+
+.auth-points i {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.12);
+  color: #c7d2fe;
+  font-size: 0.85rem;
+}
+
+.auth-aside__foot {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.75rem;
+}
+
+/* ----------------------------------------------------------------- brand */
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.auth-brand__mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: #fff;
+  background: linear-gradient(135deg, var(--brand-500), var(--brand-800));
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+}
+
+.auth-brand__name {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.auth-brand__sub {
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.auth-aside .auth-brand__sub {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* ------------------------------------------------------------ right panel */
+
+.auth-main {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.25rem;
+  background: var(--surface-page);
+}
+
+.auth-theme {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  padding: 2rem;
+}
+
+.alert-danger {
+  background: var(--danger-50);
+  border-color: transparent;
+  color: var(--danger-600);
+  border-radius: var(--radius-md);
+}
+
+.auth-divider {
+  position: relative;
+  text-align: center;
+  margin: 1.5rem 0 1rem;
+}
+
+.auth-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.auth-divider span {
+  position: relative;
+  padding: 0 0.75rem;
+  background: var(--surface-card);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+/* "Continue with Google" — neutral outline button with the brand mark. */
+.auth-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  font-weight: 600;
+  background: #fff;
+}
+.auth-google:hover { background: #f6f7fb; }

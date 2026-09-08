@@ -1,0 +1,40 @@
+.inv-tile {
+  border-left: 4px solid #6366f1;
+}
+.inv-tile--green { border-left-color: #16a34a; }
+.inv-tile--amber { border-left-color: #f59e0b; }
+.inv-tile--red { border-left-color: #ef4444; }
+
+.inv-tile__label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--bs-secondary-color, #6b7280);
+}
+.inv-tile__value {
+  font-size: 1.3rem;
+  font-weight: 800;
+  margin-top: 2px;
+}
+.inv-tile__hint {
+  font-size: 0.72rem;
+  color: var(--bs-secondary-color, #8a90a8);
+}
+
+.inv-filter-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--bs-secondary-color, #6b7280);
+  margin-bottom: 2px;
+}
+
+.inv-table th {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--bs-secondary-color, #6b7280);
+}
+.inv-row { cursor: pointer; }

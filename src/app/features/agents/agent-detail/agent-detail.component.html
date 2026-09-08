@@ -1,0 +1,362 @@
+@if (error()) {
+  <app-error-state title="Agent not found">
+    <a class="btn btn-primary" routerLink="/app/agents">Back to agents</a>
+  </app-error-state>
+} @else if (agent(); as a) {
+  <app-page-header [title]="a.name" icon="bi-robot"
+    [subtitle]="'Add knowledge, test it in the playground, then go live with the embed script.'">
+    <a class="btn btn-outline-secondary btn-sm" routerLink="/app/agents">
+      <i class="bi bi-arrow-left me-1"></i>All agents
+    </a>
+    <span class="badge" [class.text-bg-success]="a.status === 'ACTIVE'"
+          [class.text-bg-danger]="a.status === 'DISABLED'">
+      {{ a.status === 'ACTIVE' ? 'Live' : 'Disabled' }}
+    </span>
+  </app-page-header>
+
+  <div class="ag-tabs mb-3">
+    <button class="ag-tabs__pill" [class.is-active]="tab() === 'sources'" (click)="tab.set('sources')">
+      <i class="bi bi-database"></i> Knowledge
+      <span class="ag-count">{{ sources().length }}</span>
+    </button>
+    <button class="ag-tabs__pill" [class.is-active]="tab() === 'playground'" (click)="tab.set('playground')">
+      <i class="bi bi-chat-dots"></i> Playground
+    </button>
+    <button class="ag-tabs__pill" [class.is-active]="tab() === 'embed'" (click)="tab.set('embed')">
+      <i class="bi bi-code-slash"></i> Embed
+    </button>
+    <button class="ag-tabs__pill" [class.is-active]="tab() === 'channels'" (click)="tab.set('channels')">
+      <i class="bi bi-diagram-3 me-1"></i>Channels &amp; Pipeline
+    </button>
+    <button class="ag-tabs__pill" [class.is-active]="tab() === 'settings'" (click)="tab.set('settings')">
+      <i class="bi bi-gear"></i> Settings
+    </button>
+  </div>
+
+  <!-- ------------------------------------------------------- KNOWLEDGE -->
+  @if (tab() === 'sources') {
+    <div class="card ag-card mb-3">
+      <div class="card-body">
+        <div class="btn-group btn-group-sm mb-3">
+          <button class="btn" [class.ag-btn]="srcMode === 'pdf'" [class.btn-outline-secondary]="srcMode !== 'pdf'" (click)="srcMode = 'pdf'">
+            <i class="bi bi-file-earmark-pdf me-1"></i>PDF
+          </button>
+          <button class="btn" [class.ag-btn]="srcMode === 'url'" [class.btn-outline-secondary]="srcMode !== 'url'" (click)="srcMode = 'url'">
+            <i class="bi bi-link-45deg me-1"></i>Website URL
+          </button>
+          <button class="btn" [class.ag-btn]="srcMode === 'text'" [class.btn-outline-secondary]="srcMode !== 'text'" (click)="srcMode = 'text'">
+            <i class="bi bi-card-text me-1"></i>Manual text
+          </button>
+        </div>
+
+        @if (srcMode === 'pdf') {
+          <input type="file" accept="application/pdf" class="form-control" (change)="onPdfPicked($event)" />
+          <div class="form-text">
+            Text-based PDFs only (not scanned images).
+            @if (pdfName()) { <span class="text-success ms-1"><i class="bi bi-check2"></i>{{ pdfName() }}</span> }
+          </div>
+        } @else if (srcMode === 'url') {
+          <input class="form-control" [(ngModel)]="srcUrl" placeholder="https://yourwebsite.com/pricing" />
+          <div class="form-text">The text content of that page is indexed (use manual text for JS-heavy pages).</div>
+        } @else {
+          <input class="form-control mb-2" [(ngModel)]="srcTextName" placeholder="Naam — e.g. Pricing FAQ" />
+          <textarea class="form-control" rows="5" [(ngModel)]="srcText"
+            placeholder="Paste your content here — FAQs, policies, product info…"></textarea>
+        }
+
+        <button class="btn ag-btn mt-3" [disabled]="adding()" (click)="addSource()">
+          @if (adding()) { <span class="spinner-border spinner-border-sm me-1"></span> Indexing… }
+          @else { <i class="bi bi-plus-lg me-1"></i> Add & index }
+        </button>
+      </div>
+    </div>
+
+    <div class="card ag-card">
+      @if (sources().length) {
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead><tr><th>Source</th><th>Type</th><th>Status</th><th>Chunks</th><th>Added</th><th></th></tr></thead>
+            <tbody>
+              @for (source of sources(); track source.id) {
+                <tr>
+                  <td class="fw-medium text-truncate" style="max-width: 320px">{{ source.name }}</td>
+                  <td><span class="ag-chip">{{ source.type }}</span></td>
+                  <td>
+                    @if (source.status === 'INDEXED') {
+                      <span class="badge text-bg-success">Indexed</span>
+                    } @else {
+                      <span class="badge text-bg-danger" [title]="source.error">Failed</span>
+                    }
+                  </td>
+                  <td>{{ source.chunkCount }}</td>
+                  <td class="text-muted small">{{ source.createdAt | date: 'dd MMM' }}</td>
+                  <td class="text-end">
+                    <button class="btn btn-link btn-sm text-danger p-0" (click)="deleteSource(source)">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="card-body text-muted small">
+          No knowledge yet — add a PDF, URL or text above. The agent only answers from this data.
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ------------------------------------------------------ PLAYGROUND -->
+  @if (tab() === 'playground') {
+    <div class="card ag-card ag-play">
+      <div class="ag-play__head" [style.background]="a.themeColor">
+        <i class="bi bi-robot me-2"></i>{{ a.name }} — test chat (wahi jawab jo visitors ko milenge)
+      </div>
+      <div class="ag-play__body">
+        @for (message of chat(); track $index) {
+          <div class="ag-msg" [class.ag-msg--me]="message.who === 'me'"
+               [style.background]="message.who === 'me' ? a.themeColor : null">
+            {{ message.text }}
+          </div>
+        }
+        @if (thinking()) { <div class="ag-typing">typing…</div> }
+      </div>
+      <div class="ag-play__foot">
+        <input class="form-control" [(ngModel)]="draft" placeholder="Visitor ki tarah sawal pucho…"
+               (keyup.enter)="send()" />
+        <button class="btn ag-btn" [disabled]="thinking() || !draft.trim()" (click)="send()">
+          <i class="bi bi-send"></i>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- ----------------------------------------------------------- EMBED -->
+  @if (tab() === 'embed') {
+    <div class="card ag-card">
+      <div class="card-body">
+        <h6 class="fw-bold mb-2"><i class="bi bi-code-slash me-1"></i>One line — on any website</h6>
+        <p class="text-muted small">
+          Paste this script into your website's <code>&lt;body&gt;</code> (before the closing tag) —
+          a chat bubble appears in the bottom-right corner. Works on WordPress, Shopify and custom sites.
+        </p>
+        <div class="ag-snippet">
+          <code>{{ snippet() }}</code>
+          <button class="btn ag-btn btn-sm" (click)="copySnippet()">
+            <i class="bi bi-clipboard me-1"></i>Copy
+          </button>
+        </div>
+        <div class="ag-hint mt-3">
+          <i class="bi bi-info-circle me-1"></i>
+          Production me backend ka public URL <code>APP_API_BASE_URL</code> env se set karna —
+          script usi domain se load hogi. Widget disable karna ho to Settings me status Disabled kar do
+          (the bubble stays hidden even if the script is still on the page).
+        </div>
+      </div>
+    </div>
+
+    <!-- Shareable chat link — no website needed -->
+    <div class="card ag-card mt-3">
+      <div class="card-body">
+        <h6 class="fw-bold mb-2"><i class="bi bi-link-45deg me-1"></i>Chat link — share it anywhere</h6>
+        <p class="text-muted small">
+          Put this link in SMS / WhatsApp campaigns, Instagram bio, email signatures or a QR code.
+          It opens this assistant directly — full screen on phones, a chat window on desktops.
+          Same knowledge, same pipeline moves and hand-off to your desk.
+        </p>
+        <div class="ag-snippet">
+          <code>{{ shareLink() }}</code>
+          <button class="btn ag-btn btn-sm" (click)="copyShareLink()">
+            <i class="bi bi-clipboard me-1"></i>Copy
+          </button>
+        </div>
+        <div class="row g-3 mt-1 align-items-center">
+          <div class="col-md-8">
+            <div class="ag-hint">
+              <i class="bi bi-magic me-1"></i>
+              Know the customer already? Add params so the record links itself and you can see which
+              campaign brought them in:<br />
+              <code>{{ shareLink() }}?name=Ramesh&amp;phone=98xxxxxxxx&amp;src=diwali-offer</code>
+            </div>
+          </div>
+          <div class="col-md-4 text-center">
+            <img [src]="qrSrc()" width="132" height="132" alt="QR code for the chat link" class="rounded border bg-white p-1" />
+            <div class="small text-muted mt-1">Scan to open the chat</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- -------------------------------------------------------- SETTINGS -->
+  @if (tab() === 'channels') {
+    <div class="card ag-card">
+      <div class="card-body">
+        <h6 class="mb-1"><i class="bi bi-whatsapp me-2 text-success"></i>WhatsApp autopilot</h6>
+        <p class="text-secondary small mb-3">
+          Let this agent answer customers on your WhatsApp number — the same knowledge and persona it uses on the website.
+          Only one agent per workspace can be on WhatsApp.
+        </p>
+        <div class="row g-3 align-items-end">
+          <div class="col-12 col-md-4">
+            <div class="form-check form-switch">
+              <input class="form-check-input" type="checkbox" id="chWa" [(ngModel)]="cWhatsapp" />
+              <label class="form-check-label" for="chWa">{{ cWhatsapp ? 'Answering on WhatsApp' : 'WhatsApp off' }}</label>
+            </div>
+          </div>
+          <div class="col-12 col-md-8">
+            <label class="form-label">Reply to</label>
+            <select class="form-select" [(ngModel)]="cScope" [disabled]="!cWhatsapp">
+              <option value="ALL">Every incoming WhatsApp chat</option>
+              <option value="CAMPAIGN">Only replies to my campaigns</option>
+            </select>
+          </div>
+        </div>
+
+        <hr />
+        <h6 class="mb-1"><i class="bi bi-journal-plus me-2"></i>Where conversations are saved</h6>
+        <p class="text-secondary small mb-3">
+          Every chat (website or WhatsApp) becomes a record in this form — found by phone/email when it already exists.
+          Website visitors get a record once the assistant learns their phone or email.
+        </p>
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <label class="form-label">Form</label>
+            <select class="form-select" [(ngModel)]="cFormId" (ngModelChange)="onTargetFormChange()">
+              <option [ngValue]="null">— don't create records —</option>
+              @for (f of forms(); track f.id) {
+                <option [ngValue]="f.id">{{ f.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label d-block">Field capture</label>
+            <div class="form-check form-switch mt-2">
+              <input class="form-check-input" type="checkbox" id="chCap" [(ngModel)]="cCapture" [disabled]="!cFormId" />
+              <label class="form-check-label" for="chCap">Let the AI fill name / phone / email etc. it learns in chat</label>
+            </div>
+          </div>
+        </div>
+
+        @if (cFormId) {
+          <hr />
+          <h6 class="mb-1"><i class="bi bi-signpost-split me-2"></i>Pipeline moves the AI may make</h6>
+          <p class="text-secondary small mb-3">
+            The AI can only pick from this list — one line each on <i>when</i>. Nothing listed = it never touches the stage.
+          </p>
+          <div class="row g-2 align-items-end mb-2">
+            <div class="col-12 col-md-4">
+              <label class="form-label">Stage</label>
+              <select class="form-select" [(ngModel)]="hintStageId">
+                <option [ngValue]="null">Pick…</option>
+                @for (s of formStages(); track s.id) {
+                  <option [ngValue]="s.id">{{ s.name }}</option>
+                }
+              </select>
+            </div>
+            <div class="col-12 col-md-7">
+              <label class="form-label">When…</label>
+              <input class="form-control" [(ngModel)]="hintText" placeholder="customer shares budget and timeline" (keydown.enter)="addHint()" />
+            </div>
+            <div class="col-12 col-md-1 d-grid">
+              <button type="button" class="btn ag-btn" (click)="addHint()" title="Add"><i class="bi bi-plus-lg"></i></button>
+            </div>
+          </div>
+          @if (cHints.length) {
+            <ul class="list-group list-group-flush mb-3">
+              @for (h of cHints; track $index) {
+                <li class="list-group-item d-flex align-items-center gap-2 px-0">
+                  <span class="badge text-bg-light border">{{ stageName(h.stageId) }}</span>
+                  <span class="small flex-grow-1">when {{ h.hint }}</span>
+                  <button type="button" class="btn btn-sm btn-link text-danger p-0" (click)="removeHint($index)"><i class="bi bi-x-lg"></i></button>
+                </li>
+              }
+            </ul>
+          } @else {
+            <div class="text-secondary small mb-3">No moves allowed yet — add the stages the AI may set.</div>
+          }
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <label class="form-label">How the AI moves records</label>
+              <select class="form-select" [(ngModel)]="cMode">
+                <option value="SUGGEST">Suggest — a person approves on the record (recommended to start)</option>
+                <option value="AUTO">Auto — the AI sets it (final-stage lock still applies)</option>
+              </select>
+            </div>
+          </div>
+        }
+
+        <hr />
+        <h6 class="mb-1"><i class="bi bi-headset me-2"></i>Hand-off to your team</h6>
+        <p class="text-secondary small mb-3">
+          When a customer asks for a person (or types one of these words), the AI stops and the request lands in the
+          chat desk at the bottom-right of everyone's panel.
+        </p>
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <label class="form-label">Hand-off keywords <span class="text-muted">(comma separated)</span></label>
+            <input class="form-control" [(ngModel)]="cKeywords" placeholder="human, agent, call me, complaint" />
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label">Max AI turns per chat</label>
+            <input type="number" min="5" max="200" class="form-control" [(ngModel)]="cMaxTurns" />
+          </div>
+          <div class="col-6 col-md-3">
+            <label class="form-label">Website wait (minutes)</label>
+            <input type="number" min="1" max="30" class="form-control" [(ngModel)]="cWait" />
+            <div class="form-text">Then the AI takes over and asks for a call-back number.</div>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end mt-3">
+          <button class="btn ag-btn" [disabled]="savingChannels()" (click)="saveChannels()">
+            @if (savingChannels()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            @else { <i class="bi bi-check2 me-1"></i> }
+            Save channel settings
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (tab() === 'settings') {
+    <div class="card ag-card">
+      <div class="card-body row g-3">
+        <div class="col-12 col-md-6">
+          <label class="form-label">Name</label>
+          <input class="form-control" [(ngModel)]="sName" />
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label">Theme color</label>
+          <input type="color" class="form-control form-control-color w-100" [(ngModel)]="sColor" />
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label d-block">Status</label>
+          <div class="form-check form-switch mt-2">
+            <input class="form-check-input" type="checkbox" [(ngModel)]="sActive" id="agActive" />
+            <label class="form-check-label" for="agActive">{{ sActive ? 'Live' : 'Disabled' }}</label>
+          </div>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Welcome message</label>
+          <input class="form-control" [(ngModel)]="sWelcome" />
+        </div>
+        <div class="col-12">
+          <label class="form-label">Persona / instructions</label>
+          <textarea class="form-control" rows="3" [(ngModel)]="sPersona"></textarea>
+        </div>
+        <div class="col-12 d-flex justify-content-end">
+          <button class="btn ag-btn" [disabled]="savingSettings()" (click)="saveSettings()">
+            @if (savingSettings()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            @else { <i class="bi bi-check2 me-1"></i> }
+            Save changes
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+} @else {
+  <div class="card ag-card p-4 text-center text-muted">Loading…</div>
+}

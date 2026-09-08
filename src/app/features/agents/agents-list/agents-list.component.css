@@ -1,0 +1,34 @@
+.ag-card {
+  border: 1px solid var(--border-subtle, #e9ecef);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: var(--shadow-sm);
+}
+
+.ag-btn {
+  background: var(--brand-600, #4f46e5);
+  border: 1px solid var(--brand-600, #4f46e5);
+  color: #fff;
+  font-weight: 600;
+}
+.ag-btn:hover:not(:disabled) { background: var(--brand-500, #6366f1); color: #fff; }
+.ag-btn:disabled { opacity: 0.65; color: #fff; }
+
+.ag-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.ag-agent { padding: 1rem 1.1rem; display: flex; flex-direction: column; }
+.ag-agent__head { display: flex; gap: 0.7rem; align-items: center; margin-bottom: 0.5rem; }
+.ag-agent__avatar {
+  width: 42px; height: 42px; flex: 0 0 42px; border-radius: 12px;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 1.2rem;
+}
+.ag-agent__meta { font-size: 0.74rem; color: var(--text-muted, #6c757d); }
+.ag-agent__welcome {
+  font-size: 0.8rem; color: var(--text-secondary, #495057);
+  font-style: italic; margin-bottom: 0.7rem;
+}
+.min-w-0 { min-width: 0; }

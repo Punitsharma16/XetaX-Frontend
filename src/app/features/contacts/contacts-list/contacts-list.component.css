@@ -1,0 +1,68 @@
+.min-w-0 {
+  min-width: 0;
+}
+
+.contacts-search {
+  position: relative;
+  width: min(340px, 100%);
+}
+
+.contacts-search i {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.contacts-search input {
+  padding-left: 2rem;
+}
+
+.contacts-table {
+  font-size: 0.82rem;
+}
+
+.contacts-table thead th {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.contact-avatar {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  background: var(--brand-50);
+  color: var(--brand-600);
+}
+
+.email-log {
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--success-600, #16a34a);
+  border-radius: 10px;
+  padding: 0.55rem 0.8rem;
+  font-size: 0.8rem;
+}
+
+.email-log--failed {
+  border-left-color: var(--danger-600, #dc2626);
+}
+
+.email-log__body {
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  margin-top: 0.25rem;
+  white-space: pre-line;
+  max-height: 80px;
+  overflow: hidden;
+}

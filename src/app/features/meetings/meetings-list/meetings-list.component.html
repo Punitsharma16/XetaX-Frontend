@@ -1,0 +1,262 @@
+<app-page-header
+  title="Meetings"
+  icon="bi-camera-video"
+  subtitle="Instant or scheduled video meetings — share the link on WhatsApp or email, take notes as you talk."
+>
+  <button class="btn btn-outline-primary btn-sm" (click)="openCreate('scheduled')">
+    <i class="bi bi-calendar-plus me-1"></i>Schedule
+  </button>
+  <button class="btn mt-btn btn-sm" (click)="openCreate('instant')">
+    <i class="bi bi-camera-video me-1"></i>New meeting
+  </button>
+</app-page-header>
+
+<div class="mt-tabs mb-3">
+  <button class="mt-tabs__pill" [class.is-active]="tab() === 'upcoming'" (click)="tab.set('upcoming')">
+    <i class="bi bi-clock"></i> Upcoming &amp; live
+  </button>
+  <button class="mt-tabs__pill" [class.is-active]="tab() === 'past'" (click)="tab.set('past')">
+    <i class="bi bi-archive"></i> Past
+  </button>
+</div>
+
+@if (error()) {
+  <app-error-state>
+    <button class="btn btn-outline-secondary btn-sm" (click)="load()">Retry</button>
+  </app-error-state>
+} @else if (loading()) {
+  <div class="card mt-card p-3"><app-table-skeleton [rows]="4" [cols]="5" /></div>
+} @else if (!visible().length) {
+  <div class="card mt-card p-3">
+    <app-empty-state
+      icon="bi-camera-video"
+      [title]="tab() === 'past' ? 'No past meetings' : 'No meetings yet'"
+      message="Start an instant meeting or schedule one with a client — the link is ready to share immediately."
+    />
+    <div class="text-center pb-3">
+      <button class="btn mt-btn" (click)="openCreate('instant')">
+        <i class="bi bi-camera-video me-1"></i>Start instant meeting
+      </button>
+    </div>
+  </div>
+} @else {
+  <div class="mt-grid">
+    @for (meeting of visible(); track meeting.id) {
+      <div class="card mt-card mt-meeting">
+        <div class="mt-meeting__head">
+          <span class="badge" [class]="badge(meeting.status)">
+            @if (meeting.status === 'LIVE') {
+              <span class="mt-live-dot"></span>
+            }
+            {{ meeting.status }}
+          </span>
+          <span class="mt-meeting__code">{{ meeting.roomCode }}</span>
+        </div>
+
+        <h3 class="mt-meeting__title">{{ meeting.title }}</h3>
+
+        <div class="mt-meeting__meta">
+          <span>
+            <i class="bi bi-clock me-1"></i>
+            @if (meeting.scheduledAt) {
+              {{ meeting.scheduledAt | date: 'dd MMM, hh:mm a' }}
+            } @else {
+              Instant
+            }
+          </span>
+          @if (meeting.invitees.length > 1) {
+            <span><i class="bi bi-people me-1"></i>{{ meeting.invitees.length }} invitees</span>
+          } @else if (meeting.guestName || meeting.guestPhone || meeting.guestEmail) {
+            <span class="text-truncate">
+              <i class="bi bi-person me-1"></i>
+              {{ meeting.guestName || meeting.guestPhone || meeting.guestEmail }}
+            </span>
+          }
+          @if (meeting.noteCount) {
+            <span><i class="bi bi-journal-text me-1"></i>{{ meeting.noteCount }} notes</span>
+          }
+        </div>
+
+        <div class="mt-meeting__actions">
+          @if (meeting.status === 'SCHEDULED' || meeting.status === 'LIVE') {
+            <button class="btn mt-btn btn-sm" (click)="join(meeting)">
+              <i class="bi bi-box-arrow-in-right me-1"></i>Join
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" (click)="shareFor.set(meeting)">
+              <i class="bi bi-send me-1"></i>Share
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" (click)="copyLink(meeting)" title="Copy guest link">
+              <i class="bi bi-clipboard"></i>
+            </button>
+            <button class="btn btn-outline-danger btn-sm ms-auto" (click)="cancel(meeting)" title="Cancel">
+              <i class="bi bi-x-lg"></i>
+            </button>
+          } @else {
+            <button class="btn btn-outline-secondary btn-sm" (click)="openNotes(meeting)">
+              <i class="bi bi-journal-text me-1"></i>View notes
+            </button>
+          }
+        </div>
+      </div>
+    }
+  </div>
+}
+
+<!-- ------------------------------------------------------- create modal -->
+<app-modal
+  [open]="createOpen()"
+  [title]="mode === 'instant' ? 'New instant meeting' : 'Schedule a meeting'"
+  icon="bi-camera-video"
+  size="md"
+  (closed)="createOpen.set(false)"
+>
+  <div class="row g-3">
+    <div class="col-12">
+      <div class="btn-group btn-group-sm w-100">
+        <button class="btn" [class.mt-btn]="mode === 'instant'" [class.btn-outline-secondary]="mode !== 'instant'" (click)="mode = 'instant'">
+          <i class="bi bi-lightning-charge me-1"></i>Instant
+        </button>
+        <button class="btn" [class.mt-btn]="mode === 'scheduled'" [class.btn-outline-secondary]="mode !== 'scheduled'" (click)="mode = 'scheduled'">
+          <i class="bi bi-calendar-event me-1"></i>Scheduled
+        </button>
+      </div>
+    </div>
+    <div class="col-12">
+      <label class="form-label">Title</label>
+      <input class="form-control" [(ngModel)]="title" placeholder="Site visit discussion" />
+    </div>
+    @if (mode === 'scheduled') {
+      <div class="col-12">
+        <label class="form-label">Date &amp; time</label>
+        <input type="datetime-local" class="form-control" [(ngModel)]="scheduleAt" />
+      </div>
+    }
+    <div class="col-12"><hr class="my-1" /></div>
+    <div class="col-12 d-flex align-items-center justify-content-between">
+      <label class="form-label mb-0">
+        Invitees <span class="text-muted fw-normal">(any number of people — phone for WhatsApp, email for invites)</span>
+      </label>
+      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="addInvitee()">
+        <i class="bi bi-plus-lg me-1"></i>Add person
+      </button>
+    </div>
+    @for (invitee of invitees; track $index; let i = $index) {
+      <div class="col-12">
+        <div class="mt-invitee-row">
+          <input class="form-control form-control-sm" [(ngModel)]="invitees[i].name" placeholder="Name" />
+          <input class="form-control form-control-sm" [(ngModel)]="invitees[i].phone" placeholder="Phone (9198…)" />
+          <input type="email" class="form-control form-control-sm" [(ngModel)]="invitees[i].email" placeholder="Email" />
+          <button
+            type="button"
+            class="btn btn-outline-danger btn-sm"
+            title="Remove"
+            [disabled]="invitees.length === 1 && !invitees[0].name && !invitees[0].phone && !invitees[0].email"
+            (click)="removeInvitee(i)"
+          >
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+  <div modalFooter class="d-flex justify-content-end gap-2">
+    <button class="btn btn-outline-secondary" (click)="createOpen.set(false)">Cancel</button>
+    <button class="btn mt-btn" [disabled]="saving()" (click)="create()">
+      @if (saving()) {
+        <span class="spinner-border spinner-border-sm me-1"></span>
+      } @else {
+        <i class="bi bi-check2 me-1"></i>
+      }
+      {{ mode === 'instant' ? 'Create & get link' : 'Schedule meeting' }}
+    </button>
+  </div>
+</app-modal>
+
+<!-- -------------------------------------------------------- share modal -->
+<app-modal
+  [open]="!!shareFor()"
+  title="Share meeting link"
+  icon="bi-send"
+  size="md"
+  (closed)="shareFor.set(null)"
+>
+  @if (shareFor(); as meeting) {
+    <p class="mb-2 fw-medium">{{ meeting.title }}</p>
+    <div class="mt-link mb-3">
+      <i class="bi bi-link-45deg"></i>
+      <span class="text-truncate">{{ meeting.guestLink }}</span>
+      <button class="btn btn-light btn-sm" (click)="copyLink(meeting)"><i class="bi bi-clipboard"></i></button>
+    </div>
+
+    @if (!whatsappConnected()) {
+      <div class="mt-share-note mb-2">
+        <i class="bi bi-info-circle me-1"></i>
+        WhatsApp is not connected — send by email, or connect it under WhatsApp Setup.
+      </div>
+    }
+
+    @if (meeting.invitees.length) {
+      <div class="mt-inv-list mb-3">
+        @for (invitee of meeting.invitees; track invitee.id) {
+          <div class="mt-inv">
+            <div class="mt-inv__who">
+              <b>{{ invitee.name || 'Invitee' }}</b>
+              <small>{{ invitee.phone || '' }}{{ invitee.phone && invitee.email ? ' · ' : '' }}{{ invitee.email || '' }}</small>
+            </div>
+            <div class="d-flex gap-1">
+              @if (whatsappConnected()) {
+                <button class="btn btn-sm mt-share-wa" [disabled]="sharing() || !invitee.phone"
+                        title="WhatsApp" (click)="share('WHATSAPP', invitee)">
+                  <i class="bi bi-whatsapp"></i>
+                </button>
+              }
+              <button class="btn btn-sm mt-share-mail" [disabled]="sharing() || !invitee.email"
+                      title="Email" (click)="share('EMAIL', invitee)">
+                <i class="bi bi-envelope"></i>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="d-grid gap-2">
+        @if (whatsappConnected()) {
+          <button class="btn mt-share-wa" [disabled]="sharing() || !canShare(meeting, 'WHATSAPP')"
+                  (click)="share('WHATSAPP')">
+            <i class="bi bi-whatsapp me-2"></i>Send to all on WhatsApp
+          </button>
+        }
+        <button class="btn mt-share-mail" [disabled]="sharing() || !canShare(meeting, 'EMAIL')"
+                (click)="share('EMAIL')">
+          <i class="bi bi-envelope me-2"></i>Send to all by Email
+        </button>
+      </div>
+    } @else {
+      <p class="text-muted small mb-0">
+        This meeting has no invitees — copy the link above and share it directly.
+      </p>
+    }
+  }
+</app-modal>
+
+<!-- -------------------------------------------------------- notes modal -->
+<app-modal
+  [open]="!!notesFor()"
+  [title]="'Notes — ' + (notesFor()?.title || '')"
+  icon="bi-journal-text"
+  size="lg"
+  (closed)="notesFor.set(null)"
+>
+  @if (notes().length) {
+    <div class="mt-notes">
+      @for (note of notes(); track note.id) {
+        <div class="mt-note">
+          <div class="mt-note__time">{{ note.createdAt | date: 'dd MMM, hh:mm a' }}</div>
+          <div class="mt-note__text">{{ note.content }}</div>
+        </div>
+      }
+    </div>
+  } @else {
+    <p class="text-muted mb-0">No notes were taken in this meeting.</p>
+  }
+</app-modal>

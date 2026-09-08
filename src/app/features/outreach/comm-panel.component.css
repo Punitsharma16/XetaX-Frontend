@@ -1,0 +1,104 @@
+.comm-chat {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  max-height: 340px;
+  min-height: 160px;
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  background: var(--surface-sunken, #f8f9fc);
+}
+
+.comm-bubble {
+  max-width: 82%;
+  align-self: flex-start;
+  background: #fff;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px 12px 12px 4px;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.8rem;
+}
+
+.comm-bubble--out {
+  align-self: flex-end;
+  background: #dcfce7;
+  border-color: #bbf7d0;
+  border-radius: 12px 12px 4px 12px;
+}
+
+.comm-bubble small {
+  display: block;
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.comm-bubble__tpl {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: var(--brand-600, #4f46e5);
+  margin-bottom: 2px;
+}
+
+.comm-composer {
+  border-top: 1px solid var(--border-subtle);
+  padding: 0.7rem 0.8rem;
+}
+
+.comm-composer--top {
+  border-top: 0;
+  border-bottom: 1px dashed var(--border-subtle);
+}
+
+.comm-emails {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  max-height: 400px;
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.comm-email {
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--success-600, #16a34a);
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.78rem;
+}
+
+.comm-email--failed {
+  border-left-color: var(--danger-600, #dc2626);
+}
+
+.comm-email__body {
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  margin-top: 0.2rem;
+  white-space: pre-line;
+  max-height: 72px;
+  overflow: hidden;
+}
+
+.comm-btn-input {
+  width: 110px;
+  font-size: 0.7rem !important;
+}
+
+.comm-doc-select {
+  max-width: 260px;
+  font-size: 0.72rem !important;
+}
+
+.comm-personalize {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  margin: 0;
+}

@@ -1,0 +1,295 @@
+<div class="card">
+  <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <span><i class="bi bi-input-cursor-text me-2"></i>Fields</span>
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-light btn-sm" (click)="load()" title="Refresh">
+        <i class="bi bi-arrow-clockwise"></i>
+      </button>
+      <button type="button" class="btn btn-primary btn-sm" (click)="openCreate()">
+        <i class="bi bi-plus-lg"></i> Add field
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <app-table-skeleton [rows]="5" [cols]="4" />
+  } @else if (!fields().length) {
+    <app-empty-state
+      icon="bi-input-cursor-text"
+      title="No fields yet"
+      message="Fields decide what a record of this form can store, and how it is captured."
+    >
+      <button type="button" class="btn btn-primary mt-3" (click)="openCreate()">
+        <i class="bi bi-plus-lg"></i> Add your first field
+      </button>
+    </app-empty-state>
+  } @else {
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th style="width: 60px">Order</th>
+            <th>Label</th>
+            <th>Key</th>
+            <th>Type</th>
+            <th>Flags</th>
+            <th class="text-end" style="width: 110px">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (field of fields(); track field.id; let i = $index, first = $first, last = $last) {
+            <tr>
+              <td>
+                <div class="order-cell">
+                  <button
+                    type="button"
+                    class="order-btn"
+                    [disabled]="first"
+                    (click)="move(field, -1)"
+                    aria-label="Move up"
+                  >
+                    <i class="bi bi-chevron-up"></i>
+                  </button>
+                  <span class="order-num">{{ i + 1 }}</span>
+                  <button
+                    type="button"
+                    class="order-btn"
+                    [disabled]="last"
+                    (click)="move(field, 1)"
+                    aria-label="Move down"
+                  >
+                    <i class="bi bi-chevron-down"></i>
+                  </button>
+                </div>
+              </td>
+
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="type-chip"><i class="bi" [class]="meta(field.fieldType).icon"></i></span>
+                  <div class="min-w-0">
+                    <div class="fw-semibold text-truncate">{{ field.label }}</div>
+                    @if (field.placeholder) {
+                      <div class="text-muted text-truncate" style="font-size: 0.7rem">
+                        {{ field.placeholder }}
+                      </div>
+                    }
+                  </div>
+                </div>
+              </td>
+
+              <td><code class="key-code">{{ field.fieldKey }}</code></td>
+
+              <td>
+                <span class="badge badge-soft-primary">{{ meta(field.fieldType).label }}</span>
+                @if (isChoice(field.fieldType)) {
+                  <div class="text-muted mt-1" style="font-size: 0.7rem">
+                    {{ optionsOf(field).length }} option(s)
+                  </div>
+                }
+              </td>
+
+              <td>
+                <div class="d-flex flex-wrap gap-1">
+                  @if (field.required) {
+                    <span class="badge badge-soft-danger">Required</span>
+                  }
+                  @if (field.uniqueField) {
+                    <span class="badge badge-soft-warning">Unique</span>
+                  }
+                  @if (field.searchable) {
+                    <span class="badge badge-soft-info">Searchable</span>
+                  }
+                  @if (field.filterable) {
+                    <span class="badge badge-soft-success">Filterable</span>
+                  }
+                  @if (field.hidden) {
+                    <span class="badge badge-soft-muted">Hidden</span>
+                  }
+                </div>
+              </td>
+
+              <td class="text-end">
+                <button
+                  type="button"
+                  class="btn btn-light btn-icon me-1"
+                  (click)="openEdit(field)"
+                  title="Edit field"
+                >
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-light btn-icon text-danger"
+                  (click)="remove(field)"
+                  title="Delete field"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- Field editor -->
+<app-modal
+  [open]="modalOpen()"
+  [title]="editing() ? 'Edit field' : 'Add field'"
+  icon="bi-input-cursor-text"
+  size="lg"
+  [dismissible]="!saving()"
+  (closed)="closeEditor()"
+>
+  <form [formGroup]="editorForm" (ngSubmit)="save()" novalidate id="fieldEditor">
+    <div class="row g-3">
+      <div class="col-12 col-md-6">
+        <label class="form-label" for="fieldLabel">Label <span class="text-danger">*</span></label>
+        <input
+          id="fieldLabel"
+          type="text"
+          class="form-control"
+          formControlName="label"
+          placeholder="e.g. Company name"
+          (input)="onLabelInput()"
+          [class.is-invalid]="editorForm.controls.label.invalid && editorForm.controls.label.touched"
+        />
+        <div class="invalid-feedback">A label is required.</div>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <label class="form-label" for="fieldKey">Field key <span class="text-danger">*</span></label>
+        <input
+          id="fieldKey"
+          type="text"
+          class="form-control"
+          formControlName="fieldKey"
+          placeholder="company_name"
+          (input)="onKeyInput()"
+          [class.is-invalid]="editorForm.controls.fieldKey.invalid && editorForm.controls.fieldKey.touched"
+        />
+        <div class="form-text" style="font-size: 0.7rem">
+          The key records are stored under. Lowercase letters, numbers and underscores.
+        </div>
+        <div class="invalid-feedback">Use lowercase letters, numbers and underscores.</div>
+      </div>
+    </div>
+
+    <div class="mt-3">
+      <label class="form-label">Field type</label>
+      @for (group of typeGroups; track group.group) {
+        <div class="mb-2">
+          <div class="section-label mb-1">{{ group.group }}</div>
+          <div class="type-grid">
+            @for (t of group.types; track t.type) {
+              <button
+                type="button"
+                class="type-option"
+                [class.is-selected]="editorForm.controls.fieldType.value === t.type"
+                (click)="pickType(t.type)"
+              >
+                <i class="bi" [class]="t.icon"></i>
+                <span>{{ t.label }}</span>
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (isChoice(editorForm.controls.fieldType.value)) {
+      <div class="mt-3">
+        <label class="form-label" for="fieldOptions">Options <span class="text-danger">*</span></label>
+        <textarea
+          id="fieldOptions"
+          class="form-control"
+          rows="4"
+          formControlName="optionsText"
+          placeholder="One option per line&#10;New&#10;Contacted&#10;Qualified"
+        ></textarea>
+        <div class="form-text" style="font-size: 0.7rem">One option per line.</div>
+      </div>
+    }
+
+    <div class="row g-3 mt-1">
+      <div class="col-12 col-md-6">
+        <label class="form-label" for="fieldPlaceholder">Placeholder</label>
+        <input
+          id="fieldPlaceholder"
+          type="text"
+          class="form-control"
+          formControlName="placeholder"
+          placeholder="Shown inside the empty input"
+        />
+      </div>
+
+      <div class="col-12 col-md-6">
+        <label class="form-label" for="fieldDefault">Default value</label>
+        <input
+          id="fieldDefault"
+          type="text"
+          class="form-control"
+          formControlName="defaultValue"
+          placeholder="Pre-filled when creating a record"
+        />
+      </div>
+    </div>
+
+    <div class="mt-3">
+      <div class="section-label mb-2">Behaviour</div>
+      <div class="row g-2">
+        <div class="col-6 col-md-4">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="fRequired" formControlName="required" />
+            <label class="form-check-label" for="fRequired">Required</label>
+          </div>
+        </div>
+        <div class="col-6 col-md-4">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="fUnique" formControlName="uniqueField" />
+            <label class="form-check-label" for="fUnique">Unique</label>
+          </div>
+        </div>
+        <div class="col-6 col-md-4">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="fSearch" formControlName="searchable" />
+            <label class="form-check-label" for="fSearch">Searchable</label>
+          </div>
+        </div>
+        <div class="col-6 col-md-4">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="fFilter" formControlName="filterable" />
+            <label class="form-check-label" for="fFilter">Filterable</label>
+          </div>
+        </div>
+        <div class="col-6 col-md-4">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="fSort" formControlName="sortable" />
+            <label class="form-check-label" for="fSort">Sortable</label>
+          </div>
+        </div>
+        <div class="col-6 col-md-4">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="fHidden" formControlName="hidden" />
+            <label class="form-check-label" for="fHidden">Hidden</label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div modalFooter>
+    <button type="button" class="btn btn-outline-secondary" (click)="closeEditor()" [disabled]="saving()">
+      Cancel
+    </button>
+    <button type="submit" form="fieldEditor" class="btn btn-primary" [disabled]="saving()">
+      @if (saving()) {
+        <span class="spinner-border spinner-border-sm"></span> Saving…
+      } @else {
+        <i class="bi bi-check2"></i> {{ editing() ? 'Save field' : 'Add field' }}
+      }
+    </button>
+  </div>
+</app-modal>

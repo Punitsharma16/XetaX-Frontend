@@ -1,0 +1,120 @@
+:host {
+  display: block;
+  min-height: 100vh;
+  background: #f4f5fb;
+  font-family: inherit;
+}
+
+.pf-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.pf-card {
+  width: 100%;
+  max-width: 560px;
+  background: #fff;
+  border: 1px solid #e7e9f4;
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(23, 26, 46, 0.08);
+  padding: 1.6rem 1.8rem;
+}
+
+.pf-head {
+  display: flex;
+  gap: 0.9rem;
+  align-items: center;
+  padding-bottom: 1rem;
+  margin-bottom: 1.2rem;
+  border-bottom: 1px solid #eef0f7;
+}
+
+.pf-head h2 { margin: 0; font-size: 1.25rem; }
+.pf-head p { margin: 0.15rem 0 0; color: #6c7390; font-size: 0.82rem; }
+
+.pf-icon {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  border-radius: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  background: color-mix(in srgb, var(--pf-color) 14%, #fff);
+  color: var(--pf-color);
+}
+
+.pf-field { margin-bottom: 0.95rem; }
+.pf-field label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.3rem; color: #2a2e45; }
+.pf-req { color: #e11d48; }
+
+.pf-field input,
+.pf-field select,
+.pf-field textarea {
+  width: 100%;
+  border: 1px solid #dfe2ef;
+  border-radius: 10px;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.88rem;
+  font-family: inherit;
+  outline: none;
+  background: #fff;
+  color: #171a2e;
+}
+
+.pf-field input:focus,
+.pf-field select:focus,
+.pf-field textarea:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
+
+.pf-error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border-radius: 10px;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.78rem;
+  margin-bottom: 0.9rem;
+}
+
+.pf-submit {
+  width: 100%;
+  border: 0;
+  border-radius: 12px;
+  padding: 0.7rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(92deg, #6366f1, #8b5cf6);
+}
+
+.pf-submit:disabled { opacity: 0.6; }
+
+.pf-brand {
+  text-align: center;
+  color: #9aa0bd;
+  font-size: 0.68rem;
+  margin-top: 1rem;
+}
+
+.pf-center { text-align: center; padding: 2.5rem 0.5rem; }
+.pf-bigicon { font-size: 2rem; color: #9aa0bd; }
+
+.pf-check {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  background: #e9f9ef;
+  color: #16a34a;
+  margin-bottom: 0.6rem;
+}

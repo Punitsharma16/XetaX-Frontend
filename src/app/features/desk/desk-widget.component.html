@@ -1,0 +1,176 @@
+@if (enabled()) {
+  <button type="button" class="desk-fab" (click)="toggle()" [class.desk-fab--open]="open()"
+          [attr.aria-label]="open() ? 'Close chat desk' : 'Open chat desk'" title="Live chat desk">
+    @if (open()) {
+      <i class="bi bi-x-lg"></i>
+    } @else {
+      <i class="bi bi-chat-dots-fill"></i>
+      @if (badge() > 0) {
+        <span class="desk-fab__badge">{{ badge() > 99 ? '99+' : badge() }}</span>
+      }
+    }
+  </button>
+
+  @if (open()) {
+    <section class="desk-panel" aria-label="Live chat desk">
+      @if (!canHandle()) {
+        <div class="desk-head">
+          <span class="desk-head__title"><i class="bi bi-headset me-2"></i>Live chat desk</span>
+        </div>
+        <div class="desk-empty">
+          <i class="bi bi-lock"></i>
+          <p>Your role can't handle customer chats. Ask the workspace owner for the <b>Live Chat Desk</b> permission.</p>
+        </div>
+      } @else if (active(); as s) {
+        <!-- ------------------------------------------------------- chat pane -->
+        <div class="desk-head">
+          <button type="button" class="desk-icon-btn" (click)="closeChat()" aria-label="Back"><i class="bi bi-arrow-left"></i></button>
+          <div class="min-w-0 flex-grow-1">
+            <div class="desk-head__title text-truncate"><i class="bi {{ channelIcon(s.channel) }} me-2"></i>{{ s.customer }}</div>
+            <div class="desk-head__sub">
+              {{ s.channel === 'WHATSAPP' ? (s.phone || 'WhatsApp') : 'Website visitor' }}
+              @if (s.acceptedByName) { · with {{ s.acceptedByName }} }
+            </div>
+          </div>
+          @if (s.recordId) {
+            <a class="desk-icon-btn" [routerLink]="['/app/records']" [queryParams]="{ open: s.recordId }" title="Open record"><i class="bi bi-box-arrow-up-right"></i></a>
+          }
+        </div>
+
+        @if (s.summary) {
+          <details class="desk-summary">
+            <summary><i class="bi bi-stars me-1"></i>AI summary so far</summary>
+            <div class="desk-summary__body">{{ s.summary }}</div>
+          </details>
+        }
+
+        <div class="desk-thread">
+          @for (m of messages(); track m.id) {
+            @if (m.role === 'SYSTEM') {
+              <div class="desk-sys">{{ m.text }}</div>
+            } @else {
+              <div class="desk-msg desk-msg--{{ m.role | lowercase }}">
+                <div class="desk-msg__bubble">{{ m.text }}</div>
+                <div class="desk-msg__meta">
+                  {{ m.role === 'CUSTOMER' ? s.customer : (m.role === 'AI' ? 'Assistant' : (m.sender || 'Team')) }}
+                  · {{ m.at | date: 'h:mm a' }}
+                </div>
+              </div>
+            }
+          } @empty {
+            <div class="desk-empty small">Loading conversation…</div>
+          }
+        </div>
+
+        <div class="desk-compose">
+          <textarea class="form-control" rows="1" [(ngModel)]="draft" (keydown)="onKey($event)"
+                    placeholder="Type a reply — Enter to send"></textarea>
+          <button type="button" class="btn btn-primary desk-send" (click)="send()" [disabled]="sending() || !draft.trim()">
+            <i class="bi bi-send-fill"></i>
+          </button>
+        </div>
+        <div class="desk-actions">
+          <select class="form-select form-select-sm desk-assign" [(ngModel)]="assignTo" (change)="assign()">
+            <option value="">Assign to…</option>
+            @for (a of assignees(); track a.userId) {
+              <option [value]="a.userId">{{ a.name }}</option>
+            }
+          </select>
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="resolve(true)" title="Let the assistant continue">
+            <i class="bi bi-robot me-1"></i>Back to AI
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-success" (click)="resolve(false)">
+            <i class="bi bi-check2-circle me-1"></i>Resolve
+          </button>
+        </div>
+      } @else {
+        <!-- ------------------------------------------------------- lists -->
+        <div class="desk-head">
+          <span class="desk-head__title"><i class="bi bi-headset me-2"></i>Live chat desk</span>
+        </div>
+        <div class="desk-tabs">
+          <button type="button" [class.is-active]="tab() === 'requests'" (click)="setTab('requests')">
+            Requests @if (openCount()) { <span class="desk-pill">{{ openCount() }}</span> }
+          </button>
+          <button type="button" [class.is-active]="tab() === 'mine'" (click)="setTab('mine')">
+            My chats @if (mineCount()) { <span class="desk-pill desk-pill--muted">{{ mineCount() }}</span> }
+          </button>
+          <button type="button" [class.is-active]="tab() === 'whatsapp'" (click)="setTab('whatsapp')">WhatsApp</button>
+        </div>
+
+        <div class="desk-list">
+          @if (tab() === 'requests') {
+            @for (r of state()?.requests ?? []; track r.id) {
+              <div class="desk-card" [class.desk-card--hot]="r.escalated">
+                <div class="desk-card__top">
+                  <i class="bi {{ channelIcon(r.channel) }} desk-card__ch"></i>
+                  <b class="text-truncate">{{ r.customer }}</b>
+                  <span class="desk-card__time">waiting {{ waitingFor(r.createdAt) }}</span>
+                </div>
+                @if (r.lastMessage) { <div class="desk-card__msg">“{{ r.lastMessage }}”</div> }
+                @if (r.aiSummary) { <div class="desk-card__sum"><i class="bi bi-stars me-1"></i>{{ r.aiSummary }}</div> }
+                @if (r.reason) { <div class="desk-card__why">{{ r.reason }}</div> }
+                <div class="desk-card__btns">
+                  <button type="button" class="btn btn-sm btn-primary" (click)="accept(r)"><i class="bi bi-check2 me-1"></i>Accept</button>
+                  <button type="button" class="btn btn-sm btn-outline-secondary" (click)="decline(r)">Back to AI</button>
+                </div>
+              </div>
+            } @empty {
+              <div class="desk-empty"><i class="bi bi-emoji-smile"></i><p>No one is waiting. Requests appear here when a customer asks for a person.</p></div>
+            }
+          } @else if (tab() === 'mine') {
+            @for (s of state()?.mine ?? []; track s.id) {
+              <button type="button" class="desk-row" (click)="openChat(s)">
+                <i class="bi {{ channelIcon(s.channel) }} desk-card__ch"></i>
+                <div class="min-w-0 flex-grow-1">
+                  <div class="d-flex justify-content-between gap-2">
+                    <b class="text-truncate">{{ s.customer }}</b>
+                    <span class="desk-card__time">{{ s.lastMessageAt | date: 'h:mm a' }}</span>
+                  </div>
+                  <div class="desk-row__last text-truncate">
+                    @if (s.lastRole === 'CUSTOMER') { <span class="desk-dot"></span> }{{ s.lastMessage }}
+                  </div>
+                </div>
+              </button>
+            } @empty {
+              <div class="desk-empty"><i class="bi bi-chat-square-text"></i><p>Chats you accept show up here.</p></div>
+            }
+            @if (state()?.others?.length) {
+              <div class="desk-sub">Handled by teammates</div>
+              @for (s of state()?.others ?? []; track s.id) {
+                <button type="button" class="desk-row" (click)="openChat(s)">
+                  <i class="bi {{ channelIcon(s.channel) }} desk-card__ch"></i>
+                  <div class="min-w-0 flex-grow-1">
+                    <div class="d-flex justify-content-between gap-2">
+                      <b class="text-truncate">{{ s.customer }}</b>
+                      <span class="desk-card__time">{{ s.acceptedByName }}</span>
+                    </div>
+                    <div class="desk-row__last text-truncate">{{ s.lastMessage }}</div>
+                  </div>
+                </button>
+              }
+            }
+          } @else {
+            @for (c of conversations(); track c.id) {
+              <button type="button" class="desk-row" (click)="openInbox(c)">
+                <i class="bi bi-whatsapp desk-card__ch"></i>
+                <div class="min-w-0 flex-grow-1">
+                  <div class="d-flex justify-content-between gap-2">
+                    <b class="text-truncate">{{ c.customerName || c.customerPhone }}</b>
+                    <span class="desk-card__time">{{ c.lastMessageAt | date: 'dd MMM' }}</span>
+                  </div>
+                  <div class="desk-row__last text-truncate">
+                    @if (c.unreadCount > 0) { <span class="desk-dot"></span> }{{ c.lastMessage }}
+                  </div>
+                </div>
+              </button>
+            } @empty {
+              <div class="desk-empty"><i class="bi bi-whatsapp"></i><p>No WhatsApp conversations yet.</p></div>
+            }
+            <a class="desk-link" routerLink="/app/whatsapp/conversations" (click)="open.set(false)">Open full inbox →</a>
+          }
+        </div>
+      }
+    </section>
+  }
+}

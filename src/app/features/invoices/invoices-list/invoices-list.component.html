@@ -1,0 +1,155 @@
+<app-page-header
+  title="Invoices"
+  icon="bi-receipt"
+  subtitle="Raise, send and track invoices — every rupee received and pending, in one place."
+>
+  <a class="btn btn-primary btn-sm" routerLink="/app/invoices/new">
+    <i class="bi bi-plus-lg me-1"></i>New invoice
+  </a>
+</app-page-header>
+
+<!-- ------------------------------------------------------- summary tiles -->
+@if (summary(); as s) {
+  <div class="row g-3 mb-3">
+    <div class="col-6 col-lg-3">
+      <div class="card inv-tile h-100">
+        <div class="card-body py-3">
+          <div class="inv-tile__label"><i class="bi bi-receipt me-1"></i>Total invoiced</div>
+          <div class="inv-tile__value">Rs. {{ s.invoiced | number: '1.2-2' }}</div>
+          <div class="inv-tile__hint">{{ s.totalCount }} invoice(s)</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card inv-tile inv-tile--green h-100">
+        <div class="card-body py-3">
+          <div class="inv-tile__label"><i class="bi bi-check2-circle me-1"></i>Received</div>
+          <div class="inv-tile__value">Rs. {{ s.received | number: '1.2-2' }}</div>
+          <div class="inv-tile__hint">{{ s.paidCount }} fully paid</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card inv-tile inv-tile--amber h-100">
+        <div class="card-body py-3">
+          <div class="inv-tile__label"><i class="bi bi-hourglass-split me-1"></i>Pending</div>
+          <div class="inv-tile__value">Rs. {{ s.pending | number: '1.2-2' }}</div>
+          <div class="inv-tile__hint">{{ s.openCount }} open · {{ s.draftCount }} draft</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="card inv-tile inv-tile--red h-100">
+        <div class="card-body py-3">
+          <div class="inv-tile__label"><i class="bi bi-exclamation-octagon me-1"></i>Overdue</div>
+          <div class="inv-tile__value">Rs. {{ s.overdue | number: '1.2-2' }}</div>
+          <div class="inv-tile__hint">past the due date</div>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ------------------------------------------------------------ filters -->
+<div class="card mb-3">
+  <div class="card-body py-3">
+    <div class="row g-2 align-items-end">
+      <div class="col-12 col-md-3">
+        <label class="form-label inv-filter-label">Search</label>
+        <input class="form-control form-control-sm" placeholder="Invoice no. or customer…"
+               [(ngModel)]="q" (ngModelChange)="onSearchInput()" />
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label inv-filter-label">Status</label>
+        <select class="form-select form-select-sm" [(ngModel)]="status" (ngModelChange)="onFilterChange()">
+          <option value="">All</option>
+          @for (st of statuses; track st) {
+            <option [value]="st">{{ st }}</option>
+          }
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label inv-filter-label">From</label>
+        <input type="date" class="form-control form-control-sm" [(ngModel)]="fromDate"
+               (ngModelChange)="onFilterChange()" />
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label inv-filter-label">To</label>
+        <input type="date" class="form-control form-control-sm" [(ngModel)]="toDate"
+               (ngModelChange)="onFilterChange()" />
+      </div>
+      <div class="col-6 col-md-2">
+        <button class="btn btn-outline-secondary btn-sm" (click)="resetFilters()">
+          <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- --------------------------------------------------------------- list -->
+<div class="card">
+  @if (loading()) {
+    <div class="card-body"><app-table-skeleton [rows]="6" /></div>
+  } @else if (!page().content.length) {
+    <app-empty-state
+      icon="bi-receipt"
+      title="No invoices yet"
+      message="Raise your first invoice from a contact, a closed record, or right here."
+    >
+      <a class="btn btn-primary" routerLink="/app/invoices/new">
+        <i class="bi bi-plus-lg me-1"></i>New invoice
+      </a>
+    </app-empty-state>
+  } @else {
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 inv-table">
+        <thead>
+          <tr>
+            <th>Invoice</th>
+            <th>Customer</th>
+            <th>Issued</th>
+            <th>Due</th>
+            <th class="text-end">Total</th>
+            <th class="text-end">Paid</th>
+            <th class="text-end">Balance</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (invoice of page().content; track invoice.id) {
+            <tr [routerLink]="['/app/invoices', invoice.id]" class="inv-row">
+              <td class="fw-semibold">{{ invoice.number }}</td>
+              <td>{{ invoice.customerName }}</td>
+              <td>{{ invoice.issueDate | date: 'dd MMM yy' }}</td>
+              <td>
+                {{ invoice.dueDate ? (invoice.dueDate | date: 'dd MMM yy') : '—' }}
+                @if (isOverdue(invoice)) {
+                  <span class="badge text-bg-danger ms-1" style="font-size: 0.6rem">OVERDUE</span>
+                }
+              </td>
+              <td class="text-end">{{ invoice.total | number: '1.2-2' }}</td>
+              <td class="text-end text-success">{{ invoice.amountPaid | number: '1.2-2' }}</td>
+              <td class="text-end fw-semibold">{{ balanceOf(invoice) | number: '1.2-2' }}</td>
+              <td><span class="badge {{ statusClass(invoice.status) }}">{{ invoice.status }}</span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer d-flex align-items-center justify-content-between">
+      <small class="text-secondary">
+        Showing {{ page().numberOfElements }} of {{ page().totalElements }}
+      </small>
+      <div class="btn-group">
+        <button class="btn btn-outline-secondary btn-sm" [disabled]="page().first"
+                (click)="goTo(pageIndex() - 1)"><i class="bi bi-chevron-left"></i></button>
+        <button class="btn btn-outline-secondary btn-sm" disabled>
+          {{ page().number + 1 }} / {{ page().totalPages || 1 }}
+        </button>
+        <button class="btn btn-outline-secondary btn-sm" [disabled]="page().last"
+                (click)="goTo(pageIndex() + 1)"><i class="bi bi-chevron-right"></i></button>
+      </div>
+    </div>
+  }
+</div>

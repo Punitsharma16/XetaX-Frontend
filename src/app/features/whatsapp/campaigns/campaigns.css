@@ -1,0 +1,36 @@
+/* Shared WhatsApp campaign styles */
+.wa-card {
+  border: 1px solid var(--border-subtle, #e9ecef);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: var(--shadow-sm);
+}
+
+.wa-btn {
+  background: var(--wa-600);
+  border: 1px solid var(--wa-600);
+  color: #fff;
+  font-weight: 600;
+}
+
+.wa-btn:hover:not(:disabled) {
+  background: var(--wa-500);
+  border-color: var(--wa-500);
+  color: #fff;
+}
+
+.wa-btn:disabled {
+  opacity: 0.65;
+  color: #fff;
+}
+
+.wa-table thead th,
+table thead th {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted, #6c757d);
+}
+
+.progress-bar.bg-success {
+  background-color: var(--wa-600) !important;
+}

@@ -1,0 +1,23 @@
+.min-w-0 {
+  min-width: 0;
+}
+
+.auto-icon {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--warning-50);
+  color: var(--warning-600);
+  font-size: 0.85rem;
+}
+
+.alert-info {
+  background: var(--info-50);
+  border-color: transparent;
+  color: var(--info-600);
+  border-radius: var(--radius-md);
+}

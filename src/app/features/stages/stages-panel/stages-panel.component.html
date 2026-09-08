@@ -1,0 +1,256 @@
+<div class="card">
+  <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+    <span><i class="bi bi-diagram-3 me-2"></i>Pipeline stages</span>
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-light btn-sm" (click)="load()" title="Refresh">
+        <i class="bi bi-arrow-clockwise"></i>
+      </button>
+      <button type="button" class="btn btn-primary btn-sm" (click)="openCreate()">
+        <i class="bi bi-plus-lg"></i> Add stage
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <app-table-skeleton [rows]="4" [cols]="4" />
+  } @else if (!stages().length) {
+    <app-empty-state
+      icon="bi-diagram-3"
+      title="No stages yet"
+      message="Stages describe the pipeline a record moves through — for example New → Qualified → Won."
+    >
+      <button type="button" class="btn btn-primary mt-3" (click)="openCreate()">
+        <i class="bi bi-plus-lg"></i> Add your first stage
+      </button>
+    </app-empty-state>
+  } @else {
+    <!-- Pipeline preview -->
+    <div class="card-body pb-0">
+      <div class="pipeline">
+        @for (stage of stages(); track stage.id; let last = $last) {
+          <div class="pipeline__step" [style.--stage-color]="stage.color || '#4f46e5'">
+            <span class="pipeline__dot"></span>
+            <span class="pipeline__name">{{ stage.name }}</span>
+            @if (stage.isDefault) {
+              <i class="bi bi-star-fill pipeline__flag" title="Default stage"></i>
+            }
+            @if (stage.isFinal) {
+              <i class="bi bi-flag-fill pipeline__flag" title="Final stage"></i>
+            }
+          </div>
+          @if (!last) {
+            <i class="bi bi-chevron-right pipeline__sep"></i>
+          }
+        }
+      </div>
+    </div>
+
+    <div class="table-responsive mt-3">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th style="width: 60px">Seq</th>
+            <th>Stage</th>
+            <th>Code</th>
+            <th>Flags</th>
+            <th>Status</th>
+            <th class="text-end" style="width: 110px">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (stage of stages(); track stage.id; let first = $first, last = $last) {
+            <tr>
+              <td>
+                <div class="order-cell">
+                  <button
+                    type="button"
+                    class="order-btn"
+                    [disabled]="first"
+                    (click)="move(stage, -1)"
+                    aria-label="Move up"
+                  >
+                    <i class="bi bi-chevron-up"></i>
+                  </button>
+                  <span class="order-num">{{ stage.sequence }}</span>
+                  <button
+                    type="button"
+                    class="order-btn"
+                    [disabled]="last"
+                    (click)="move(stage, 1)"
+                    aria-label="Move down"
+                  >
+                    <i class="bi bi-chevron-down"></i>
+                  </button>
+                </div>
+              </td>
+
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="stage-swatch" [style.background]="stage.color || '#4f46e5'"></span>
+                  <span class="fw-semibold">{{ stage.name }}</span>
+                </div>
+              </td>
+
+              <td><code class="key-code">{{ stage.code }}</code></td>
+
+              <td>
+                <div class="d-flex flex-wrap gap-1">
+                  @if (stage.isDefault) {
+                    <span class="badge badge-soft-primary">Default</span>
+                  }
+                  @if (stage.isFinal) {
+                    <span class="badge badge-soft-success">Final</span>
+                  }
+                  @if (!stage.isDefault && !stage.isFinal) {
+                    <span class="text-muted" style="font-size: 0.7rem">—</span>
+                  }
+                </div>
+              </td>
+
+              <td>
+                <span
+                  class="badge"
+                  [class.badge-soft-success]="stage.status === 'ACTIVE'"
+                  [class.badge-soft-muted]="stage.status !== 'ACTIVE'"
+                >
+                  {{ stage.status }}
+                </span>
+              </td>
+
+              <td class="text-end">
+                <button
+                  type="button"
+                  class="btn btn-light btn-icon me-1"
+                  (click)="openEdit(stage)"
+                  title="Edit stage"
+                >
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-light btn-icon text-danger"
+                  (click)="remove(stage)"
+                  title="Delete stage"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- Stage editor -->
+<app-modal
+  [open]="modalOpen()"
+  [title]="editing() ? 'Edit stage' : 'Add stage'"
+  icon="bi-diagram-3"
+  [dismissible]="!saving()"
+  (closed)="closeEditor()"
+>
+  <form [formGroup]="editorForm" (ngSubmit)="save()" novalidate id="stageEditor">
+    <div class="row g-3">
+      <div class="col-12 col-md-7">
+        <label class="form-label" for="stageName">Stage name <span class="text-danger">*</span></label>
+        <input
+          id="stageName"
+          type="text"
+          class="form-control"
+          formControlName="name"
+          placeholder="e.g. Qualified"
+          (input)="onNameInput()"
+          [class.is-invalid]="editorForm.controls.name.invalid && editorForm.controls.name.touched"
+        />
+        <div class="invalid-feedback">A stage name is required.</div>
+      </div>
+
+      <div class="col-12 col-md-5">
+        <label class="form-label" for="stageCode">Code <span class="text-danger">*</span></label>
+        <input
+          id="stageCode"
+          type="text"
+          class="form-control"
+          formControlName="code"
+          placeholder="QUALIFIED"
+          (input)="onCodeInput()"
+          [class.is-invalid]="editorForm.controls.code.invalid && editorForm.controls.code.touched"
+        />
+        <div class="invalid-feedback">Uppercase letters, numbers and underscores.</div>
+      </div>
+
+      <div class="col-6 col-md-4">
+        <label class="form-label" for="stageSeq">Sequence <span class="text-danger">*</span></label>
+        <input id="stageSeq" type="number" min="1" class="form-control" formControlName="sequence" />
+      </div>
+
+      <div class="col-6 col-md-4">
+        <label class="form-label" for="stageStatus">Status</label>
+        <select id="stageStatus" class="form-select" formControlName="status">
+          @for (status of statuses; track status) {
+            <option [value]="status">{{ status }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <label class="form-label">Colour</label>
+        <div class="d-flex flex-wrap gap-2">
+          @for (color of colors; track color) {
+            <button
+              type="button"
+              class="color-dot"
+              [class.is-selected]="editorForm.controls.color.value === color"
+              [style.background]="color"
+              (click)="pickColor(color)"
+              [attr.aria-label]="color"
+            ></button>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-2 mt-2">
+      <div class="col-12 col-md-6">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="stageDefault" formControlName="isDefault" />
+          <label class="form-check-label" for="stageDefault">
+            Default stage
+            <span class="d-block text-muted" style="font-size: 0.7rem">
+              New records start here.
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <div class="form-check">
+          <input class="form-check-input" type="checkbox" id="stageFinal" formControlName="isFinal" />
+          <label class="form-check-label" for="stageFinal">
+            Final stage
+            <span class="d-block text-muted" style="font-size: 0.7rem">
+              A record locks when it reaches a final stage — only an admin or a member with the
+              "unlock" permission can move it out. More than one final stage is fine
+              (e.g. Won and Lost are both final).
+            </span>
+          </label>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div modalFooter>
+    <button type="button" class="btn btn-outline-secondary" (click)="closeEditor()" [disabled]="saving()">
+      Cancel
+    </button>
+    <button type="submit" form="stageEditor" class="btn btn-primary" [disabled]="saving()">
+      @if (saving()) {
+        <span class="spinner-border spinner-border-sm"></span> Saving…
+      } @else {
+        <i class="bi bi-check2"></i> {{ editing() ? 'Save stage' : 'Add stage' }}
+      }
+    </button>
+  </div>
+</app-modal>

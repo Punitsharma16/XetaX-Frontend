@@ -1,0 +1,165 @@
+<div class="room" [class.room--call]="phase() === 'incall'">
+
+  @switch (phase()) {
+    <!-- ------------------------------------------------------ invalid -->
+    @case ('invalid') {
+      <div class="panel">
+        <div class="panel__icon"><i class="bi bi-link-45deg"></i></div>
+        <h2>Invalid meeting link</h2>
+        <p>The link is invalid or expired, or the meeting was cancelled/ended.</p>
+      </div>
+    }
+
+    <!-- --------------------------------------------------------- left -->
+    @case ('left') {
+      <div class="panel">
+        <div class="panel__icon panel__icon--ok"><i class="bi bi-hand-thumbs-up"></i></div>
+        <h2>You left the meeting</h2>
+        @if (leftReason()) {
+          <p>{{ leftReason() }}</p>
+        }
+        <button class="btn-join mt-3" (click)="rejoin()">
+          <i class="bi bi-arrow-clockwise me-1"></i>Rejoin
+        </button>
+      </div>
+    }
+
+    <!-- ------------------------------------------------------ prejoin -->
+    @case ('prejoin') {
+      <div class="prejoin">
+        <div class="prejoin__preview">
+          <video data-local autoplay playsinline muted></video>
+          @if (mediaError()) {
+            <div class="prejoin__error"><i class="bi bi-camera-video-off me-1"></i>{{ mediaError() }}</div>
+          }
+          <div class="prejoin__controls">
+            <button class="ctl" [class.ctl--off]="!micOn()" (click)="toggleMic()" title="Mic">
+              <i class="bi" [class.bi-mic-fill]="micOn()" [class.bi-mic-mute-fill]="!micOn()"></i>
+            </button>
+            <button class="ctl" [class.ctl--off]="!camOn()" (click)="toggleCam()" title="Camera">
+              <i class="bi" [class.bi-camera-video-fill]="camOn()" [class.bi-camera-video-off-fill]="!camOn()"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="prejoin__side">
+          <span class="brand"><span class="brand__mark">X</span> XetaX <small>MEET</small></span>
+          <h1>{{ meetingTitle() || 'Video meeting' }}</h1>
+          @if (scheduledAt()) {
+            <p class="muted"><i class="bi bi-clock me-1"></i>{{ scheduledAt() | date: 'dd MMM yyyy, hh:mm a' }}</p>
+          }
+          <label class="lbl" for="dn">Your name</label>
+          <input id="dn" class="inp" [(ngModel)]="displayName" placeholder="Enter your name" maxlength="40" (keyup.enter)="join()" />
+          <button class="btn-join" [disabled]="joining() || !localStream()" (click)="join()">
+            @if (joining()) {
+              <span class="spin"></span>
+            } @else {
+              <i class="bi bi-camera-video me-2"></i>
+            }
+            Join meeting
+          </button>
+          @if (isHost()) {
+            <p class="muted small mt-2"><i class="bi bi-star-fill me-1" style="color:#fbbf24"></i>Aap host ho — notes panel andar milega.</p>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ------------------------------------------------------- in call -->
+    @case ('incall') {
+      <header class="topbar">
+        <span class="brand"><span class="brand__mark">X</span> XetaX <small>MEET</small></span>
+        <span class="topbar__title text-truncate">{{ meetingTitle() }}</span>
+        <span class="topbar__count"><i class="bi bi-people me-1"></i>{{ peers().length + 1 }}</span>
+      </header>
+
+      <main class="stage" [class.stage--notes]="notesOpen()">
+        <div class="videos" [class]="gridClass()">
+          <!-- local tile -->
+          <div class="tile tile--me" [class.tile--sharing]="sharing()">
+            <video data-local autoplay playsinline muted></video>
+            <span class="tile__name">{{ displayName }} (You)</span>
+            <span class="tile__state">
+              @if (!micOn()) { <i class="bi bi-mic-mute-fill"></i> }
+              @if (!camOn()) { <i class="bi bi-camera-video-off-fill"></i> }
+            </span>
+          </div>
+          <!-- remote tiles -->
+          @for (peer of peers(); track peer.id) {
+            <div class="tile">
+              <video [attr.data-peer]="peer.id" autoplay playsinline></video>
+              @if (!peer.stream) {
+                <div class="tile__connecting"><span class="spin"></span> Connecting…</div>
+              }
+              <span class="tile__name">{{ peer.name }}</span>
+              <span class="tile__state">
+                @if (!peer.micOn) { <i class="bi bi-mic-mute-fill"></i> }
+                @if (!peer.camOn) { <i class="bi bi-camera-video-off-fill"></i> }
+              </span>
+            </div>
+          }
+        </div>
+
+        <!-- notes drawer (host only) -->
+        @if (isHost() && notesOpen()) {
+          <aside class="notes">
+            <div class="notes__head">
+              <span><i class="bi bi-journal-text me-1"></i>Meeting notes</span>
+              <button class="notes__close" (click)="notesOpen.set(false)"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="notes__list">
+              @for (note of notes(); track note.id) {
+                <div class="note">
+                  <div class="note__time">
+                    {{ note.createdAt | date: 'hh:mm a' }}
+                    <button class="note__del" (click)="deleteNote(note)" title="Delete"><i class="bi bi-trash"></i></button>
+                  </div>
+                  <div class="note__text">{{ note.content }}</div>
+                </div>
+              } @empty {
+                <p class="muted small">No notes yet — write one below and press Add. Notes are saved against this meeting.</p>
+              }
+            </div>
+            <div class="notes__composer">
+              <textarea
+                rows="3"
+                [(ngModel)]="noteDraft"
+                placeholder="Write a note… (client liked the 1.2Cr option)"
+                (keydown.control.enter)="addNote()"
+              ></textarea>
+              <button class="btn-join btn-note" [disabled]="savingNote() || !noteDraft.trim()" (click)="addNote()">
+                @if (savingNote()) { <span class="spin"></span> } @else { <i class="bi bi-plus-lg me-1"></i> }
+                Add note
+              </button>
+            </div>
+          </aside>
+        }
+      </main>
+
+      <footer class="bar">
+        <button class="ctl" [class.ctl--off]="!micOn()" (click)="toggleMic()" title="Mic (mute/unmute)">
+          <i class="bi" [class.bi-mic-fill]="micOn()" [class.bi-mic-mute-fill]="!micOn()"></i>
+        </button>
+        <button class="ctl" [class.ctl--off]="!camOn()" (click)="toggleCam()" title="Camera on/off">
+          <i class="bi" [class.bi-camera-video-fill]="camOn()" [class.bi-camera-video-off-fill]="!camOn()"></i>
+        </button>
+        <button class="ctl" [class.ctl--on]="sharing()" (click)="toggleShare()" title="Share screen">
+          <i class="bi" [class.bi-display]="!sharing()" [class.bi-x-octagon]="sharing()"></i>
+        </button>
+        @if (isHost()) {
+          <button class="ctl" [class.ctl--on]="notesOpen()" (click)="notesOpen.set(!notesOpen())" title="Notes">
+            <i class="bi bi-journal-text"></i>
+            @if (notes().length) { <span class="ctl__badge">{{ notes().length }}</span> }
+          </button>
+        }
+        <span class="bar__gap"></span>
+        <button class="ctl ctl--leave" (click)="leave()" title="Leave">
+          <i class="bi bi-telephone-x-fill"></i>
+        </button>
+        @if (isHost()) {
+          <button class="btn-end" (click)="endForAll()">End for all</button>
+        }
+      </footer>
+    }
+  }
+</div>

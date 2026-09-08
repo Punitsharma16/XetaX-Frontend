@@ -1,0 +1,129 @@
+.min-w-0 { min-width: 0; }
+
+.task-composer {
+  padding: 1.1rem 1.25rem 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-sunken, #fafbfe);
+}
+
+.tc-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-secondary);
+  margin-bottom: 0.35rem;
+}
+
+.tc-req {
+  color: #e11d48;
+}
+
+.tc-presets {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  margin-top: 0.45rem;
+}
+
+.tc-chip {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-card, #fff);
+  color: var(--text-secondary);
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 500;
+  padding: 0.22rem 0.65rem;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.tc-chip:hover {
+  border-color: var(--brand-400, #818cf8);
+  color: var(--brand-600, #4f46e5);
+}
+
+.tc-remind {
+  display: flex;
+  align-items: center;
+  gap: 1.4rem;
+  flex-wrap: wrap;
+  padding: 0.15rem 0;
+}
+
+.tc-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  margin: 0;
+}
+
+.tc-check .form-check-input {
+  margin: 0;
+}
+
+.tc-check i {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.tc-check .tc-wa {
+  color: #16a34a;
+}
+
+.tc-check--fixed {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+.tc-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.task-done-toggle {
+  .task-done-toggle {
+    .task-done-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  margin: 0;
+}
+  }
+}
+
+.task-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.task-row--done .task-row__title {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.task-row__title {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.task-row__meta {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

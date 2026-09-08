@@ -1,0 +1,101 @@
+<app-page-header
+  title="Campaigns"
+  icon="bi-megaphone"
+  subtitle="Bulk WhatsApp messages to your records or an uploaded list."
+>
+  <button class="btn btn-ai btn-sm" (click)="aiOpen.set(true)">
+    <i class="bi bi-stars me-1"></i>Ask AI
+  </button>
+  <a class="btn wa-btn btn-sm" routerLink="/app/whatsapp/campaigns/new">
+    <i class="bi bi-plus-lg me-1"></i>New campaign
+  </a>
+</app-page-header>
+
+<app-whatsapp-nav />
+
+@if (error()) {
+  <app-error-state>
+    <button class="btn btn-outline-secondary btn-sm" (click)="load(0)">Retry</button>
+  </app-error-state>
+} @else if (loading()) {
+  <div class="card wa-card p-3"><app-table-skeleton [rows]="5" [cols]="6" /></div>
+} @else if (!page().content.length) {
+  <div class="card wa-card p-3">
+    <app-empty-state
+      icon="bi-megaphone"
+      title="No campaigns yet"
+      message="Create a campaign to message many customers at once — from your CRM records or a CSV list."
+    />
+    <div class="text-center pb-3">
+      <a class="btn wa-btn" routerLink="/app/whatsapp/campaigns/new">
+        <i class="bi bi-plus-lg me-1"></i>Create first campaign
+      </a>
+    </div>
+  </div>
+} @else {
+  <div class="card wa-card">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Audience</th>
+            <th>Status</th>
+            <th style="min-width: 160px">Progress</th>
+            <th class="text-end">Sent</th>
+            <th class="text-end">Delivered</th>
+            <th class="text-end">Failed</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (campaign of page().content; track campaign.id) {
+            <tr>
+              <td>
+                <a class="fw-medium text-decoration-none" [routerLink]="[campaign.id]">{{
+                  campaign.name
+                }}</a>
+              </td>
+              <td class="text-muted small">{{ campaign.targetDescription || campaign.sourceType }}</td>
+              <td>
+                <span class="badge" [class]="badge(campaign.status)">{{ campaign.status }}</span>
+              </td>
+              <td>
+                <div class="progress" style="height: 6px">
+                  <div class="progress-bar bg-success" [style.width.%]="progress(campaign)"></div>
+                </div>
+                <span class="text-muted" style="font-size: 0.7rem"
+                  >{{ campaign.sentCount + campaign.failedCount }}/{{ campaign.totalCount }}</span
+                >
+              </td>
+              <td class="text-end">{{ campaign.sentCount }}</td>
+              <td class="text-end">{{ campaign.deliveredCount }}</td>
+              <td class="text-end" [class.text-danger]="campaign.failedCount">{{
+                campaign.failedCount
+              }}</td>
+              <td class="text-muted small">{{ campaign.createdAt | date: 'mediumDate' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer">
+      <app-pagination
+        [page]="page().number"
+        [size]="page().size"
+        [totalElements]="page().totalElements"
+        [totalPages]="page().totalPages"
+        (pageChange)="load($event)"
+      />
+    </div>
+  </div>
+}
+
+<app-ai-panel
+  [open]="aiOpen()"
+  contextLabel="WhatsApp campaigns"
+  storageKey="whatsapp-campaigns"
+  [suggestions]="aiSuggestions"
+  (closed)="aiOpen.set(false)"
+  (answered)="load(page().number)"
+/>

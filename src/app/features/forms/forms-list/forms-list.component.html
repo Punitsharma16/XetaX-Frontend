@@ -1,0 +1,346 @@
+<app-page-header
+  title="Forms"
+  icon="bi-ui-checks-grid"
+  subtitle="Every form defines its own fields, pipeline stages and records."
+>
+  <app-search-box placeholder="Search forms…" (search)="onSearch($event)" />
+  <button type="button" class="btn btn-outline-secondary" (click)="load()" title="Refresh">
+    <i class="bi bi-arrow-clockwise"></i>
+  </button>
+  <button
+    type="button"
+    class="btn btn-ai-outline"
+    (click)="aiOpen.set(true)"
+    title="Describe the form in plain language and the assistant builds it"
+  >
+    <i class="bi bi-stars"></i> Create with AI
+  </button>
+  <button type="button" class="btn btn-outline-primary" (click)="openGallery()">
+    <i class="bi bi-grid-1x2"></i> Use a template
+  </button>
+  <button type="button" class="btn btn-primary" (click)="openCreate()">
+    <i class="bi bi-plus-lg"></i> New form
+  </button>
+</app-page-header>
+
+@if (loading()) {
+  <div class="row g-3">
+    @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+      <div class="col-12 col-md-6 col-xl-4">
+        <div class="card h-100">
+          <div class="card-body">
+            <div class="d-flex gap-3">
+              <div class="skeleton" style="width: 44px; height: 44px; border-radius: 12px"></div>
+              <div class="flex-fill">
+                <div class="skeleton mb-2" style="height: 12px; width: 55%"></div>
+                <div class="skeleton" style="height: 9px; width: 80%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+} @else if (failed()) {
+  <div class="card">
+    <app-error-state message="The CRM service did not return your forms.">
+      <button type="button" class="btn btn-primary" (click)="load()">
+        <i class="bi bi-arrow-clockwise"></i> Try again
+      </button>
+    </app-error-state>
+  </div>
+} @else if (!forms().length) {
+  <div class="card">
+    <app-empty-state
+      icon="bi-ui-checks-grid"
+      title="No forms yet"
+      message="A form is the blueprint for a record type — leads, tickets, orders, anything."
+    >
+      <button type="button" class="btn btn-primary mt-3" (click)="openCreate()">
+        <i class="bi bi-plus-lg"></i> Create your first form
+      </button>
+    </app-empty-state>
+  </div>
+} @else if (!visible().length) {
+  <div class="card">
+    <app-empty-state icon="bi-search" title="No matching forms" message="Try a different search term." />
+  </div>
+} @else {
+  <div class="row g-3">
+    @for (form of visible(); track form.id) {
+      <div class="col-12 col-md-6 col-xl-4">
+        <div class="card h-100 form-card">
+          <div class="card-body d-flex flex-column">
+            <div class="d-flex align-items-start gap-3">
+              <span
+                class="form-card__icon"
+                [style.background]="(form.color || '#4f46e5') + '1f'"
+                [style.color]="form.color || '#4f46e5'"
+              >
+                <i class="bi" [class]="form.icon || 'bi-table'"></i>
+              </span>
+
+              <div class="flex-fill min-w-0">
+                <a class="form-card__title" [routerLink]="['/app/forms', form.id]">{{ form.name }}</a>
+                <div class="form-card__slug"><code>{{ form.slug }}</code></div>
+              </div>
+
+              <div class="dropdown">
+                <button
+                  type="button"
+                  class="btn btn-light btn-icon"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                  aria-label="Form actions"
+                >
+                  <i class="bi bi-three-dots-vertical"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <a class="dropdown-item" [routerLink]="['/app/forms', form.id]">
+                      <i class="bi bi-sliders me-2"></i>Configure
+                    </a>
+                  </li>
+                  <li>
+                    <a class="dropdown-item" [routerLink]="['/app/records', form.slug]">
+                      <i class="bi bi-collection me-2"></i>View records
+                    </a>
+                  </li>
+                  <li>
+                    <button type="button" class="dropdown-item" (click)="openEdit(form, $event)">
+                      <i class="bi bi-pencil me-2"></i>Edit details
+                    </button>
+                  </li>
+                  <li><hr class="dropdown-divider" /></li>
+                  <li>
+                    <button type="button" class="dropdown-item text-danger" (click)="remove(form, $event)">
+                      <i class="bi bi-trash me-2"></i>Delete
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <p class="form-card__desc">
+              {{ form.description || 'No description provided.' }}
+            </p>
+
+            <div class="d-flex gap-2 mt-auto pt-3">
+              <a class="btn btn-light flex-fill" [routerLink]="['/app/forms', form.id]">
+                <i class="bi bi-sliders"></i> Configure
+              </a>
+              <a class="btn btn-primary flex-fill" [routerLink]="['/app/records', form.slug]">
+                <i class="bi bi-collection"></i> Records
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+}
+
+<!-- Create / edit -->
+<app-modal
+  [open]="modalOpen()"
+  [title]="editing() ? 'Edit form' : 'New form'"
+  icon="bi-ui-checks-grid"
+  [dismissible]="!saving()"
+  (closed)="closeEditor()"
+>
+  <form [formGroup]="editorForm" (ngSubmit)="save()" novalidate id="formEditor">
+    <div class="mb-3">
+      <label class="form-label" for="formName">Form name <span class="text-danger">*</span></label>
+      <input
+        id="formName"
+        type="text"
+        class="form-control"
+        formControlName="name"
+        placeholder="e.g. Leads"
+        (input)="onNameInput()"
+        [class.is-invalid]="editorForm.controls.name.invalid && editorForm.controls.name.touched"
+      />
+      <div class="invalid-feedback">A form name is required.</div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="formSlug">Slug <span class="text-danger">*</span></label>
+      <input
+        id="formSlug"
+        type="text"
+        class="form-control"
+        formControlName="slug"
+        placeholder="leads"
+        (input)="onSlugInput()"
+        [class.is-invalid]="editorForm.controls.slug.invalid && editorForm.controls.slug.touched"
+      />
+      <div class="form-text" style="font-size: 0.7rem">
+        Used in record URLs and the API — lowercase letters, numbers and hyphens.
+      </div>
+      <div class="invalid-feedback">Use lowercase letters, numbers and hyphens only.</div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="formDesc">Description</label>
+      <textarea
+        id="formDesc"
+        class="form-control"
+        rows="2"
+        formControlName="description"
+        placeholder="What does this form capture?"
+      ></textarea>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-12 col-sm-7">
+        <label class="form-label">Icon</label>
+        <div class="picker">
+          @for (icon of icons; track icon) {
+            <button
+              type="button"
+              class="picker__icon"
+              [class.is-selected]="editorForm.controls.icon.value === icon"
+              (click)="pickIcon(icon)"
+              [attr.aria-label]="icon"
+            >
+              <i class="bi" [class]="icon"></i>
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="col-12 col-sm-5">
+        <label class="form-label">Colour</label>
+        <div class="picker">
+          @for (color of colors; track color) {
+            <button
+              type="button"
+              class="picker__color"
+              [class.is-selected]="editorForm.controls.color.value === color"
+              [style.background]="color"
+              (click)="pickColor(color)"
+              [attr.aria-label]="color"
+            ></button>
+          }
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div modalFooter>
+    <button type="button" class="btn btn-outline-secondary" (click)="closeEditor()" [disabled]="saving()">
+      Cancel
+    </button>
+    <button type="submit" form="formEditor" class="btn btn-primary" [disabled]="saving()">
+      @if (saving()) {
+        <span class="spinner-border spinner-border-sm"></span> Saving…
+      } @else {
+        <i class="bi bi-check2"></i> {{ editing() ? 'Save changes' : 'Create form' }}
+      }
+    </button>
+  </div>
+</app-modal>
+
+<app-ai-panel
+  [open]="aiOpen()"
+  contextLabel="Forms"
+  storageKey="forms"
+  [suggestions]="aiSuggestions"
+  (closed)="aiOpen.set(false)"
+  (answered)="load()"
+/>
+
+<!-- ------------------------------------------------- template gallery -->
+<app-modal [open]="galleryOpen()" title="Start from a template" icon="bi-grid-1x2" size="xl"
+           (closed)="galleryOpen.set(false)">
+  <p class="text-muted small mb-3">
+    Pick your business — you see a full <b>preview</b> first (fields, stages, automation flow);
+    nothing is created until you confirm.
+  </p>
+  <div class="tpl-grid">
+    @for (template of templates(); track template.key) {
+      <button type="button" class="tpl-card" (click)="openPreview(template)">
+        <span class="tpl-card__icon" [style.background]="template.color + '22'"
+              [style.color]="template.color"><i class="bi" [class]="template.icon"></i></span>
+        <span class="tpl-card__name">{{ template.name }}</span>
+        <span class="tpl-card__tag">{{ template.tagline }}</span>
+        <span class="tpl-card__meta">
+          {{ template.fields.length }} fields · {{ template.stages.length }} stages ·
+          {{ template.automations.length }} automations
+        </span>
+      </button>
+    } @empty {
+      <div class="text-muted small p-3">Loading templates…</div>
+    }
+  </div>
+</app-modal>
+
+<!-- ------------------------------------------- template preview + confirm -->
+<app-modal [open]="!!previewFor()" [title]="'Preview — ' + (previewFor()?.name || '')"
+           icon="bi-eye" size="xl" (closed)="previewFor.set(null)">
+  @if (previewFor(); as t) {
+    <p class="text-muted small">{{ t.description }}</p>
+
+    <div class="row g-3">
+      <div class="col-12 col-lg-6">
+        <h6 class="tpl-h"><i class="bi bi-input-cursor-text me-1"></i>Fields that will be created ({{ t.fields.length }})</h6>
+        <table class="table table-sm tpl-table">
+          <thead><tr><th>Field</th><th>Type</th><th>Required</th></tr></thead>
+          <tbody>
+            @for (field of t.fields; track field.fieldKey) {
+              <tr>
+                <td>{{ field.label }}</td>
+                <td><code>{{ field.fieldType }}</code></td>
+                <td>{{ field.required ? 'Yes' : '—' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="col-12 col-lg-6">
+        <h6 class="tpl-h"><i class="bi bi-signpost-split me-1"></i>Pipeline (stage flow)</h6>
+        <div class="tpl-flow">
+          @for (stage of t.stages; track stage.code; let last = $last) {
+            <span class="tpl-stage" [style.--c]="stage.color">
+              {{ stage.name }}
+              @if (stage.isDefault) { <small>start</small> }
+              @if (stage.isFinal) { <small>final 🔒</small> }
+            </span>
+            @if (!last) { <i class="bi bi-arrow-right tpl-arrow"></i> }
+          }
+        </div>
+
+        <h6 class="tpl-h mt-3"><i class="bi bi-lightning-charge me-1"></i>Automations (created as drafts — you switch them on)</h6>
+        <div class="tpl-autos">
+          @for (a of t.automations; track a.name) {
+            <div class="tpl-auto">
+              <b>{{ a.name }}</b>
+              <span>{{ automationLine(a) }}</span>
+              @if (a.emailMessage) { <em>"{{ a.emailMessage }}"</em> }
+              <small>{{ a.note }}</small>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="col-12">
+        <label class="form-label">Form name</label>
+        <input class="form-control" [(ngModel)]="templateFormName" />
+      </div>
+    </div>
+  }
+  <div modalFooter class="d-flex justify-content-between align-items-center w-100">
+    <span class="text-muted small">
+      <i class="bi bi-info-circle me-1"></i>Automations are created INACTIVE — review the messages/fields,
+      then switch them on yourself.
+    </span>
+    <div class="d-flex gap-2">
+      <button class="btn btn-outline-secondary" (click)="previewFor.set(null)">Back</button>
+      <button class="btn btn-primary" [disabled]="applying()" (click)="confirmApply()">
+        @if (applying()) { <span class="spinner-border spinner-border-sm me-1"></span> Creating… }
+        @else { <i class="bi bi-check2 me-1"></i> Yes, create it }
+      </button>
+    </div>
+  </div>
+</app-modal>

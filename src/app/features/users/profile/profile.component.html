@@ -1,0 +1,233 @@
+<app-page-header title="My profile" icon="bi-person" subtitle="Your account details and preferences." />
+
+<div class="row g-3">
+  <!-- Identity card -->
+  <div class="col-12 col-xl-4">
+    <div class="card mb-3">
+      <div class="card-body text-center">
+        <span class="profile-avatar">{{ initials() }}</span>
+        <h5 class="mt-3 mb-1">{{ user()?.name }}</h5>
+        <p class="text-muted mb-2" style="font-size: 0.8125rem">{{ user()?.email }}</p>
+
+        <span
+          class="badge"
+          [class.badge-soft-primary]="user()?.isAdmin"
+          [class.badge-soft-muted]="!user()?.isAdmin"
+        >
+          {{ user()?.isAdmin ? 'Administrator' : (user()?.roles?.[0] || 'Member') }}
+        </span>
+
+        @if (user()?.company) {
+          <div class="text-muted mt-3" style="font-size: 0.75rem">
+            <i class="bi bi-building me-1"></i>{{ user()?.company }}
+          </div>
+        }
+
+        <hr class="my-3" />
+
+        <div class="d-flex align-items-center justify-content-between">
+          <span style="font-size: 0.8125rem">Appearance</span>
+          <button type="button" class="btn btn-light btn-sm" (click)="toggleTheme()">
+            <i class="bi" [class.bi-sun]="theme() === 'dark'" [class.bi-moon-stars]="theme() !== 'dark'"></i>
+            {{ theme() === 'dark' ? 'Light mode' : 'Dark mode' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Connected services -->
+    <div class="card mb-3">
+      <div class="card-header"><i class="bi bi-plug me-2"></i>Connected services</div>
+      <ul class="list-group list-group-flush">
+        @if (services(); as s) {
+          <li class="list-group-item d-flex align-items-center gap-2 svc-row">
+            <i class="bi bi-whatsapp svc-icon"></i>
+            <span>WhatsApp Business</span>
+            @if (s.whatsapp.connected) {
+              <span class="badge badge-soft-success ms-auto">Connected</span>
+            } @else {
+              <span class="badge badge-soft-muted ms-auto">Not connected</span>
+            }
+          </li>
+          <li class="list-group-item d-flex align-items-center gap-2 svc-row">
+            <i class="bi bi-envelope svc-icon"></i>
+            <span>Email (SMTP)</span>
+            @if (s.emailConfigured) {
+              <span class="badge badge-soft-success ms-auto">Configured</span>
+            } @else {
+              <span class="badge badge-soft-muted ms-auto">Not configured</span>
+            }
+          </li>
+          <li class="list-group-item d-flex align-items-center gap-2 svc-row">
+            <i class="bi bi-robot svc-icon"></i>
+            <span>Website AI agents</span>
+            @if (s.agents > 0) {
+              <span class="badge badge-soft-success ms-auto">{{ s.agents }} live</span>
+            } @else {
+              <span class="badge badge-soft-muted ms-auto">None yet</span>
+            }
+          </li>
+          @if (billing(); as b) {
+            <li class="list-group-item d-flex align-items-center gap-2 svc-row">
+              <i class="bi bi-credit-card svc-icon"></i>
+              <span>Payments (Razorpay)</span>
+              @if (b.razorpayConfigured) {
+                <span class="badge badge-soft-success ms-auto">Ready</span>
+              } @else {
+                <span class="badge badge-soft-muted ms-auto">Not configured</span>
+              }
+            </li>
+          }
+        } @else {
+          <li class="list-group-item text-secondary" style="font-size: 0.8125rem">Checking…</li>
+        }
+      </ul>
+    </div>
+
+    <app-whatsapp-connect-card />
+    <app-smtp-settings-card />
+  </div>
+
+  <!-- Details -->
+  <div class="col-12 col-xl-8">
+    <!-- Plan & subscription -->
+    @if (billing(); as b) {
+      <div class="card mb-3">
+        <div class="card-header d-flex align-items-center">
+          <i class="bi bi-award me-2"></i>Plan &amp; subscription
+          <a class="ms-auto small" routerLink="/app/ai">Manage &amp; top up →</a>
+        </div>
+        <div class="card-body">
+          <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+            <span class="badge text-bg-primary">{{ b.planLabel }}</span>
+            @if (b.subscription; as sub) {
+              <span class="badge text-bg-light border">Valid till {{ sub.endsAt | date: 'dd MMM yyyy' }}</span>
+              @if (sub.daysLeft <= 7) {
+                <span class="badge text-bg-warning">
+                  Expires
+                  @if (sub.daysLeft === 0) { today }
+                  @else { in {{ sub.daysLeft }} day{{ sub.daysLeft === 1 ? '' : 's' }} }
+                  — contact us to renew
+                </span>
+              }
+            } @else if (b.planKey === 'TRIAL' && !b.trialExpired && b.trialEndsAt) {
+              <span class="badge text-bg-light border">Trial ends {{ b.trialEndsAt | date: 'dd MMM yyyy' }}</span>
+            } @else if (b.trialExpired) {
+              <span class="badge text-bg-danger">Trial over — contact us for a plan</span>
+            }
+          </div>
+          <div class="row g-3 text-center">
+            <div class="col-4">
+              <div class="svc-stat">{{ b.assistantUsed | number }}<span class="text-secondary"> / {{ b.assistantQuota | number }}</span></div>
+              <div class="svc-stat-label">Assistant messages</div>
+            </div>
+            <div class="col-4">
+              <div class="svc-stat">{{ b.agentUsed | number }}<span class="text-secondary"> / {{ b.agentQuota | number }}</span></div>
+              <div class="svc-stat-label">Agent messages</div>
+            </div>
+            <div class="col-4">
+              <div class="svc-stat">{{ b.topupBalance | number }}</div>
+              <div class="svc-stat-label">Top-up balance</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    <div class="card mb-3">
+      <div class="card-header"><i class="bi bi-person-vcard me-2"></i>Account details</div>
+      <div class="card-body">
+        <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" novalidate>
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="profName">Full name <span class="text-danger">*</span></label>
+              <input
+                id="profName"
+                type="text"
+                class="form-control"
+                formControlName="name"
+                [class.is-invalid]="profileForm.controls.name.invalid && profileForm.controls.name.touched"
+              />
+              <div class="invalid-feedback">A name is required.</div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="profEmail">Email</label>
+              <input id="profEmail" type="email" class="form-control" formControlName="email" />
+              <div class="form-text" style="font-size: 0.7rem">
+                Your email is your sign-in identity and cannot be changed here.
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="profPhone">Phone</label>
+              <input id="profPhone" type="tel" class="form-control" formControlName="phone" />
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="profCompany">Company</label>
+              <input id="profCompany" type="text" class="form-control" formControlName="company" />
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end mt-3">
+            <button type="submit" class="btn btn-primary" [disabled]="saving()">
+              @if (saving()) {
+                <span class="spinner-border spinner-border-sm"></span> Saving…
+              } @else {
+                <i class="bi bi-check2"></i> Save changes
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><i class="bi bi-shield-lock me-2"></i>Change password</div>
+      <div class="card-body">
+        <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" novalidate>
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="newPass">New password <span class="text-danger">*</span></label>
+              <input
+                id="newPass"
+                type="password"
+                class="form-control"
+                formControlName="password"
+                autocomplete="new-password"
+                placeholder="At least 6 characters"
+                [class.is-invalid]="passwordForm.controls.password.invalid && passwordForm.controls.password.touched"
+              />
+              <div class="invalid-feedback">Use at least 6 characters.</div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label" for="confirmPass">Confirm password <span class="text-danger">*</span></label>
+              <input
+                id="confirmPass"
+                type="password"
+                class="form-control"
+                formControlName="confirm"
+                autocomplete="new-password"
+                placeholder="Repeat the new password"
+                [class.is-invalid]="passwordForm.controls.confirm.invalid && passwordForm.controls.confirm.touched"
+              />
+              <div class="invalid-feedback">Confirm the new password.</div>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end mt-3">
+            <button type="submit" class="btn btn-primary" [disabled]="changingPassword()">
+              @if (changingPassword()) {
+                <span class="spinner-border spinner-border-sm"></span> Updating…
+              } @else {
+                <i class="bi bi-key"></i> Change password
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

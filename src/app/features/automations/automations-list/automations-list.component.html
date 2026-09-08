@@ -1,0 +1,219 @@
+<app-page-header
+  title="Automations"
+  icon="bi-lightning-charge"
+  subtitle="Run conditions and actions automatically when records are created or updated."
+>
+  <app-search-box placeholder="Search automations…" (search)="onSearch($event)" />
+  <button type="button" class="btn btn-outline-secondary" (click)="load()" title="Refresh">
+    <i class="bi bi-arrow-clockwise"></i>
+  </button>
+  <button
+    type="button"
+    class="btn btn-ai-outline"
+    (click)="aiOpen.set(true)"
+    title="Describe the rule in plain language and the assistant builds it"
+  >
+    <i class="bi bi-stars"></i> Build with AI
+  </button>
+  <button type="button" class="btn btn-primary" (click)="openCreate()" [disabled]="!forms().length">
+    <i class="bi bi-plus-lg"></i> New automation
+  </button>
+</app-page-header>
+
+<div class="card">
+  @if (loading()) {
+    <app-table-skeleton [rows]="5" [cols]="5" />
+  } @else if (failed()) {
+    <app-error-state message="The CRM service did not return your automations.">
+      <button type="button" class="btn btn-primary" (click)="load()">
+        <i class="bi bi-arrow-clockwise"></i> Try again
+      </button>
+    </app-error-state>
+  } @else if (!automations().length) {
+    <app-empty-state
+      icon="bi-lightning-charge"
+      title="No automations yet"
+      message="An automation watches a form and reacts — change a stage, update a field, assign an owner."
+    >
+      @if (forms().length) {
+        <button type="button" class="btn btn-primary mt-3" (click)="openCreate()">
+          <i class="bi bi-plus-lg"></i> Create your first automation
+        </button>
+      } @else {
+        <a class="btn btn-primary mt-3" routerLink="/app/forms">
+          <i class="bi bi-ui-checks-grid"></i> Create a form first
+        </a>
+      }
+    </app-empty-state>
+  } @else if (!visible().length) {
+    <app-empty-state icon="bi-search" title="No matching automations" message="Try a different search term." />
+  } @else {
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Automation</th>
+            <th>Form</th>
+            <th>Trigger</th>
+            <th>Status</th>
+            <th class="text-end" style="width: 160px">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (automation of visible(); track automation.id) {
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="auto-icon"><i class="bi bi-lightning-charge-fill"></i></span>
+                  <div class="min-w-0">
+                    <a class="fw-semibold d-block text-truncate" [routerLink]="['/app/automations', automation.id]">
+                      {{ automation.name }}
+                    </a>
+                    @if (automation.description) {
+                      <span class="text-muted d-block text-truncate" style="font-size: 0.7rem">
+                        {{ automation.description }}
+                      </span>
+                    }
+                  </div>
+                </div>
+              </td>
+
+              <td>{{ formName(automation) }}</td>
+
+              <td>
+                <span class="badge badge-soft-info">{{ triggerLabel(automation.trigger) }}</span>
+              </td>
+
+              <td>
+                <span
+                  class="badge"
+                  [class.badge-soft-success]="automation.active"
+                  [class.badge-soft-muted]="!automation.active"
+                >
+                  {{ automation.active ? 'Active' : 'Paused' }}
+                </span>
+              </td>
+
+              <td class="text-end">
+                <a
+                  class="btn btn-light btn-sm me-1"
+                  [routerLink]="['/app/automations', automation.id]"
+                  title="Conditions & actions"
+                >
+                  <i class="bi bi-sliders"></i> Rules
+                </a>
+                <button
+                  type="button"
+                  class="btn btn-light btn-icon me-1"
+                  (click)="openEdit(automation)"
+                  title="Edit"
+                >
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-light btn-icon text-danger"
+                  (click)="remove(automation)"
+                  title="Delete"
+                >
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+<!-- Create / edit -->
+<app-modal
+  [open]="modalOpen()"
+  [title]="editing() ? 'Edit automation' : 'New automation'"
+  icon="bi-lightning-charge"
+  [dismissible]="!saving()"
+  (closed)="closeEditor()"
+>
+  <form [formGroup]="editorForm" (ngSubmit)="save()" novalidate id="automationEditor">
+    <div class="mb-3">
+      <label class="form-label" for="autoName">Name <span class="text-danger">*</span></label>
+      <input
+        id="autoName"
+        type="text"
+        class="form-control"
+        formControlName="name"
+        placeholder="e.g. Auto-qualify inbound leads"
+        [class.is-invalid]="editorForm.controls.name.invalid && editorForm.controls.name.touched"
+      />
+      <div class="invalid-feedback">A name is required.</div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="autoDesc">Description</label>
+      <textarea
+        id="autoDesc"
+        class="form-control"
+        rows="2"
+        formControlName="description"
+        placeholder="What should this automation do?"
+      ></textarea>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-12 col-md-6">
+        <label class="form-label" for="autoForm">Form <span class="text-danger">*</span></label>
+        <select
+          id="autoForm"
+          class="form-select"
+          formControlName="formId"
+          [class.is-invalid]="editorForm.controls.formId.invalid && editorForm.controls.formId.touched"
+        >
+          <option [value]="0" disabled>Select a form…</option>
+          @for (f of forms(); track f.id) {
+            <option [value]="f.id">{{ f.name }}</option>
+          }
+        </select>
+        <div class="invalid-feedback">Choose the form this automation watches.</div>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <label class="form-label" for="autoTrigger">Trigger <span class="text-danger">*</span></label>
+        <select id="autoTrigger" class="form-select" formControlName="trigger">
+          @for (trigger of triggers; track trigger) {
+            <option [value]="trigger">{{ triggerLabel(trigger) }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    @if (!editing()) {
+      <div class="alert alert-info mt-3 mb-0 py-2 px-3" style="font-size: 0.75rem">
+        <i class="bi bi-info-circle me-1"></i>
+        After saving, open <strong>Rules</strong> to add the conditions and actions.
+      </div>
+    }
+  </form>
+
+  <div modalFooter>
+    <button type="button" class="btn btn-outline-secondary" (click)="closeEditor()" [disabled]="saving()">
+      Cancel
+    </button>
+    <button type="submit" form="automationEditor" class="btn btn-primary" [disabled]="saving()">
+      @if (saving()) {
+        <span class="spinner-border spinner-border-sm"></span> Saving…
+      } @else {
+        <i class="bi bi-check2"></i> {{ editing() ? 'Save changes' : 'Create automation' }}
+      }
+    </button>
+  </div>
+</app-modal>
+
+<app-ai-panel
+  [open]="aiOpen()"
+  contextLabel="Automations"
+  storageKey="automations"
+  [suggestions]="aiSuggestions"
+  (closed)="aiOpen.set(false)"
+  (answered)="load()"
+/>

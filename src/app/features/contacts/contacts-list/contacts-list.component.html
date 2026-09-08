@@ -1,0 +1,190 @@
+<app-page-header
+  title="Contacts"
+  icon="bi-person-lines-fill"
+  subtitle="Your address book — open a contact to chat and email from one page. Bulk sends live here."
+>
+  <button class="btn btn-outline-secondary btn-sm" (click)="openImport()" title="Import contacts from a CSV file">
+    <i class="bi bi-upload me-1"></i>Import
+  </button>
+  <button class="btn btn-outline-secondary btn-sm" (click)="exportCsv()" [disabled]="exporting()"
+          title="Download all contacts as CSV">
+    <i class="bi bi-download me-1"></i>{{ exporting() ? 'Exporting…' : 'Export' }}
+  </button>
+  <a class="btn btn-primary btn-sm" routerLink="/app/contacts/new">
+    <i class="bi bi-person-plus me-1"></i>New contact
+  </a>
+</app-page-header>
+
+<!-- toolbar -->
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+  <div class="contacts-search">
+    <i class="bi bi-search"></i>
+    <input
+      class="form-control form-control-sm"
+      placeholder="Search name, number, email, business…"
+      [(ngModel)]="search"
+      (input)="onSearch()"
+    />
+  </div>
+  <span class="text-muted small">{{ total() }} contact{{ total() === 1 ? '' : 's' }}</span>
+
+  @if (selected().size) {
+    <div class="ms-auto d-flex align-items-center gap-2">
+      <span class="badge badge-soft-primary">{{ selected().size }} selected</span>
+      <button class="btn btn-success btn-sm" (click)="openCompose('whatsapp')">
+        <i class="bi bi-whatsapp me-1"></i>Bulk WhatsApp
+      </button>
+      <button class="btn btn-outline-primary btn-sm" (click)="openCompose('email')">
+        <i class="bi bi-envelope me-1"></i>Bulk Email
+      </button>
+    </div>
+  }
+</div>
+
+@if (loading()) {
+  <app-table-skeleton [rows]="6" [cols]="5" />
+} @else if (failed()) {
+  <app-error-state message="Could not load contacts." (retry)="load()" />
+} @else if (!contacts().length) {
+  <app-empty-state
+    icon="bi-person-lines-fill"
+    title="No contacts yet"
+    message="Save your customers and suppliers — then WhatsApp or email them right from their page."
+  >
+    <a class="btn btn-primary mt-3" routerLink="/app/contacts/new">
+      <i class="bi bi-person-plus me-1"></i>Add your first contact
+    </a>
+  </app-empty-state>
+} @else {
+  <div class="card">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 contacts-table">
+        <thead>
+          <tr>
+            <th style="width: 36px">
+              <input type="checkbox" class="form-check-input" [checked]="allSelected()" (change)="toggleAll()" />
+            </th>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>Business</th>
+            <th>Address</th>
+            <th class="text-end" style="width: 90px"></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (contact of contacts(); track contact.id) {
+            <tr [class.table-active]="selected().has(contact.id)">
+              <td>
+                <input type="checkbox" class="form-check-input"
+                       [checked]="selected().has(contact.id)" (change)="toggle(contact.id)" />
+              </td>
+              <td>
+                <a class="d-flex align-items-center gap-2 text-decoration-none text-reset"
+                   [routerLink]="['/app/contacts', contact.id]">
+                  <span class="contact-avatar">{{ contact.name.charAt(0).toUpperCase() }}</span>
+                  <div class="min-w-0">
+                    <div class="fw-semibold text-truncate">{{ contact.name }}</div>
+                    @if (contact.notes) {
+                      <small class="text-muted text-truncate d-block" style="max-width: 220px">{{ contact.notes }}</small>
+                    }
+                  </div>
+                </a>
+              </td>
+              <td class="text-nowrap">{{ contact.phone || '—' }}</td>
+              <td class="text-truncate" style="max-width: 200px">{{ contact.email || '—' }}</td>
+              <td class="text-truncate" style="max-width: 160px">{{ contact.company || '—' }}</td>
+              <td class="text-truncate" style="max-width: 200px">{{ contact.address || '—' }}</td>
+              <td class="text-end">
+                <a class="btn btn-light btn-sm" [routerLink]="['/app/contacts', contact.id]" title="Open / edit">
+                  <i class="bi bi-pencil me-1"></i>Edit
+                </a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}
+
+<!-- -------------------------------------------------------- bulk compose -->
+<app-modal
+  [open]="composeOpen()"
+  [title]="(composeChannel() === 'whatsapp' ? 'Bulk WhatsApp — ' : 'Bulk Email — ') + selected().size + ' contacts'"
+  [icon]="composeChannel() === 'whatsapp' ? 'bi-whatsapp' : 'bi-envelope'"
+  (closed)="composeOpen.set(false)"
+>
+  @if (composeChannel() === 'whatsapp') {
+    <label class="form-label">What do you want to send?</label>
+    <select class="form-select mb-3" [(ngModel)]="composeTemplate">
+      <option value="">Free text message (only numbers inside the 24h window)</option>
+      @for (template of approvedTemplates(); track template.id) {
+        <option [value]="template.name">Template: {{ template.name }} ({{ template.language }})</option>
+      }
+    </select>
+  }
+  @if (composeChannel() === 'email') {
+    <label class="form-label">Subject</label>
+    <input class="form-control mb-3" [(ngModel)]="composeSubject" placeholder="Subject" />
+  }
+  @if (composeChannel() === 'email' || !composeTemplate) {
+    <label class="form-label">Message</label>
+    <textarea class="form-control" rows="5" [(ngModel)]="composeBody"
+              [placeholder]="'Hello {{name}}! …'"></textarea>
+    <small class="text-muted d-block mt-2">
+      <i class="bi bi-magic me-1"></i><code>{{ '{' }}{{ '{' }}name{{ '}' }}{{ '}' }}</code> is replaced with each contact's name.
+    </small>
+  } @else {
+    <small class="text-muted d-block">
+      <i class="bi bi-info-circle me-1"></i>Approved templates can be sent any time — the 24h window does not apply.
+    </small>
+  }
+  <div modalFooter class="d-flex justify-content-end gap-2">
+    <button class="btn btn-outline-secondary" (click)="composeOpen.set(false)">Cancel</button>
+    <button class="btn" [class.btn-success]="composeChannel() === 'whatsapp'"
+            [class.btn-primary]="composeChannel() === 'email'"
+            [disabled]="sending()" (click)="sendCompose()">
+      @if (sending()) { <span class="spinner-border spinner-border-sm me-1"></span> Sending… }
+      @else { <i class="bi bi-send me-1"></i> Send }
+    </button>
+  </div>
+</app-modal>
+
+<!-- CSV import -->
+<app-modal
+  [open]="importOpen()"
+  title="Import contacts from CSV"
+  icon="bi-upload"
+  (closed)="importOpen.set(false)"
+>
+  <p class="text-secondary small mb-2">
+    Header row: <code>name, phone, email, company, address, notes</code> — only
+    <code>name</code> plus a phone or an email is required. Rows whose phone or
+    email already exists are skipped, so re-importing the same file is safe.
+  </p>
+  <input type="file" class="form-control form-control-sm w-auto" accept=".csv,text/csv"
+         (change)="onImportFile($event)" [disabled]="importing()" />
+
+  @if (importResult(); as result) {
+    <div class="alert alert-light border small mt-3 mb-0">
+      <strong>{{ result.imported }}</strong> imported,
+      <strong>{{ result.skipped }}</strong> skipped as duplicates,
+      <strong>{{ result.failed }}</strong> failed.
+      @if (result.errors.length) {
+        <ul class="mb-0 mt-2">
+          @for (err of result.errors; track err) {
+            <li>{{ err }}</li>
+          }
+        </ul>
+      }
+    </div>
+  }
+
+  <div modalFooter>
+    <button type="button" class="btn btn-outline-secondary" (click)="importOpen.set(false)" [disabled]="importing()">Close</button>
+    <button type="button" class="btn btn-primary" (click)="runImport()" [disabled]="importing() || !importFile()">
+      {{ importing() ? 'Importing…' : 'Import' }}
+    </button>
+  </div>
+</app-modal>

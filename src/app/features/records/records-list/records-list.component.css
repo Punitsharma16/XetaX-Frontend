@@ -1,0 +1,232 @@
+/* ------------------------------------------------------------ form picker */
+
+.picker-card {
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+  cursor: pointer;
+  transition: transform var(--transition-fast), box-shadow var(--transition-fast),
+    border-color var(--transition-fast);
+}
+
+.picker-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--brand-200);
+  box-shadow: var(--shadow-md);
+}
+
+.picker-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+}
+
+/* ---------------------------------------------------------------- records */
+
+.cell-clamp {
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stage-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.stage-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: var(--stage-color, var(--brand-500));
+}
+
+/* Stage pill doubles as the "move to stage" trigger */
+.stage-pill--btn {
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+}
+
+.stage-pill--btn:hover:not(:disabled) {
+  border-color: var(--stage-color, var(--brand-400));
+  background: var(--surface-card);
+}
+
+.stage-pill--btn:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+.stage-caret {
+  font-size: 0.55rem;
+  color: var(--text-muted);
+  margin-left: 0.1rem;
+}
+
+.dropdown-header {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 0.3rem 0.65rem;
+}
+
+.dropdown-item.active {
+  background: var(--brand-50);
+  color: var(--brand-700);
+}
+
+/* ------------------------------------------------------------ quick filters */
+.quick-filters {
+  padding: 0.6rem 0.8rem;
+}
+
+.quick-filters__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.quick-filters__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--bs-secondary-color, #6c757d);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+}
+
+.quick-filters__select {
+  width: auto;
+  min-width: 140px;
+  max-width: 230px;
+}
+
+.quick-filters__more.is-open {
+  background: var(--bs-secondary-bg, #e9ecef);
+}
+
+/* Advanced panel — per-field contains / range / date-span rows. */
+.quick-filters__adv {
+  margin-top: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--bs-border-color);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 0.5rem 1.25rem;
+}
+
+.adv-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.adv-row__label {
+  flex: 0 0 110px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--bs-secondary-color, #6c757d);
+}
+
+.adv-row__pair {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.adv-row__dash {
+  color: var(--bs-secondary-color, #6c757d);
+  flex: 0 0 auto;
+}
+
+@media (max-width: 576px) {
+  .quick-filters__select {
+    min-width: 120px;
+    flex: 1 1 45%;
+  }
+  .quick-filters__adv {
+    grid-template-columns: 1fr;
+  }
+  .adv-row__label {
+    flex-basis: 90px;
+  }
+}
+
+/* ------------------------------------------------------------ bulk import */
+.import-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  margin-bottom: 1rem;
+}
+
+.import-steps__num {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--brand-100);
+  color: var(--brand-700);
+  font-size: 0.7rem;
+  font-weight: 700;
+  margin-right: 0.25rem;
+}
+
+.import-result {
+  border: 1px solid var(--bs-success-border-subtle, #a3cfbb);
+  background: var(--bs-success-bg-subtle, #d1e7dd);
+  border-radius: var(--radius-md);
+  padding: 0.6rem 0.8rem;
+  font-size: 0.8rem;
+}
+
+.import-result--bad {
+  border-color: var(--bs-danger-border-subtle, #f1aeb5);
+  background: var(--bs-danger-bg-subtle, #f8d7da);
+}
+
+.import-result__errors {
+  max-height: 160px;
+  overflow-y: auto;
+  font-size: 0.72rem;
+  color: var(--bs-secondary-color);
+  margin-top: 0.3rem;
+}
+
+/* ---------------------------------------------------------- bulk transfer */
+.sel-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.9rem;
+  background: var(--brand-50, #eef2ff);
+  border-bottom: 1px solid var(--border-subtle, #e9ecef);
+  font-size: 0.82rem;
+}
+
+tr.row-selected > td {
+  background: var(--brand-50, #eef2ff);
+}

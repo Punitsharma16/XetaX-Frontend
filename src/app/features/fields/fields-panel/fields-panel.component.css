@@ -1,0 +1,112 @@
+.min-w-0 {
+  min-width: 0;
+}
+
+.type-chip {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-50);
+  color: var(--brand-600);
+  font-size: 0.8rem;
+}
+
+.key-code {
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  padding: 0.1rem 0.35rem;
+  border-radius: var(--radius-sm);
+}
+
+/* ------------------------------------------------------------ reordering */
+
+.order-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.order-btn {
+  width: 18px;
+  height: 18px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  line-height: 1;
+  padding: 0;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.order-btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--brand-600);
+}
+
+.order-btn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.order-num {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 14px;
+  text-align: center;
+}
+
+/* ---------------------------------------------------------- type picker */
+
+.type-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+  gap: 0.4rem;
+}
+
+.type-option {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.45rem 0.55rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: left;
+}
+
+.type-option i {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.type-option:hover {
+  border-color: var(--brand-400);
+  color: var(--brand-700);
+}
+
+.type-option:hover i {
+  color: var(--brand-600);
+}
+
+.type-option.is-selected {
+  background: var(--brand-50);
+  border-color: var(--brand-500);
+  color: var(--brand-700);
+}
+
+.type-option.is-selected i {
+  color: var(--brand-600);
+}

@@ -1,0 +1,50 @@
+<div class="pc-wrap" [style.--pc-color]="color()">
+  @if (notFound()) {
+    <div class="pc-card pc-card--empty">
+      <i class="bi bi-chat-square-dots"></i>
+      <h5>This chat link is not active</h5>
+      <p>The assistant may have been disabled. Please contact the business directly.</p>
+    </div>
+  } @else {
+    <div class="pc-card">
+      <header class="pc-head">
+        <span class="pc-avatar"><i class="bi bi-chat-dots-fill"></i></span>
+        <div class="pc-head__text">
+          <div class="pc-title">{{ name() }}</div>
+          <div class="pc-sub">
+            @if (waiting()) { Connecting you to a person… } @else { Online · replies in seconds }
+          </div>
+        </div>
+      </header>
+
+      <main class="pc-body" #body>
+        @for (m of lines(); track $index) {
+          @if (m.who === 'sys') {
+            <div class="pc-sys">{{ m.text }}</div>
+          } @else {
+            <div class="pc-msg" [class.pc-msg--me]="m.who === 'me'" [class.pc-msg--human]="m.who === 'human'">
+              {{ m.text }}
+            </div>
+          }
+        }
+        @if (typing()) { <div class="pc-typing">typing…</div> }
+      </main>
+
+      <footer class="pc-foot">
+        <input
+          type="text"
+          [(ngModel)]="draft"
+          (keydown.enter)="send()"
+          placeholder="Type a message…"
+          maxlength="1500"
+          autocomplete="off"
+          [disabled]="busy()"
+        />
+        <button type="button" class="pc-send" (click)="send()" [disabled]="busy() || !draft.trim()" aria-label="Send">
+          <i class="bi bi-send-fill"></i>
+        </button>
+      </footer>
+      <div class="pc-pow">Powered by XetaX AI</div>
+    </div>
+  }
+</div>

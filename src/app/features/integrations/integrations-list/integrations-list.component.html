@@ -1,0 +1,486 @@
+<app-page-header
+  title="Integrations"
+  icon="bi-plug"
+  subtitle="Receive records from external systems over a secured webhook endpoint."
+>
+  <button type="button" class="btn btn-outline-secondary" (click)="load()" title="Refresh">
+    <i class="bi bi-arrow-clockwise"></i>
+  </button>
+  <button type="button" class="btn btn-ai-outline" (click)="aiOpen.set(true)" title="Ask AI about your integrations">
+    <i class="bi bi-stars"></i> Ask AI
+  </button>
+  <button type="button" class="btn btn-primary" (click)="openCreate()" [disabled]="!canCreate()">
+    <i class="bi bi-plus-lg"></i> New integration
+  </button>
+</app-page-header>
+
+<!-- How it works -->
+<div class="card mb-3 flow-card">
+  <div class="card-body py-3">
+    <div class="flow">
+      <div class="flow__step">
+        <span class="flow__num">1</span>
+        <div>
+          <strong>Create</strong>
+          <em>Pick the target form — a key pair is generated.</em>
+        </div>
+      </div>
+      <i class="bi bi-chevron-right flow__sep"></i>
+      <div class="flow__step">
+        <span class="flow__num">2</span>
+        <div>
+          <strong>Map fields</strong>
+          <em>Match incoming keys to form fields.</em>
+        </div>
+      </div>
+      <i class="bi bi-chevron-right flow__sep"></i>
+      <div class="flow__step">
+        <span class="flow__num">3</span>
+        <div>
+          <strong>Goes live</strong>
+          <em>Saving the mapping switches it to ACTIVE.</em>
+        </div>
+      </div>
+      <i class="bi bi-chevron-right flow__sep"></i>
+      <div class="flow__step">
+        <span class="flow__num">4</span>
+        <div>
+          <strong>Post payloads</strong>
+          <em>Each call creates a record.</em>
+        </div>
+      </div>
+    </div>
+
+    @if (pendingCount() > 0) {
+      <div class="alert alert-warning mt-3 mb-0 py-2 px-3" style="font-size: 0.75rem">
+        <i class="bi bi-exclamation-triangle me-1"></i>
+        {{ pendingCount() }} integration(s) are still <strong>PENDING</strong> — they reject
+        payloads until their field mapping is saved.
+      </div>
+    }
+  </div>
+</div>
+
+@if (loading()) {
+  <div class="card"><app-table-skeleton [rows]="4" [cols]="4" /></div>
+} @else if (failed()) {
+  <div class="card">
+    <app-error-state message="The CRM service did not return your integrations.">
+      <button type="button" class="btn btn-primary" (click)="load()">
+        <i class="bi bi-arrow-clockwise"></i> Try again
+      </button>
+    </app-error-state>
+  </div>
+} @else if (!integrations().length) {
+  <div class="card">
+    <app-empty-state
+      icon="bi-plug"
+      title="No integrations yet"
+      message="Create one to get a webhook URL and an API key that external systems can post records to."
+    >
+      @if (canCreate()) {
+        <button type="button" class="btn btn-primary mt-3" (click)="openCreate()">
+          <i class="bi bi-plus-lg"></i> Create your first integration
+        </button>
+      } @else {
+        <a class="btn btn-primary mt-3" routerLink="/app/forms">
+          <i class="bi bi-ui-checks-grid"></i> Create a form first
+        </a>
+      }
+    </app-empty-state>
+  </div>
+} @else {
+  <div class="row g-3">
+    @for (integration of integrations(); track integration.id) {
+      <div class="col-12 col-xl-6">
+        <div class="card h-100">
+          <div class="card-body">
+            <!-- Head -->
+            <div class="d-flex align-items-start gap-3 mb-3">
+              <span class="int-icon"><i class="bi" [class]="meta(integration.type).icon"></i></span>
+
+              <div class="flex-fill min-w-0">
+                <div class="d-flex align-items-center gap-2 flex-wrap">
+                  <span class="fw-semibold">{{ integration.name }}</span>
+                  <span
+                    class="badge"
+                    [class.badge-soft-success]="integration.status === Status.ACTIVE"
+                    [class.badge-soft-warning]="integration.status === Status.PENDING"
+                    [class.badge-soft-muted]="integration.status === Status.DISABLED"
+                  >
+                    {{ integration.status }}
+                  </span>
+                </div>
+                <div class="text-muted" style="font-size: 0.7rem">
+                  {{ meta(integration.type).label }} ·
+                  <i class="bi bi-ui-checks-grid"></i> {{ formName(integration) }}
+                  @if (integration.description) {
+                    · {{ integration.description }}
+                  }
+                </div>
+              </div>
+
+              <div class="dropdown">
+                <button
+                  type="button"
+                  class="btn btn-light btn-icon"
+                  data-bs-toggle="dropdown"
+                  aria-expanded="false"
+                  aria-label="Integration actions"
+                >
+                  <i class="bi bi-three-dots-vertical"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li>
+                    <button type="button" class="dropdown-item" (click)="openMapping(integration)">
+                      <i class="bi bi-diagram-2 me-2"></i>Field mapping
+                    </button>
+                  </li>
+                  <li>
+                    <button type="button" class="dropdown-item" (click)="openTest(integration)">
+                      <i class="bi bi-terminal me-2"></i>Test payload
+                    </button>
+                  </li>
+                  <li>
+                    <button type="button" class="dropdown-item" (click)="openEdit(integration)">
+                      <i class="bi bi-pencil me-2"></i>Edit
+                    </button>
+                  </li>
+                  <li><hr class="dropdown-divider" /></li>
+                  <li>
+                    <button type="button" class="dropdown-item text-danger" (click)="remove(integration)">
+                      <i class="bi bi-trash me-2"></i>Delete
+                    </button>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            @if (integration.status === Status.PENDING) {
+              <div class="alert alert-warning py-2 px-3 mb-2" style="font-size: 0.72rem">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                Not live yet — save a field mapping to activate this endpoint.
+              </div>
+            }
+
+            <!-- Webhook URL -->
+            <div class="secret-block mb-2">
+              <div class="secret-label">
+                <i class="bi bi-link-45deg"></i> Webhook URL
+                <span class="badge badge-soft-muted ms-1">POST</span>
+              </div>
+              <div class="secret-value">
+                <code class="text-truncate">{{ webhookUrl(integration) }}</code>
+                <button
+                  type="button"
+                  class="btn btn-light btn-icon"
+                  (click)="copy(webhookUrl(integration), 'Webhook URL')"
+                  title="Copy URL"
+                >
+                  <i class="bi bi-clipboard"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- API key -->
+            <div class="secret-block mb-2">
+              <div class="secret-label"><i class="bi bi-key"></i> API key (header <code>X-API-KEY</code>)</div>
+              <div class="secret-value">
+                <code class="text-truncate">
+                  {{ isRevealed(integration.id) ? integration.apiKey : mask(integration.apiKey) }}
+                </code>
+                <button
+                  type="button"
+                  class="btn btn-light btn-icon"
+                  (click)="toggleReveal(integration.id)"
+                  [title]="isRevealed(integration.id) ? 'Hide key' : 'Reveal key'"
+                >
+                  <i class="bi" [class.bi-eye]="!isRevealed(integration.id)" [class.bi-eye-slash]="isRevealed(integration.id)"></i>
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-light btn-icon"
+                  (click)="copy(integration.apiKey, 'API key')"
+                  title="Copy key"
+                >
+                  <i class="bi bi-clipboard"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+              <button type="button" class="btn btn-light flex-fill" (click)="openMapping(integration)">
+                <i class="bi bi-diagram-2"></i> Field mapping
+              </button>
+              <button type="button" class="btn btn-light flex-fill" (click)="openTest(integration)">
+                <i class="bi bi-terminal"></i> Test payload
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+}
+
+<!-- Create / edit -->
+<app-modal
+  [open]="modalOpen()"
+  [title]="editing() ? 'Edit integration' : 'New integration'"
+  icon="bi-plug"
+  [dismissible]="!saving()"
+  (closed)="closeEditor()"
+>
+  <form [formGroup]="editorForm" (ngSubmit)="save()" novalidate id="integrationEditor">
+    <div class="mb-3">
+      <label class="form-label" for="intName">Name <span class="text-danger">*</span></label>
+      <input
+        id="intName"
+        type="text"
+        class="form-control"
+        formControlName="name"
+        placeholder="e.g. Website contact form"
+        [class.is-invalid]="editorForm.controls.name.invalid && editorForm.controls.name.touched"
+      />
+      <div class="invalid-feedback">A name is required.</div>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label" for="intDesc">Description</label>
+      <textarea
+        id="intDesc"
+        class="form-control"
+        rows="2"
+        formControlName="description"
+        placeholder="Where do these records come from?"
+      ></textarea>
+    </div>
+
+    <div class="row g-3">
+      <div class="col-12 col-md-6">
+        <label class="form-label" for="intForm">Target form <span class="text-danger">*</span></label>
+        <select
+          id="intForm"
+          class="form-select"
+          formControlName="formId"
+          [class.is-invalid]="editorForm.controls.formId.invalid && editorForm.controls.formId.touched"
+        >
+          <option [value]="0" disabled>Select a form…</option>
+          @for (f of forms(); track f.id) {
+            <option [value]="f.id">{{ f.name }}</option>
+          }
+        </select>
+        <div class="form-text" style="font-size: 0.7rem">
+          Incoming payloads become records of this form, and only its fields can be mapped.
+        </div>
+        <div class="invalid-feedback">Choose the form incoming records are written to.</div>
+      </div>
+
+      <div class="col-12 col-md-6">
+        <label class="form-label" for="intType">Type <span class="text-danger">*</span></label>
+        <select id="intType" class="form-select" formControlName="type">
+          @for (type of types; track type) {
+            <option [value]="type">{{ typeMeta[type].label }}</option>
+          }
+        </select>
+      </div>
+    </div>
+
+    @if (!editing()) {
+      <div class="alert alert-info mt-3 mb-0 py-2 px-3" style="font-size: 0.75rem">
+        <i class="bi bi-info-circle me-1"></i>
+        The webhook URL and API key are generated on save, and the field mapping opens next —
+        the endpoint stays <strong>PENDING</strong> until that mapping is saved.
+      </div>
+    }
+  </form>
+
+  <div modalFooter>
+    <button type="button" class="btn btn-outline-secondary" (click)="closeEditor()" [disabled]="saving()">
+      Cancel
+    </button>
+    <button type="submit" form="integrationEditor" class="btn btn-primary" [disabled]="saving()">
+      @if (saving()) {
+        <span class="spinner-border spinner-border-sm"></span> Saving…
+      } @else {
+        <i class="bi bi-check2"></i> {{ editing() ? 'Save changes' : 'Create integration' }}
+      }
+    </button>
+  </div>
+</app-modal>
+
+<!-- Field mapping -->
+<app-modal
+  [open]="mappingOpen()"
+  [title]="'Field mapping · ' + (mappingFor()?.name || '')"
+  icon="bi-diagram-2"
+  size="lg"
+  [dismissible]="!mappingSaving()"
+  (closed)="closeMapping()"
+>
+  @if (mappingFor(); as integration) {
+    <p class="text-muted mb-3" style="font-size: 0.75rem">
+      Map each key of the incoming JSON to a field on
+      <strong>{{ formName(integration) }}</strong>. Keys are matched
+      case-insensitively, and anything unmapped is ignored. Saving replaces the
+      existing mapping and activates the endpoint.
+    </p>
+  }
+
+  @if (mappingLoading()) {
+    <div class="skeleton" style="height: 140px"></div>
+  } @else if (!mappingFields().length) {
+    <app-empty-state
+      icon="bi-input-cursor-text"
+      title="This form has no fields"
+      message="Add fields to the target form before mapping an integration to it."
+    >
+      <a class="btn btn-primary mt-3" routerLink="/app/forms">
+        <i class="bi bi-sliders"></i> Configure fields
+      </a>
+    </app-empty-state>
+  } @else {
+    <div class="map-head">
+      <span>Incoming JSON key</span>
+      <span></span>
+      <span>Form field</span>
+      <span></span>
+    </div>
+
+    <div class="d-grid gap-2">
+      @for (row of mappingRows(); track row.uid) {
+        <div class="map-row">
+          <input
+            type="text"
+            class="form-control form-control-sm"
+            placeholder="e.g. full_name"
+            [value]="row.sourceField"
+            (input)="patchMappingRow(row.uid, { sourceField: $any($event.target).value })"
+            aria-label="Source field"
+          />
+
+          <i class="bi bi-arrow-right map-arrow"></i>
+
+          <select
+            class="form-select form-select-sm"
+            [value]="row.formFieldId"
+            (change)="patchMappingRow(row.uid, { formFieldId: +$any($event.target).value })"
+            aria-label="Target field"
+          >
+            @for (field of mappingFields(); track field.id) {
+              <option [value]="field.id">
+                {{ field.label }} ({{ field.fieldKey }}){{ field.required ? ' *' : '' }}
+              </option>
+            }
+          </select>
+
+          <button
+            type="button"
+            class="btn btn-light btn-icon text-danger"
+            (click)="removeMappingRow(row.uid)"
+            aria-label="Remove mapping"
+          >
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+      }
+    </div>
+
+    <button type="button" class="btn btn-light btn-sm mt-2" (click)="addMappingRow()">
+      <i class="bi bi-plus-lg"></i> Add mapping
+    </button>
+  }
+
+  <div modalFooter>
+    <button
+      type="button"
+      class="btn btn-outline-secondary"
+      (click)="closeMapping()"
+      [disabled]="mappingSaving()"
+    >
+      Cancel
+    </button>
+    <button
+      type="button"
+      class="btn btn-primary"
+      (click)="saveMapping()"
+      [disabled]="mappingSaving() || !mappingFields().length"
+    >
+      @if (mappingSaving()) {
+        <span class="spinner-border spinner-border-sm"></span> Saving…
+      } @else {
+        <i class="bi bi-check2"></i> Save &amp; activate
+      }
+    </button>
+  </div>
+</app-modal>
+
+<!-- Test payload -->
+<app-modal
+  [open]="testOpen()"
+  [title]="'Test payload · ' + (testFor()?.name || '')"
+  icon="bi-terminal"
+  size="lg"
+  (closed)="closeTest()"
+>
+  @if (testFor(); as integration) {
+    @if (integration.status !== Status.ACTIVE) {
+      <div class="alert alert-warning py-2 px-3 mb-3" style="font-size: 0.75rem">
+        <i class="bi bi-exclamation-triangle me-1"></i>
+        This integration is <strong>{{ integration.status }}</strong> — the endpoint will reject
+        payloads until a field mapping is saved.
+      </div>
+    }
+
+    <p class="text-muted mb-2" style="font-size: 0.75rem">
+      Send this from the external system. Replace the sample keys with whatever
+      you mapped as <em>incoming JSON keys</em>.
+    </p>
+
+    <pre class="curl-box">{{ curlSnippet(integration) }}</pre>
+
+    <div class="d-flex gap-2">
+      <button type="button" class="btn btn-light btn-sm" (click)="copyCurl(integration)">
+        <i class="bi bi-clipboard"></i> Copy curl
+      </button>
+      <button
+        type="button"
+        class="btn btn-light btn-sm"
+        (click)="copy(integration.apiKey, 'API key')"
+      >
+        <i class="bi bi-key"></i> Copy API key
+      </button>
+    </div>
+
+    <div class="mt-3">
+      <div class="section-label mb-2">Fields on {{ formName(integration) }}</div>
+      @if (!testFields().length) {
+        <span class="text-muted" style="font-size: 0.75rem">No fields on this form yet.</span>
+      } @else {
+        <div class="d-flex flex-wrap gap-1">
+          @for (field of testFields(); track field.id) {
+            <span class="badge badge-soft-muted">
+              {{ field.fieldKey }}
+              @if (field.required) {
+                <span class="text-danger">*</span>
+              }
+            </span>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <div modalFooter>
+    <button type="button" class="btn btn-outline-secondary" (click)="closeTest()">Close</button>
+  </div>
+</app-modal>
+
+<app-ai-panel
+  [open]="aiOpen()"
+  contextLabel="Integrations"
+  storageKey="integrations"
+  [suggestions]="aiSuggestions"
+  (closed)="aiOpen.set(false)"
+  (answered)="load()"
+/>

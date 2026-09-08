@@ -1,0 +1,246 @@
+<app-page-header
+  title="New campaign"
+  icon="bi-megaphone"
+  subtitle="Pick the audience, write the message, review — then send."
+>
+  <a class="btn btn-outline-secondary btn-sm" routerLink="/app/whatsapp/campaigns">
+    <i class="bi bi-arrow-left me-1"></i>Back
+  </a>
+</app-page-header>
+
+<app-whatsapp-nav />
+
+<!-- step indicator -->
+<div class="wizard-steps mb-3">
+  @for (label of ['Audience', 'Message', 'Review']; track label; let i = $index) {
+    <div class="wizard-step" [class.wizard-step--on]="step() >= i + 1">
+      <span class="wizard-step__num">{{ i + 1 }}</span>{{ label }}
+    </div>
+  }
+</div>
+
+<div class="card wa-card">
+  <div class="card-body">
+    <!-- STEP 1: audience -->
+    @if (step() === 1) {
+      <div class="d-flex gap-3 mb-3">
+        <div
+          class="source-card"
+          [class.source-card--on]="sourceType === 'RECORDS'"
+          (click)="sourceType = 'RECORDS'"
+        >
+          <i class="bi bi-collection"></i>
+          <div class="fw-medium">CRM records</div>
+          <div class="text-muted small">Message records of one of your forms</div>
+        </div>
+        <div
+          class="source-card"
+          [class.source-card--on]="sourceType === 'CSV'"
+          (click)="sourceType = 'CSV'"
+        >
+          <i class="bi bi-filetype-csv"></i>
+          <div class="fw-medium">CSV upload</div>
+          <div class="text-muted small">Outside numbers from a file</div>
+        </div>
+      </div>
+
+      @if (sourceType === 'RECORDS') {
+        <div class="row g-3">
+          <div class="col-12 col-md-5">
+            <label class="form-label">Form</label>
+            <select
+              class="form-select"
+              [(ngModel)]="selectedFormId"
+              (ngModelChange)="onFormPicked()"
+            >
+              <option [ngValue]="null">Choose a form…</option>
+              @for (form of forms(); track form.id) {
+                <option [ngValue]="form.id">{{ form.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-12 col-md-5">
+            <label class="form-label">Phone number field</label>
+            <select class="form-select" [(ngModel)]="phoneFieldKey" [disabled]="!fields().length">
+              <option value="">Choose the field…</option>
+              @for (field of fields(); track field.id) {
+                <option [value]="field.fieldKey">{{ field.label }}</option>
+              }
+            </select>
+            <div class="form-text">Records without a valid number are skipped automatically.</div>
+          </div>
+        </div>
+      } @else {
+        <label class="form-label">CSV file</label>
+        <input type="file" accept=".csv,text/csv" class="form-control" (change)="onCsvPicked($event)" />
+        <div class="form-text">
+          Needs a <code>phone</code> column; every other column becomes a
+          <code>{{ '{' }}placeholder{{ '}' }}</code> for the message.
+          @if (csvName()) {
+            <span class="text-success ms-1"><i class="bi bi-check2"></i> {{ csvName() }}</span>
+          }
+        </div>
+      }
+    }
+
+    <!-- STEP 2: message -->
+    @if (step() === 2) {
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <label class="form-label">Campaign name</label>
+          <input class="form-control" [(ngModel)]="name" placeholder="Diwali offer blast" />
+        </div>
+        <div class="col-12">
+          <div class="btn-group btn-group-sm mb-2">
+            <button
+              class="btn"
+              [class.wa-btn]="messageMode === 'text'"
+              [class.btn-outline-secondary]="messageMode !== 'text'"
+              (click)="messageMode = 'text'"
+            >
+              Free text
+            </button>
+            <button
+              class="btn"
+              [class.wa-btn]="messageMode === 'template'"
+              [class.btn-outline-secondary]="messageMode !== 'template'"
+              (click)="messageMode = 'template'"
+            >
+              Approved template
+            </button>
+          </div>
+
+          @if (messageMode === 'text') {
+            <textarea
+              class="form-control"
+              rows="5"
+              [(ngModel)]="messageText"
+              placeholder="Hi {name}, we have an offer for you…"
+            ></textarea>
+            @if (sourceType === 'RECORDS' && placeholderKeys().length) {
+              <div class="mt-2 d-flex flex-wrap gap-1 align-items-center">
+                <span class="text-muted" style="font-size: 0.7rem">Insert field:</span>
+                @for (key of placeholderKeys(); track key) {
+                  <button
+                    type="button"
+                    class="btn btn-light btn-sm"
+                    (click)="appendPlaceholder(key)"
+                  >
+                    {{ '{' + key + '}' }}
+                  </button>
+                }
+              </div>
+            }
+            <div class="form-text">
+              Free text reaches only customers who messaged you in the last 24h — for cold
+              audiences use an approved template.
+            </div>
+          } @else {
+            <select class="form-select" [(ngModel)]="templateName" (ngModelChange)="onTemplatePicked()">
+              <option value="">Choose an approved template…</option>
+              @for (template of templates(); track template.id) {
+                <option [value]="template.name">
+                  {{ template.name }} ({{ template.language }})
+                </option>
+              }
+            </select>
+            @if (!templates().length) {
+              <div class="form-text text-warning-emphasis">
+                No approved templates synced yet — sync them on the Settings page.
+              </div>
+            }
+            @if (templateVarCount() > 0) {
+              <div class="mt-3">
+                <label class="form-label">
+                  Template variables — map each to a
+                  {{ sourceType === 'RECORDS' ? 'field' : 'CSV column' }}
+                </label>
+                <div class="row g-2">
+                  @for (param of templateParams; track $index; let i = $index) {
+                    <div class="col-12 col-md-4">
+                      <div class="input-group input-group-sm">
+                        <span class="input-group-text">{{ '{' }}{{ '{' }}{{ i + 1 }}{{ '}' }}{{ '}' }}</span>
+                        @if (sourceType === 'RECORDS') {
+                          <select class="form-select" [(ngModel)]="templateParams[i]">
+                            <option value="">Choose field…</option>
+                            @for (key of placeholderKeys(); track key) {
+                              <option [value]="key">{{ key }}</option>
+                            }
+                          </select>
+                        } @else {
+                          <input
+                            class="form-control"
+                            [(ngModel)]="templateParams[i]"
+                            placeholder="CSV column name"
+                          />
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          }
+        </div>
+      </div>
+    }
+
+    <!-- STEP 3: review -->
+    @if (step() === 3) {
+      <dl class="row mb-0 review-list">
+        <dt class="col-sm-3">Campaign</dt>
+        <dd class="col-sm-9">{{ name }}</dd>
+        <dt class="col-sm-3">Audience</dt>
+        <dd class="col-sm-9">
+          @if (sourceType === 'RECORDS') {
+            Records of <strong>{{ selectedForm()?.name }}</strong> — phone from
+            <code>{{ phoneFieldKey }}</code>
+          } @else {
+            CSV file <strong>{{ csvName() }}</strong>
+          }
+        </dd>
+        <dt class="col-sm-3">Schedule</dt>
+        <dd class="col-sm-9">
+          <input
+            type="datetime-local"
+            class="form-control form-control-sm d-inline-block"
+            style="max-width: 240px"
+            [(ngModel)]="scheduleAt"
+          />
+          <span class="text-muted small ms-2">Khali chhodo to turant start hoga.</span>
+        </dd>
+        <dt class="col-sm-3">Message</dt>
+        <dd class="col-sm-9">
+          @if (messageMode === 'text') {
+            <pre class="review-message mb-0">{{ messageText }}</pre>
+          } @else {
+            Template <code>{{ templateName }}</code>
+          }
+        </dd>
+      </dl>
+    }
+  </div>
+
+  <div class="card-footer d-flex justify-content-between">
+    <button class="btn btn-outline-secondary" [disabled]="step() === 1" (click)="back()">
+      Back
+    </button>
+    @if (step() < 3) {
+      <button class="btn btn-primary" (click)="next()">Continue</button>
+    } @else {
+      <div class="d-flex gap-2">
+        <button class="btn btn-outline-primary" [disabled]="saving()" (click)="createDraft(false)">
+          Save as draft
+        </button>
+        <button class="btn wa-btn" [disabled]="saving()" (click)="createDraft(true)">
+          @if (saving()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          } @else {
+            <i class="bi bi-send me-1"></i>
+          }
+          {{ scheduleAt ? 'Create & schedule' : 'Create & start' }}
+        </button>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,154 @@
+.stage-strip-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.stage-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.stage-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.8rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.stage-step:hover:not(:disabled) {
+  border-color: var(--stage-color);
+}
+
+.stage-step:disabled {
+  cursor: default;
+}
+
+.stage-step__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--stage-color);
+}
+
+.stage-step__flag {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+
+/* The record's own stage stands out and pulses so it can't be missed. */
+.stage-step--current {
+  border-color: var(--stage-color);
+  background: color-mix(in srgb, var(--stage-color) 12%, transparent);
+  animation: stage-blink 1.2s ease-in-out infinite;
+}
+
+@keyframes stage-blink {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--stage-color) 45%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 6px color-mix(in srgb, var(--stage-color) 0%, transparent);
+  }
+}
+
+/* -------------------------------------------------------- whatsapp modal */
+.wa-history {
+  max-height: 160px;
+  overflow-y: auto;
+  border: 1px solid var(--border-subtle, #e9ecef);
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.78rem;
+}
+
+.wa-history__row + .wa-history__row {
+  border-top: 1px dashed var(--border-subtle, #f1f3f5);
+  margin-top: 0.25rem;
+  padding-top: 0.25rem;
+}
+
+/* ------------------------------------------------ two-column detail layout */
+
+.section-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--bs-secondary-color, #6b7280);
+}
+
+/* Sidebar keeps itself in view while the main column scrolls (xl and up). */
+@media (min-width: 1200px) {
+  .record-sidebar {
+    position: sticky;
+    top: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
+}
+
+/* The trail scrolls inside its card — it can never grow the page. */
+.activity-scroll {
+  max-height: 380px;
+  overflow-y: auto;
+}
+
+.activity-list {
+  padding: 0.25rem 0;
+}
+
+.activity-row {
+  display: flex;
+  gap: 0.65rem;
+  padding: 0.55rem 1rem;
+  border-bottom: 1px solid var(--bs-border-color-translucent, rgba(0, 0, 0, 0.07));
+}
+
+.activity-row:last-child {
+  border-bottom: 0;
+}
+
+.activity-ico {
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.09);
+  color: #6366f1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  margin-top: 1px;
+}
+
+.activity-body {
+  min-width: 0;
+}
+
+.activity-text {
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: var(--bs-body-color);
+  word-break: break-word;
+}
+
+.activity-meta {
+  font-size: 0.7rem;
+  color: var(--bs-secondary-color, #8a90a8);
+  margin-top: 1px;
+}
+
+.ai-summary { font-size: 0.82rem; white-space: pre-line; line-height: 1.5; }
+.ai-card { border-color: rgba(99, 102, 241, 0.35); }

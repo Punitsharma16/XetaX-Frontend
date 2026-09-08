@@ -1,0 +1,168 @@
+@if (error()) {
+  <app-error-state>
+    <button class="btn btn-outline-secondary btn-sm" (click)="reload()">Retry</button>
+  </app-error-state>
+} @else if (campaign(); as c) {
+  <app-page-header [title]="c.name" icon="bi-megaphone" [subtitle]="c.targetDescription || ''">
+    <a class="btn btn-outline-secondary btn-sm" routerLink="/app/whatsapp/campaigns">
+      <i class="bi bi-arrow-left me-1"></i>All campaigns
+    </a>
+    @if (c.status === 'DRAFT') {
+      <button class="btn wa-btn btn-sm" [disabled]="working()" (click)="start()">
+        <i class="bi bi-send me-1"></i>Start sending
+      </button>
+    }
+    @if (c.status === 'RUNNING') {
+      <button class="btn btn-outline-secondary btn-sm" (click)="pause()">
+        <i class="bi bi-pause-fill me-1"></i>Pause
+      </button>
+    }
+    @if (c.status === 'PAUSED') {
+      <button class="btn wa-btn btn-sm" (click)="resume()">
+        <i class="bi bi-play-fill me-1"></i>Resume
+      </button>
+    }
+    @if (c.status === 'RUNNING' || c.status === 'QUEUED' || c.status === 'PAUSED' || c.status === 'SCHEDULED') {
+      <button class="btn btn-outline-danger btn-sm" (click)="cancel()">Cancel</button>
+    }
+  </app-page-header>
+
+  <app-whatsapp-nav />
+
+  <!-- counters -->
+  <div class="row g-2 mb-3">
+    <div class="col-6 col-md">
+      <div class="stat-card">
+        <span class="badge mb-1" [class]="badge(c.status)">{{ c.status }}</span>
+        <div class="stat-card__label">Status</div>
+      </div>
+    </div>
+    <div class="col-6 col-md">
+      <div class="stat-card">
+        <div class="stat-card__value">{{ c.totalCount }}</div>
+        <div class="stat-card__label">Recipients</div>
+      </div>
+    </div>
+    <div class="col-6 col-md">
+      <div class="stat-card">
+        <div class="stat-card__value">{{ c.sentCount }}</div>
+        <div class="stat-card__label">Sent</div>
+      </div>
+    </div>
+    <div class="col-6 col-md">
+      <div class="stat-card">
+        <div class="stat-card__value">{{ c.deliveredCount }}</div>
+        <div class="stat-card__label">Delivered</div>
+      </div>
+    </div>
+    <div class="col-6 col-md">
+      <div class="stat-card">
+        <div class="stat-card__value">{{ c.readCount }}</div>
+        <div class="stat-card__label">Read</div>
+      </div>
+    </div>
+    <div class="col-6 col-md">
+      <div class="stat-card" [class.stat-card--bad]="c.failedCount">
+        <div class="stat-card__value">{{ c.failedCount }}</div>
+        <div class="stat-card__label">Failed</div>
+      </div>
+    </div>
+  </div>
+
+  @if (c.status === 'RUNNING' || c.status === 'QUEUED') {
+    <div class="progress mb-3" style="height: 8px">
+      <div
+        class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+        [style.width.%]="progress()"
+      ></div>
+    </div>
+  }
+
+  <!-- message preview -->
+  <div class="card wa-card mb-3">
+    <div class="card-header"><i class="bi bi-chat-text me-1"></i>Message</div>
+    <div class="card-body">
+      @if (c.templateName) {
+        Template <code>{{ c.templateName }}</code> ({{ c.templateLanguage || 'en' }})
+      } @else {
+        <pre class="mb-0 message-preview">{{ c.messageTemplate }}</pre>
+      }
+    </div>
+  </div>
+
+  <!-- recipients -->
+  <div class="card wa-card">
+    <div class="card-header d-flex flex-wrap gap-2 align-items-center justify-content-between">
+      <span><i class="bi bi-people me-1"></i>Recipients</span>
+      <div class="btn-group btn-group-sm">
+        @for (
+          option of ['', 'PENDING', 'QUEUED', 'SENT', 'DELIVERED', 'READ', 'FAILED'];
+          track option
+        ) {
+          <button
+            class="btn"
+            [class.btn-secondary]="statusFilter() === option"
+            [class.btn-outline-secondary]="statusFilter() !== option"
+            (click)="setFilter(option)"
+          >
+            {{ option || 'All' }}
+          </button>
+        }
+      </div>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-sm table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Phone</th>
+            <th>Status</th>
+            <th>Attempts</th>
+            <th>Error</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (recipient of recipients().content; track recipient.id) {
+            <tr>
+              <td>{{ recipient.phone }}</td>
+              <td>
+                <span class="badge" [class]="badge(recipient.status)">{{ recipient.status }}</span>
+              </td>
+              <td>{{ recipient.attemptCount }}</td>
+              <td class="text-muted small">{{ recipient.error || '—' }}</td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4" class="text-center text-muted py-3">No recipients in this view.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer">
+      <app-pagination
+        [page]="recipients().number"
+        [size]="recipients().size"
+        [totalElements]="recipients().totalElements"
+        [totalPages]="recipients().totalPages"
+        (pageChange)="loadRecipients($event)"
+      />
+    </div>
+  </div>
+
+  @if (c.status === 'SCHEDULED' && c.scheduledAt) {
+    <p class="text-muted small mt-2 mb-0">
+      <i class="bi bi-clock me-1"></i>Scheduled to start {{ c.scheduledAt | date: 'medium' }}
+    </p>
+  }
+
+  @if (c.startedAt) {
+    <p class="text-muted small mt-2 mb-0">
+      Started {{ c.startedAt | date: 'medium' }}
+      @if (c.completedAt) {
+        · finished {{ c.completedAt | date: 'medium' }}
+      }
+    </p>
+  }
+} @else {
+  <div class="card p-4 text-center text-muted">Loading…</div>
+}

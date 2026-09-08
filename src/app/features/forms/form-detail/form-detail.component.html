@@ -1,0 +1,109 @@
+@if (loading()) {
+  <div class="card mb-3">
+    <div class="card-body d-flex align-items-center gap-3">
+      <div class="skeleton" style="width: 52px; height: 52px; border-radius: 14px"></div>
+      <div class="flex-fill">
+        <div class="skeleton mb-2" style="height: 14px; width: 30%"></div>
+        <div class="skeleton" style="height: 10px; width: 55%"></div>
+      </div>
+    </div>
+  </div>
+} @else if (failed() || !form()) {
+  <div class="card">
+    <app-error-state
+      title="Form not found"
+      message="This form may have been deleted, or the CRM service is unavailable."
+    >
+      <a class="btn btn-primary" routerLink="/app/forms">
+        <i class="bi bi-arrow-left"></i> Back to forms
+      </a>
+    </app-error-state>
+  </div>
+} @else {
+  <!-- Header -->
+  <div class="card mb-3">
+    <div class="card-body d-flex flex-wrap align-items-center gap-3">
+      <span
+        class="detail-icon"
+        [style.background]="(form()!.color || '#4f46e5') + '1f'"
+        [style.color]="form()!.color || '#4f46e5'"
+      >
+        <i class="bi" [class]="form()!.icon || 'bi-table'"></i>
+      </span>
+
+      <div class="flex-fill min-w-0">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          <h1 class="page-title">{{ form()!.name }}</h1>
+          <code class="slug-code">{{ form()!.slug }}</code>
+        </div>
+        <p class="page-subtitle mb-0">
+          {{ form()!.description || 'Configure the fields and pipeline stages of this form.' }}
+        </p>
+      </div>
+
+      <div class="d-flex gap-2 flex-wrap">
+        <a class="btn btn-outline-secondary" routerLink="/app/forms">
+          <i class="bi bi-arrow-left"></i> Forms
+        </a>
+        <button type="button" class="btn btn-ai-outline" (click)="aiOpen.set(true)">
+          <i class="bi bi-stars"></i> Ask AI about this form
+        </button>
+        <a class="btn btn-primary" [routerLink]="['/app/records', form()!.slug]">
+          <i class="bi bi-collection"></i> Open records
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="config-tabs mb-3">
+    <button
+      type="button"
+      class="config-tab"
+      [class.is-active]="tab() === 'fields'"
+      (click)="select('fields')"
+    >
+      <i class="bi bi-input-cursor-text"></i> Fields
+    </button>
+    <button
+      type="button"
+      class="config-tab"
+      [class.is-active]="tab() === 'stages'"
+      (click)="select('stages')"
+    >
+      <i class="bi bi-diagram-3"></i> Stages
+    </button>
+    <button
+      type="button"
+      class="config-tab"
+      [class.is-active]="tab() === 'share'"
+      (click)="select('share')"
+    >
+      <i class="bi bi-globe2"></i> Share & Webhook
+    </button>
+  </div>
+
+  @if (tab() === 'fields') {
+    <app-fields-panel [formId]="form()!.id" />
+  } @else if (tab() === 'stages') {
+    <app-stages-panel [formId]="form()!.id" />
+  } @else {
+    <app-share-panel [formId]="form()!.id" />
+  }
+}
+
+@if (form(); as f) {
+  <app-ai-panel
+    [open]="aiOpen()"
+    [contextLabel]="'Form · ' + f.name"
+    [storageKey]="'form:' + f.id"
+    [suggestions]="[
+      'Explain my ' + f.name + ' form — its fields and stages.',
+      'Add a field to my ' + f.name + ' form: ',
+      'Add a stage to my ' + f.name + ' form: ',
+      'What is the default stage of my ' + f.name + ' form?'
+    ]"
+    (closed)="aiOpen.set(false)"
+    (answered)="load()"
+  />
+}

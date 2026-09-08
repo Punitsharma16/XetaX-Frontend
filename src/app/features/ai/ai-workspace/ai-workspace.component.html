@@ -1,0 +1,106 @@
+<app-page-header
+  title="AI Assistant"
+  icon="bi-stars"
+  subtitle="Ask about your CRM or tell the assistant what to build — forms, fields, stages, automations and records."
+>
+  @if (messages().length) {
+    <button type="button" class="btn btn-outline-secondary" (click)="clearConversation()">
+      <i class="bi bi-plus-circle"></i> New conversation
+    </button>
+  }
+</app-page-header>
+
+<div class="row g-3 align-items-start">
+<div class="col-12 col-xl-8">
+<div class="ai-shell card mb-0">
+  <!-- ------------------------------------------------------- messages -->
+  <div class="ai-scroll" #scrollPane>
+    @if (!messages().length) {
+      <div class="ai-hello">
+        <div class="ai-hello__spark"><i class="bi bi-stars"></i></div>
+        <h2 class="ai-hello__title">What should we do in your CRM?</h2>
+        <p class="ai-hello__text">
+          The assistant works with your own data — it can read and create forms, fields, stages,
+          automations and records for you.
+        </p>
+        <div class="ai-hello__prompts">
+          @for (prompt of prompts; track prompt) {
+            <button type="button" class="ai-prompt-chip" (click)="send(prompt)">
+              <i class="bi bi-stars"></i> {{ prompt }}
+            </button>
+          }
+        </div>
+      </div>
+    } @else {
+      <div class="ai-thread">
+        @for (message of messages(); track message.id) {
+          @if (message.role === 'user') {
+            <div class="ai-msg ai-msg--user">
+              <div class="ai-msg__bubble">{{ message.text }}</div>
+            </div>
+          } @else if (message.failed) {
+            <div class="ai-msg ai-msg--ai">
+              <span class="ai-msg__avatar"><i class="bi bi-stars"></i></span>
+              <div class="ai-msg__bubble ai-msg__bubble--error">
+                <i class="bi bi-exclamation-triangle me-1"></i>{{ message.text }}
+                <div class="mt-2">
+                  <button type="button" class="btn btn-sm btn-outline-danger" (click)="retry()" [disabled]="busy()">
+                    <i class="bi bi-arrow-clockwise"></i> Retry
+                  </button>
+                </div>
+              </div>
+            </div>
+          } @else {
+            <div class="ai-msg ai-msg--ai">
+              <span class="ai-msg__avatar"><i class="bi bi-stars"></i></span>
+              <div class="ai-msg__bubble ai-md" [innerHTML]="message.html"></div>
+            </div>
+          }
+        }
+
+        @if (busy()) {
+          <div class="ai-msg ai-msg--ai">
+            <span class="ai-msg__avatar"><i class="bi bi-stars"></i></span>
+            <app-ai-execution-card title="Working on it" [steps]="steps()" />
+          </div>
+        }
+      </div>
+    }
+  </div>
+
+  <!-- ------------------------------------------------------- composer -->
+  <div class="ai-composer">
+    <textarea
+      class="form-control ai-composer__input"
+      rows="1"
+      placeholder="Ask anything about your CRM, or tell the assistant what to create…"
+      [ngModel]="draft()"
+      (ngModelChange)="draft.set($event)"
+      (keydown)="onKeydown($event)"
+      [disabled]="busy()"
+    ></textarea>
+    <button
+      type="button"
+      class="btn btn-ai ai-composer__send"
+      (click)="send()"
+      [disabled]="busy() || !draft().trim()"
+      title="Send"
+    >
+      @if (busy()) {
+        <span class="spinner-border spinner-border-sm" role="status"></span>
+      } @else {
+        <i class="bi bi-send-fill"></i>
+      }
+    </button>
+  </div>
+  <div class="ai-hint">
+    The assistant only sees your own CRM data. Enter sends · Shift+Enter for a new line.
+  </div>
+</div>
+</div>
+
+<!-- AI quota + top-up recharge, beside the chat -->
+<div class="col-12 col-xl-4 ai-side">
+  <app-ai-usage-panel />
+</div>
+</div>

@@ -1,0 +1,102 @@
+<div class="card">
+  <div class="card-header d-flex align-items-center justify-content-between">
+    <span><i class="bi bi-check2-square me-2"></i>Tasks & reminders</span>
+    <div class="d-flex align-items-center gap-2">
+      <label class="task-done-toggle">
+        <input type="checkbox" class="form-check-input" [checked]="showDone()"
+               (change)="showDone.set(!showDone())" /> show done
+      </label>
+      <button class="btn btn-primary btn-sm" (click)="composerOpen.set(!composerOpen())">
+        <i class="bi bi-plus-lg me-1"></i>New task
+      </button>
+    </div>
+  </div>
+
+  @if (composerOpen()) {
+    <div class="task-composer">
+      <div class="row g-3">
+        <div class="col-12">
+          <label class="tc-label" for="tcTitle">Task <span class="tc-req">*</span></label>
+          <input id="tcTitle" class="form-control" [(ngModel)]="title"
+                 placeholder="e.g. Send the quotation to Mr. Sharma" />
+        </div>
+
+        <div class="col-12 col-md-5">
+          <label class="tc-label" for="tcDue">Due date &amp; time</label>
+          <input id="tcDue" type="datetime-local" class="form-control" [(ngModel)]="dueAt" />
+          <div class="tc-presets">
+            <button type="button" class="tc-chip" (click)="preset('hour')">+1 hour</button>
+            <button type="button" class="tc-chip" (click)="preset('evening')">Today 6 PM</button>
+            <button type="button" class="tc-chip" (click)="preset('tomorrow')">Tomorrow 10 AM</button>
+          </div>
+        </div>
+
+        <div class="col-12 col-md-7">
+          <label class="tc-label" for="tcNotes">Notes</label>
+          <input id="tcNotes" class="form-control" [(ngModel)]="notes" placeholder="Optional" />
+        </div>
+
+        <div class="col-12">
+          <label class="tc-label">Reminder</label>
+          <div class="tc-remind">
+            <label class="tc-check tc-check--fixed" title="Panel notification hamesha milti hai">
+              <input type="checkbox" class="form-check-input" checked disabled />
+              <i class="bi bi-app-indicator"></i> Panel notification
+            </label>
+            <label class="tc-check">
+              <input type="checkbox" class="form-check-input" [(ngModel)]="remindEmail" />
+              <i class="bi bi-envelope"></i> Email
+            </label>
+            <label class="tc-check">
+              <input type="checkbox" class="form-check-input" [(ngModel)]="remindWhatsApp" />
+              <i class="bi bi-whatsapp tc-wa"></i> WhatsApp
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="tc-actions">
+        <button type="button" class="btn btn-outline-secondary btn-sm" (click)="composerOpen.set(false)">Cancel</button>
+        <button type="button" class="btn btn-primary btn-sm" [disabled]="saving()" (click)="save()">
+          @if (saving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+          @else { <i class="bi bi-check2 me-1"></i> }
+          Save task
+        </button>
+      </div>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="card-body text-center text-muted py-3"><span class="spinner-border spinner-border-sm"></span></div>
+  } @else if (!tasks().length) {
+    <div class="card-body text-center text-muted py-3" style="font-size: 0.8rem">
+      No tasks yet — click "New task" to add the first one.
+    </div>
+  } @else {
+    <div class="list-group list-group-flush">
+      @for (task of tasks(); track task.id) {
+        <div class="list-group-item task-row" [class.task-row--done]="task.status === 'DONE'">
+          <input type="checkbox" class="form-check-input" [checked]="task.status === 'DONE'"
+                 (change)="toggleDone(task)" title="Mark done" />
+          <span class="min-w-0 flex-grow-1">
+            <span class="task-row__title">{{ task.title }}</span>
+            <span class="task-row__meta">
+              @if (task.dueAt) {
+                <span [class.text-danger]="isOverdue(task)">
+                  <i class="bi bi-alarm me-1"></i>{{ task.dueAt | date: 'd MMM, h:mm a' }}
+                </span>
+              }
+              @if (task.linkedName && personal()) { · {{ task.linkedName }} }
+              @if (task.remindEmail) { · <i class="bi bi-envelope"></i> }
+              @if (task.remindWhatsApp) { · <i class="bi bi-whatsapp"></i> }
+              @if (task.notes) { · {{ task.notes }} }
+            </span>
+          </span>
+          <button class="btn btn-light btn-sm text-danger" (click)="remove(task)" title="Delete">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      }
+    </div>
+  }
+</div>

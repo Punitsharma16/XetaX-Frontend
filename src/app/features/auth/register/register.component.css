@@ -1,0 +1,231 @@
+.auth-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 992px) {
+  .auth-page {
+    grid-template-columns: minmax(380px, 42%) 1fr;
+  }
+}
+
+/* ------------------------------------------------------------- left panel */
+
+.auth-aside {
+  position: relative;
+  background:
+    radial-gradient(900px 500px at 15% 10%, rgba(129, 140, 248, 0.35), transparent 60%),
+    linear-gradient(160deg, #312e81 0%, #1e1b4b 55%, #0f172a 100%);
+  color: #fff;
+  overflow: hidden;
+}
+
+.auth-aside::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: radial-gradient(circle at 30% 25%, #000 0%, transparent 75%);
+  pointer-events: none;
+}
+
+.auth-aside__inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2.75rem;
+  width: 100%;
+}
+
+.auth-aside__copy {
+  max-width: 420px;
+}
+
+.auth-aside__lead {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.9375rem;
+  line-height: 1.65;
+}
+
+.auth-aside__foot {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.75rem;
+}
+
+/* ------------------------------------------------------------ step ladder */
+
+.auth-steps {
+  list-style: none;
+  padding: 0;
+  margin: 1.75rem 0 0;
+  display: grid;
+  gap: 1rem;
+}
+
+.auth-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.auth-steps__num {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 26px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #c7d2fe;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.auth-steps strong {
+  display: block;
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.auth-steps em {
+  display: block;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.75rem;
+  font-style: normal;
+  margin-top: 0.1rem;
+}
+
+/* ----------------------------------------------------------------- brand */
+
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.auth-brand__mark {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 1.15rem;
+  color: #fff;
+  background: linear-gradient(135deg, var(--brand-500), var(--brand-800));
+  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+}
+
+.auth-brand__name {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #fff;
+  line-height: 1.2;
+}
+
+.auth-brand__sub {
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.auth-aside .auth-brand__sub {
+  color: rgba(255, 255, 255, 0.55);
+}
+
+/* ------------------------------------------------------------ right panel */
+
+.auth-main {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.25rem;
+  background: var(--surface-page);
+}
+
+.auth-theme {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  padding: 2rem;
+}
+
+.alert-danger {
+  background: var(--danger-50);
+  border-color: transparent;
+  color: var(--danger-600);
+  border-radius: var(--radius-md);
+}
+
+/* ------------------------------------------------------ password strength */
+
+.strength {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.strength__bars {
+  display: flex;
+  gap: 3px;
+  flex: 1;
+}
+
+.strength__bar {
+  height: 3px;
+  flex: 1;
+  border-radius: var(--radius-pill);
+  background: var(--border-subtle);
+  transition: background var(--transition-fast);
+}
+
+.strength__bar.is-on[data-level='1'] { background: var(--danger-500); }
+.strength__bar.is-on[data-level='2'] { background: var(--warning-500); }
+.strength__bar.is-on[data-level='3'] { background: var(--info-500); }
+.strength__bar.is-on[data-level='4'] { background: var(--success-500); }
+
+.strength__label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  min-width: 58px;
+  text-align: right;
+}
+
+/* "Continue with Google" — neutral outline button with the brand mark. */
+.auth-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  font-weight: 600;
+  background: #fff;
+}
+.auth-google:hover { background: #f6f7fb; }
+
+.auth-divider {
+  display: flex; align-items: center; gap: 0.75rem; margin: 1.25rem 0;
+  color: #8a90a8; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;
+}
+.auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: #e3e6f0; }

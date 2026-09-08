@@ -1,0 +1,268 @@
+<div class="auth-page">
+  <!-- Brand / value panel -->
+  <aside class="auth-aside d-none d-lg-flex">
+    <div class="auth-aside__inner">
+      <div class="auth-brand">
+        <span class="auth-brand__mark">X</span>
+        <div>
+          <div class="auth-brand__name">XetaX</div>
+          <div class="auth-brand__sub">Customer Relationship Suite</div>
+        </div>
+      </div>
+
+      <div class="auth-aside__copy">
+        <h2 class="text-white mb-3">Your CRM, shaped exactly the way you work.</h2>
+        <p class="auth-aside__lead">
+          Create a workspace in seconds. Define your own record types, capture what
+          matters, and automate the rest.
+        </p>
+
+        <ul class="auth-steps">
+          <li>
+            <span class="auth-steps__num">1</span>
+            <span>
+              <strong>Create your account</strong>
+              <em>Takes less than a minute.</em>
+            </span>
+          </li>
+          <li>
+            <span class="auth-steps__num">2</span>
+            <span>
+              <strong>Design your first form</strong>
+              <em>Fields, stages and validation — no code.</em>
+            </span>
+          </li>
+          <li>
+            <span class="auth-steps__num">3</span>
+            <span>
+              <strong>Start capturing records</strong>
+              <em>Manually, or straight from a webhook.</em>
+            </span>
+          </li>
+        </ul>
+      </div>
+
+      <p class="auth-aside__foot mb-0">© 2026 XetaX. All rights reserved.</p>
+    </div>
+  </aside>
+
+  <!-- Form panel -->
+  <main class="auth-main">
+    <button
+      type="button"
+      class="btn btn-light btn-icon auth-theme"
+      (click)="toggleTheme()"
+      [attr.aria-label]="theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'"
+    >
+      <i class="bi" [class.bi-sun]="theme() === 'dark'" [class.bi-moon-stars]="theme() !== 'dark'"></i>
+    </button>
+
+    <div class="auth-card">
+      <div class="d-lg-none auth-brand mb-4">
+        <span class="auth-brand__mark">X</span>
+        <div>
+          <div class="auth-brand__name text-body">XetaX</div>
+          <div class="auth-brand__sub">Customer Relationship Suite</div>
+        </div>
+      </div>
+
+      <h1 class="h4 mb-1">Create your account</h1>
+      <p class="text-muted mb-2" style="font-size: 0.8125rem">
+        Already have one?
+        <a routerLink="/login">Sign in instead</a>
+      </p>
+      <p class="mb-4" style="font-size: 0.8125rem">
+        <span class="badge text-bg-light border me-1"><i class="bi bi-stars me-1"></i>14-day free trial</span>
+        <span class="text-muted">Full features, AI included · no card needed</span>
+      </p>
+
+      @if (serverError()) {
+        <div class="alert alert-danger d-flex align-items-start gap-2 py-2 px-3" role="alert">
+          <i class="bi bi-exclamation-circle-fill"></i>
+          <span style="font-size: 0.8125rem">{{ serverError() }}</span>
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="mb-3">
+          <label class="form-label" for="regName">Full name <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-person"></i></span>
+            <input
+              id="regName"
+              type="text"
+              class="form-control"
+              formControlName="name"
+              placeholder="Jane Doe"
+              autocomplete="name"
+              [class.is-invalid]="name.invalid && name.touched"
+            />
+          </div>
+          @if (name.invalid && name.touched) {
+            <div class="text-danger mt-1" style="font-size: 0.75rem">Your name is required.</div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="regEmail">Work email <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+            <input
+              id="regEmail"
+              type="email"
+              class="form-control"
+              formControlName="email"
+              placeholder="you@company.com"
+              autocomplete="username"
+              [class.is-invalid]="email.invalid && email.touched"
+            />
+          </div>
+          @if (email.invalid && email.touched) {
+            <div class="text-danger mt-1" style="font-size: 0.75rem">
+              {{ email.hasError('required') ? 'Email is required.' : 'Enter a valid email address.' }}
+            </div>
+          }
+        </div>
+
+        <div class="row g-3 mb-3">
+          <div class="col-12 col-sm-6">
+            <label class="form-label" for="regCompany">Company</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-building"></i></span>
+              <input
+                id="regCompany"
+                type="text"
+                class="form-control"
+                formControlName="company"
+                placeholder="Company name"
+                autocomplete="organization"
+              />
+            </div>
+          </div>
+
+          <div class="col-12 col-sm-6">
+            <label class="form-label" for="regPhone">Phone</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+              <input
+                id="regPhone"
+                type="tel"
+                class="form-control"
+                formControlName="phone"
+                placeholder="+91 90000 00000"
+                autocomplete="tel"
+                [class.is-invalid]="phone.invalid && phone.touched"
+              />
+            </div>
+            @if (phone.invalid && phone.touched) {
+              <div class="text-danger mt-1" style="font-size: 0.75rem">
+                Enter a valid phone number.
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="regPassword">Password <span class="text-danger">*</span></label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-lock"></i></span>
+            <input
+              id="regPassword"
+              [type]="showPassword() ? 'text' : 'password'"
+              class="form-control"
+              formControlName="password"
+              placeholder="At least 6 characters"
+              autocomplete="new-password"
+              (input)="onPasswordInput()"
+              [class.is-invalid]="password.invalid && password.touched"
+            />
+            <button
+              type="button"
+              class="btn btn-outline-secondary"
+              (click)="togglePassword()"
+              [attr.aria-label]="showPassword() ? 'Hide password' : 'Show password'"
+            >
+              <i class="bi" [class.bi-eye]="!showPassword()" [class.bi-eye-slash]="showPassword()"></i>
+            </button>
+          </div>
+
+          @if (password.value) {
+            <div class="strength mt-2">
+              <div class="strength__bars">
+                @for (i of [0, 1, 2, 3]; track i) {
+                  <span class="strength__bar" [class.is-on]="strength() > i" [attr.data-level]="strength()"></span>
+                }
+              </div>
+              <span class="strength__label">{{ strengthLabel() }}</span>
+            </div>
+          }
+
+          @if (password.invalid && password.touched) {
+            <div class="text-danger mt-1" style="font-size: 0.75rem">
+              Password must be at least 6 characters.
+            </div>
+          }
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="regConfirm">
+            Confirm password <span class="text-danger">*</span>
+          </label>
+          <div class="input-group">
+            <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
+            <input
+              id="regConfirm"
+              [type]="showPassword() ? 'text' : 'password'"
+              class="form-control"
+              formControlName="confirm"
+              placeholder="Repeat your password"
+              autocomplete="new-password"
+              [class.is-invalid]="(confirm.touched && confirm.invalid) || (confirm.touched && form.hasError('mismatch'))"
+            />
+          </div>
+          @if (confirm.touched && form.hasError('mismatch')) {
+            <div class="text-danger mt-1" style="font-size: 0.75rem">Passwords do not match.</div>
+          }
+        </div>
+
+        <div class="form-check mb-4">
+          <input class="form-check-input" type="checkbox" id="regTerms" formControlName="terms" />
+          <label class="form-check-label" for="regTerms" style="font-size: 0.8125rem">
+            I agree to the Terms of Service and Privacy Policy.
+          </label>
+          @if (terms.invalid && terms.touched) {
+            <div class="text-danger mt-1" style="font-size: 0.75rem">
+              Please accept the terms to continue.
+            </div>
+          }
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100" [disabled]="submitting()">
+          @if (submitting()) {
+            <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+            Creating your account…
+          } @else {
+            <i class="bi bi-person-plus"></i>
+            Create account
+          }
+        </button>
+      </form>
+
+      <div class="auth-divider"><span>or</span></div>
+
+      <a class="btn btn-outline-secondary w-100 auth-google" [href]="googleUrl">
+        <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+          <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9 3.5l6.7-6.7C35.6 2.6 30.2 0 24 0 14.6 0 6.5 5.4 2.6 13.3l7.8 6C12.3 13.7 17.7 9.5 24 9.5z"/>
+          <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 7.1-10 7.1-17.5z"/>
+          <path fill="#FBBC05" d="M10.4 28.7A14.5 14.5 0 0 1 9.5 24c0-1.6.3-3.2.8-4.7l-7.8-6A24 24 0 0 0 0 24c0 3.9.9 7.5 2.6 10.7l7.8-6z"/>
+          <path fill="#34A853" d="M24 48c6.2 0 11.6-2 15.4-5.6l-7.5-5.8c-2 1.4-4.7 2.3-7.9 2.3-6.3 0-11.7-4.2-13.6-10l-7.8 6C6.5 42.6 14.6 48 24 48z"/>
+        </svg>
+        Sign up with Google
+      </a>
+
+      <p class="text-muted text-center mt-4 mb-0" style="font-size: 0.75rem">
+        You will be signed in automatically once your account is created.
+      </p>
+    </div>
+  </main>
+</div>

@@ -1,0 +1,6 @@
+.pack-card {
+  transition: box-shadow 0.15s ease;
+}
+.pack-card:hover {
+  box-shadow: 0 4px 16px rgba(99, 102, 241, 0.14);
+}

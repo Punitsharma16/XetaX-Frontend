@@ -1,0 +1,52 @@
+<div class="pf-wrap">
+  <div class="pf-card">
+    @if (notFound()) {
+      <div class="pf-center">
+        <i class="bi bi-link-45deg pf-bigicon"></i>
+        <h3>This form is not available</h3>
+        <p class="text-muted">The link may have been turned off. Please contact the business.</p>
+      </div>
+    } @else if (submitted()) {
+      <div class="pf-center">
+        <span class="pf-check"><i class="bi bi-check-lg"></i></span>
+        <h3>Thank you!</h3>
+        <p class="text-muted">We received your details — we'll get back to you soon.</p>
+      </div>
+    } @else if (info(); as f) {
+      <div class="pf-head" [style.--pf-color]="f.color || '#6366f1'">
+        <span class="pf-icon"><i class="bi" [class]="f.icon || 'bi-ui-checks-grid'"></i></span>
+        <div>
+          <h2>{{ f.name }}</h2>
+          @if (f.description) { <p>{{ f.description }}</p> }
+        </div>
+      </div>
+
+      <form (ngSubmit)="submit()">
+        @for (field of f.fields; track field.fieldKey) {
+          <div class="pf-field">
+            <label>{{ field.label }} @if (field.required) { <span class="pf-req">*</span> }</label>
+            @if (field.fieldType === 'TEXTAREA') {
+              <textarea rows="3" [(ngModel)]="values[field.fieldKey]" [name]="field.fieldKey"
+                        [placeholder]="field.placeholder || ''"></textarea>
+            } @else if (field.fieldType === 'SELECT') {
+              <select [(ngModel)]="values[field.fieldKey]" [name]="field.fieldKey">
+                <option value="">Choose…</option>
+                @for (opt of options(field); track opt) { <option [value]="opt">{{ opt }}</option> }
+              </select>
+            } @else {
+              <input [type]="inputType(field)" [(ngModel)]="values[field.fieldKey]"
+                     [name]="field.fieldKey" [placeholder]="field.placeholder || ''" />
+            }
+          </div>
+        }
+        @if (error()) { <div class="pf-error"><i class="bi bi-exclamation-circle me-1"></i>{{ error() }}</div> }
+        <button type="submit" class="pf-submit" [disabled]="submitting()">
+          @if (submitting()) { Sending… } @else { Submit }
+        </button>
+      </form>
+      <div class="pf-brand">Powered by <b>XetaX CRM</b></div>
+    } @else {
+      <div class="pf-center text-muted">Loading…</div>
+    }
+  </div>
+</div>

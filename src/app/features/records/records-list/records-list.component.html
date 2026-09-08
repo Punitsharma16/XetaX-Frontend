@@ -1,0 +1,622 @@
+@if (!slug()) {
+  <!-- ------------------------------------------------------- form picker -->
+  <app-page-header
+    title="Records"
+    icon="bi-collection"
+    subtitle="Pick a form to browse and manage its records."
+  />
+
+  @if (formsLoading()) {
+    <div class="row g-3">
+      @for (i of [1, 2, 3, 4]; track i) {
+        <div class="col-12 col-md-6 col-xl-3">
+          <div class="card">
+            <div class="card-body">
+              <div class="skeleton mb-2" style="height: 40px; width: 40px; border-radius: 12px"></div>
+              <div class="skeleton" style="height: 12px; width: 60%"></div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (!forms().length) {
+    <div class="card">
+      <app-empty-state
+        icon="bi-ui-checks-grid"
+        title="No forms available"
+        message="Create a form first — records always belong to one."
+      >
+        <a class="btn btn-primary mt-3" routerLink="/app/forms">
+          <i class="bi bi-plus-lg"></i> Go to forms
+        </a>
+      </app-empty-state>
+    </div>
+  } @else {
+    <div class="row g-3">
+      @for (f of forms(); track f.id) {
+        <div class="col-12 col-md-6 col-xl-3">
+          <button type="button" class="card w-100 h-100 picker-card" (click)="openForm(f)">
+            <div class="card-body text-start">
+              <span
+                class="picker-icon"
+                [style.background]="(f.color || '#4f46e5') + '1f'"
+                [style.color]="f.color || '#4f46e5'"
+              >
+                <i class="bi" [class]="f.icon || 'bi-table'"></i>
+              </span>
+              <div class="fw-semibold mt-3">{{ f.name }}</div>
+              <div class="text-muted" style="font-size: 0.7rem">{{ f.slug }}</div>
+            </div>
+          </button>
+        </div>
+      }
+    </div>
+  }
+} @else if (metaLoading()) {
+  <div class="card"><app-table-skeleton [rows]="6" [cols]="5" /></div>
+} @else if (metaFailed() || !form()) {
+  <div class="card">
+    <app-error-state
+      title="Form not found"
+      message="No form matches this slug, or the CRM service is unavailable."
+    >
+      <a class="btn btn-primary" routerLink="/app/records">
+        <i class="bi bi-arrow-left"></i> All records
+      </a>
+    </app-error-state>
+  </div>
+} @else {
+  <!-- ---------------------------------------------------------- records -->
+  <app-page-header [title]="form()!.name" [subtitle]="'Records · ' + form()!.slug" icon="bi-collection">
+    <app-search-box placeholder="Search records…" (search)="onSearch($event)" />
+    <button type="button" class="btn btn-ai-outline" (click)="aiOpen.set(true)" title="Ask AI about these records">
+      <i class="bi bi-stars"></i> Ask AI
+    </button>
+    <!-- <button type="button" class="btn btn-outline-secondary" (click)="downloadSample()" title="Download sample CSV (opens in Excel)">
+      <i class="bi bi-file-earmark-arrow-down"></i>
+    </button> -->
+    <button type="button" class="btn btn-outline-secondary" (click)="openImport()" [disabled]="!fields().length" title="Bulk upload records from CSV">
+      <i class="bi bi-upload"></i>
+    </button>
+    <button type="button" class="btn btn-outline-secondary" (click)="exportCsv()" [disabled]="exporting()" title="Download these records as CSV">
+      <i class="bi bi-download"></i>
+    </button>
+    <a class="btn btn-outline-secondary" routerLink="/app/records" title="Switch form">
+      <i class="bi bi-grid"></i>
+    </a>
+    <a class="btn btn-outline-secondary" [routerLink]="['/app/forms', form()!.id]" title="Configure form">
+      <i class="bi bi-sliders"></i>
+    </a>
+    <button type="button" class="btn btn-primary" (click)="openCreate()" [disabled]="!fields().length">
+      <i class="bi bi-plus-lg"></i> New record
+    </button>
+  </app-page-header>
+
+  @if (!fields().length) {
+    <div class="card">
+      <app-empty-state
+        icon="bi-input-cursor-text"
+        title="This form has no fields yet"
+        message="Add fields before capturing records — they define what a record can store."
+      >
+        <a class="btn btn-primary mt-3" [routerLink]="['/app/forms', form()!.id]">
+          <i class="bi bi-sliders"></i> Configure fields
+        </a>
+      </app-empty-state>
+    </div>
+  } @else {
+    <!-- Predefined quick filters — applied automatically on selection. -->
+    <div class="card quick-filters mb-3">
+        <div class="quick-filters__row">
+          <span class="quick-filters__label"><i class="bi bi-funnel"></i> Filters</span>
+
+          @if (stages().length) {
+            <select
+              class="form-select form-select-sm quick-filters__select"
+              [value]="stageFilter() === null ? '' : stageFilter()"
+              (change)="onStageFilter($any($event.target).value)"
+            >
+              <option value="">All stages</option>
+              @for (stage of stages(); track stage.id) {
+                <option [value]="stage.id">{{ stage.name }}</option>
+              }
+            </select>
+          }
+
+          <select
+            class="form-select form-select-sm quick-filters__select"
+            [value]="createdPreset()"
+            (change)="onCreatedPreset($any($event.target).value)"
+          >
+            <option value="">Created: any time</option>
+            <option value="today">Created: today</option>
+            <option value="week">Created: last 7 days</option>
+            <option value="month">Created: this month</option>
+          </select>
+
+          <select
+            class="form-select form-select-sm quick-filters__select"
+            [value]="updatedPreset()"
+            (change)="onUpdatedPreset($any($event.target).value)"
+          >
+            <option value="">Updated: any time</option>
+            <option value="today">Updated: today</option>
+            <option value="week">Updated: last 7 days</option>
+            <option value="month">Updated: this month</option>
+          </select>
+
+          @for (filterField of quickFilterFields(); track filterField.id) {
+            <select
+              class="form-select form-select-sm quick-filters__select"
+              [value]="filterValue(quickFilters(), filterField.fieldKey)"
+              (change)="onQuickFilter(filterField, $any($event.target).value)"
+            >
+              <option value="">All {{ filterField.label }}</option>
+              @for (option of filterOptions(filterField); track option) {
+                <option [value]="option">{{ option }}</option>
+              }
+            </select>
+          }
+
+          @for (dateField of dateFilterFields(); track dateField.id) {
+            <select
+              class="form-select form-select-sm quick-filters__select"
+              [value]="filterValue(dateFilters(), dateField.fieldKey)"
+              (change)="onDatePreset(dateField, $any($event.target).value)"
+            >
+              <option value="">{{ dateField.label }}: any time</option>
+              <option value="today">{{ dateField.label }}: today</option>
+              <option value="week">{{ dateField.label }}: last 7 days</option>
+              <option value="month">{{ dateField.label }}: this month</option>
+            </select>
+          }
+
+          @if (advFilterFields().length) {
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-secondary quick-filters__more"
+              [class.is-open]="advOpen()"
+              (click)="toggleAdv()"
+            >
+              <i class="bi bi-sliders"></i> Advanced
+              @if (advActiveCount()) {
+                <span class="badge text-bg-primary ms-1">{{ advActiveCount() }}</span>
+              }
+            </button>
+          }
+
+          @if (hasQuickFilters()) {
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearQuickFilters()">
+              <i class="bi bi-x-lg"></i> Clear
+            </button>
+          }
+        </div>
+
+        @if (advOpen()) {
+          <!-- Advanced search: contains / ranges / date spans per field. -->
+          <div class="quick-filters__adv">
+            @for (advField of advFilterFields(); track advField.id) {
+              <div class="adv-row">
+                <span class="adv-row__label text-truncate" [title]="advField.label">{{ advField.label }}</span>
+
+                @switch (advKind(advField)) {
+                  @case ('text') {
+                    <input
+                      type="text"
+                      class="form-control form-control-sm"
+                      placeholder="Contains…"
+                      [value]="advFilters()[advField.fieldKey]?.contains ?? ''"
+                      (change)="onAdvChange(advField.fieldKey, 'contains', $any($event.target).value)"
+                    />
+                  }
+                  @case ('number') {
+                    <div class="adv-row__pair">
+                      <input
+                        type="number"
+                        class="form-control form-control-sm"
+                        placeholder="Min"
+                        [value]="advFilters()[advField.fieldKey]?.min ?? ''"
+                        (change)="onAdvChange(advField.fieldKey, 'min', $any($event.target).value)"
+                      />
+                      <span class="adv-row__dash">–</span>
+                      <input
+                        type="number"
+                        class="form-control form-control-sm"
+                        placeholder="Max"
+                        [value]="advFilters()[advField.fieldKey]?.max ?? ''"
+                        (change)="onAdvChange(advField.fieldKey, 'max', $any($event.target).value)"
+                      />
+                    </div>
+                  }
+                  @case ('date') {
+                    <div class="adv-row__pair">
+                      <input
+                        type="date"
+                        class="form-control form-control-sm"
+                        [value]="advFilters()[advField.fieldKey]?.from ?? ''"
+                        (change)="onAdvChange(advField.fieldKey, 'from', $any($event.target).value)"
+                      />
+                      <span class="adv-row__dash">–</span>
+                      <input
+                        type="date"
+                        class="form-control form-control-sm"
+                        [value]="advFilters()[advField.fieldKey]?.to ?? ''"
+                        (change)="onAdvChange(advField.fieldKey, 'to', $any($event.target).value)"
+                      />
+                    </div>
+                  }
+                }
+              </div>
+            }
+          </div>
+        }
+    </div>
+
+    <div class="card">
+      @if (recordsLoading()) {
+        <app-table-skeleton [rows]="8" [cols]="6" />
+      } @else if (!view().content.length) {
+        <app-empty-state
+          [icon]="term() || hasQuickFilters() ? 'bi-search' : 'bi-collection'"
+          [title]="term() || hasQuickFilters() ? 'No matching records' : 'No records yet'"
+          [message]="
+            term() || hasQuickFilters()
+              ? 'Try a different search term or clear the filters.'
+              : 'Create the first record for this form.'
+          "
+        >
+          @if (!term() && !hasQuickFilters()) {
+            <button type="button" class="btn btn-primary mt-3" (click)="openCreate()">
+              <i class="bi bi-plus-lg"></i> New record
+            </button>
+          }
+        </app-empty-state>
+      } @else {
+        @if (selectedIds().size) {
+          <div class="sel-bar">
+            <span class="fw-medium">{{ selectedIds().size }} selected</span>
+            <button class="btn btn-outline-primary btn-sm" (click)="openDocSend()">
+              <i class="bi bi-file-earmark-arrow-up me-1"></i>Send document
+            </button>
+            <button class="btn btn-primary btn-sm" (click)="openTransfer()">
+              <i class="bi bi-arrow-left-right me-1"></i>Transfer
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" (click)="clearSelection()">Clear</button>
+          </div>
+        }
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                @if (canTransfer) {
+                  <th style="width: 34px">
+                    <input type="checkbox" class="form-check-input"
+                           [checked]="view().content.length > 0 && selectedIds().size === view().content.length"
+                           (change)="toggleSelectAll(viewIds())" />
+                  </th>
+                }
+                @for (field of columns(); track field.id) {
+                  <th>{{ field.label }}</th>
+                }
+                @if (stages().length) {
+                  <th>Stage</th>
+                }
+                <th>Created</th>
+                <th class="text-end" style="width: 110px">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (record of view().content; track record.id) {
+                <tr [class.row-selected]="selectedIds().has(record.id)">
+                  @if (canTransfer) {
+                    <td>
+                      <input type="checkbox" class="form-check-input"
+                             [checked]="selectedIds().has(record.id)"
+                             (change)="toggleSelect(record.id)" />
+                    </td>
+                  }
+                  @for (field of columns(); track field.id) {
+                    <td class="cell-clamp">{{ cell(record, field) }}</td>
+                  }
+
+                  @if (stages().length) {
+                    <td>
+                      <!-- Click the pill to move the record along the pipeline -->
+                      <div class="dropdown">
+                        <button
+                          type="button"
+                          class="stage-pill stage-pill--btn"
+                          [style.--stage-color]="stageOf(record)?.color || '#94a3b8'"
+                          data-bs-toggle="dropdown"
+                          data-bs-display="static"
+                          aria-expanded="false"
+                          [disabled]="movingStageFor() === record.id"
+                          title="Change stage"
+                        >
+                          @if (movingStageFor() === record.id) {
+                            <span class="spinner-border spinner-border-sm"></span>
+                          } @else {
+                            <span class="stage-dot"></span>
+                          }
+                          {{ stageOf(record)?.name || 'No stage' }}
+                          <i class="bi bi-chevron-down stage-caret"></i>
+                        </button>
+
+                        <ul class="dropdown-menu">
+                          <li class="dropdown-header">Move to stage</li>
+                          @for (stage of stages(); track stage.id) {
+                            <li>
+                              <button
+                                type="button"
+                                class="dropdown-item d-flex align-items-center gap-2"
+                                [class.active]="record.stageId === stage.id"
+                                [disabled]="record.stageId === stage.id"
+                                (click)="moveToStage(record, stage)"
+                              >
+                                <span
+                                  class="stage-dot"
+                                  [style.--stage-color]="stage.color || '#4f46e5'"
+                                ></span>
+                                {{ stage.name }}
+                                @if (stage.isFinal) {
+                                  <i class="bi bi-flag-fill ms-auto text-muted" title="Final stage"></i>
+                                }
+                              </button>
+                            </li>
+                          }
+                        </ul>
+                      </div>
+                    </td>
+                  }
+
+                  <td class="text-muted" style="font-size: 0.7rem; white-space: nowrap">
+                    {{ formatDate(record.createdAt) }}
+                  </td>
+
+                  <td class="text-end">
+                    <a
+                      class="btn btn-light btn-icon me-1"
+                      [routerLink]="['/app/records', slug(), record.id]"
+                      title="Edit record"
+                    >
+                      <i class="bi bi-pencil"></i>
+                    </a>
+                    <button
+                      type="button"
+                      class="btn btn-light btn-icon text-danger"
+                      (click)="remove(record)"
+                      title="Delete record"
+                    >
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (hasMoreColumns()) {
+          <div class="px-3 py-2 text-muted" style="font-size: 0.7rem">
+            <i class="bi bi-info-circle me-1"></i>
+            Showing the first 6 fields — open a record to see everything.
+          </div>
+        }
+
+        <app-pagination
+          [page]="view().number"
+          [size]="view().size"
+          [totalElements]="view().totalElements"
+          [totalPages]="view().totalPages"
+          (pageChange)="onPageChange($event)"
+          (sizeChange)="onSizeChange($event)"
+        />
+      }
+    </div>
+  }
+
+  <!-- Dynamic record editor (create only — editing opens the detail page) -->
+  <app-modal
+    [open]="modalOpen()"
+    title="New record"
+    icon="bi-collection"
+    size="lg"
+    [dismissible]="!saving()"
+    (closed)="closeEditor()"
+  >
+    <!--
+      Only build the controls once the modal is actually open.
+
+      This block is projected into <app-modal>, and Angular instantiates
+      projected content together with this view — even while the modal's own
+      @if keeps it out of the DOM. Rendering it eagerly bound formControlName
+      against the still-empty group ("Cannot find control with name: ..."), and
+      because that binding failed the inputs were never wired to their controls:
+      the form looked filled while every control stayed empty, so saving always
+      complained that fields needed attention.
+    -->
+    @if (modalOpen()) {
+      <form [formGroup]="editorGroup()" (ngSubmit)="save()" novalidate id="recordEditor" (input)="checkEditorDuplicates()">
+        @if (editorDuplicates(); as dup) {
+          <div class="alert alert-warning small py-2">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            A record with this {{ dup.field }} already exists:
+            @for (hit of dup.hits; track hit.id) {
+              <a class="ms-1 fw-semibold" [routerLink]="['/app/records', slug(), hit.id]" (click)="closeEditor()">{{ hit.title }}</a>
+            }
+            — you can still create it if this is a different entry.
+          </div>
+        }
+        <div class="row g-3">
+          @for (field of editorFields(); track field.id) {
+            <div
+              class="col-12"
+              [class.col-md-6]="
+                field.fieldType !== 'TEXTAREA' &&
+                field.fieldType !== 'JSON' &&
+                field.fieldType !== 'MULTI_SELECT' &&
+                field.fieldType !== 'CHECKBOX'
+              "
+            >
+              <app-dynamic-field [field]="field" [group]="editorGroup()" />
+            </div>
+          }
+        </div>
+      </form>
+    }
+
+    <div modalFooter>
+      <button type="button" class="btn btn-outline-secondary" (click)="closeEditor()" [disabled]="saving()">
+        Cancel
+      </button>
+      <button type="submit" form="recordEditor" class="btn btn-primary" [disabled]="saving()">
+        @if (saving()) {
+          <span class="spinner-border spinner-border-sm"></span> Saving…
+        } @else {
+          <i class="bi bi-check2"></i> Create record
+        }
+      </button>
+    </div>
+  </app-modal>
+}
+
+<!-- Bulk import (CSV) -->
+<app-modal
+  [open]="importOpen()"
+  title="Bulk upload records"
+  icon="bi-upload"
+  [dismissible]="!importing()"
+  (closed)="closeImport()"
+>
+  <div class="import-steps">
+    <div><span class="import-steps__num">1</span> Download the sample file — its columns are this form's fields.</div>
+    <div><span class="import-steps__num">2</span> Fill one record per row (keep the header row; multi-select values separated by <code>;</code>).</div>
+    <div><span class="import-steps__num">3</span> Upload the file — every row is validated like a normal record.</div>
+  </div>
+
+  <div class="d-flex gap-2 align-items-center flex-wrap mb-3">
+    <button type="button" class="btn btn-outline-secondary btn-sm" (click)="downloadSample()">
+      <i class="bi bi-file-earmark-arrow-down"></i> Download sample
+    </button>
+    <input type="file" class="form-control form-control-sm w-auto" accept=".csv,text/csv" (change)="onImportFile($event)" [disabled]="importing()" />
+  </div>
+
+  @if (importResult(); as result) {
+    <div class="import-result" [class.import-result--bad]="result.failedCount > 0 && result.successCount === 0">
+      <div class="fw-semibold mb-1">
+        <i class="bi" [class]="result.failedCount === 0 ? 'bi-check-circle text-success' : 'bi-exclamation-triangle text-warning'"></i>
+        {{ result.successCount }} / {{ result.totalRows }} records created
+        @if (result.failedCount) { · {{ result.failedCount }} failed }
+      </div>
+      @if (result.errors.length) {
+        <div class="import-result__errors">
+          @for (err of result.errors; track err.row) {
+            <div>Row {{ err.row }}: {{ err.message }}</div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <div modalFooter>
+    <button type="button" class="btn btn-outline-secondary" (click)="closeImport()" [disabled]="importing()">Close</button>
+    <button type="button" class="btn btn-primary" (click)="runImport()" [disabled]="importing() || !importFile()">
+      @if (importing()) {
+        <span class="spinner-border spinner-border-sm"></span> Uploading…
+      } @else {
+        <i class="bi bi-upload"></i> Upload
+      }
+    </button>
+  </div>
+</app-modal>
+
+@if (form(); as f) {
+  <app-ai-panel
+    [open]="aiOpen()"
+    [contextLabel]="'Records · ' + f.name"
+    [storageKey]="'records:' + f.slug"
+    [suggestions]="[
+      'How many ' + f.name + ' records do I have?',
+      'Summarize my ' + f.name + ' records',
+      'Add a record to my ' + f.name + ' form: ',
+      'Search my ' + f.name + ' records for: '
+    ]"
+    (closed)="aiOpen.set(false)"
+    (answered)="loadRecords()"
+  />
+}
+
+<!-- --------------------------------------------------- transfer modal -->
+<app-modal [open]="transferOpen()" title="Transfer records" icon="bi-arrow-left-right" size="md"
+           (closed)="transferOpen.set(false)">
+  <p class="mb-2">
+    <b>{{ selectedIds().size }}</b> records kisko assign karne hain?
+  </p>
+  <select class="form-select" [(ngModel)]="transferTo">
+    <option value="">Choose a member…</option>
+    @for (assignee of assignees(); track assignee.userId) {
+      <option [value]="assignee.userId">{{ assignee.name }}</option>
+    }
+  </select>
+  <div class="form-text">
+    Transfer changes the record's "assigned to" — everyone still sees the data as their role allows.
+  </div>
+  <div modalFooter class="d-flex justify-content-end gap-2">
+    <button class="btn btn-outline-secondary" (click)="transferOpen.set(false)">Cancel</button>
+    <button class="btn btn-primary" [disabled]="transferring() || !transferTo" (click)="doTransfer()">
+      @if (transferring()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+      @else { <i class="bi bi-check2 me-1"></i> }
+      Transfer
+    </button>
+  </div>
+</app-modal>
+
+<!-- --------------------------------------------- bulk document send -->
+<app-modal [open]="docSendOpen()" [title]="'Send document — ' + selectedIds().size + ' records'"
+           icon="bi-file-earmark-arrow-up" (closed)="docSendOpen.set(false)">
+  <label class="form-label">Document <span class="text-danger">*</span></label>
+  <select class="form-select mb-3" [(ngModel)]="docSendId">
+    <option value="">Choose a document…</option>
+    @for (doc of docLibrary(); track doc.id) {
+      <option [value]="doc.id">{{ doc.name }}{{ doc.supportsVariables ? ' (supports variables)' : '' }}</option>
+    }
+  </select>
+
+  <label class="form-label">Send via</label>
+  <div class="d-flex gap-3 mb-3">
+    <label class="d-inline-flex align-items-center gap-2" style="font-size: 0.85rem; cursor: pointer">
+      <input type="radio" class="form-check-input" name="docChannel" value="WHATSAPP"
+             [(ngModel)]="docSendChannel" /> <i class="bi bi-whatsapp text-success"></i> WhatsApp
+    </label>
+    <label class="d-inline-flex align-items-center gap-2" style="font-size: 0.85rem; cursor: pointer">
+      <input type="radio" class="form-check-input" name="docChannel" value="EMAIL"
+             [(ngModel)]="docSendChannel" /> <i class="bi bi-envelope"></i> Email
+    </label>
+  </div>
+
+  @if (docSendChannel === 'EMAIL') {
+    <label class="form-label">Subject <span class="text-danger">*</span></label>
+    <input class="form-control mb-3" [(ngModel)]="docSendSubject" placeholder="Subject" />
+  }
+  <label class="form-label">{{ docSendChannel === 'WHATSAPP' ? 'Caption (optional)' : 'Message' }}</label>
+  <textarea class="form-control" rows="3" [(ngModel)]="docSendMessage" placeholder="Optional message…"></textarea>
+
+  @if (selectedDoc()?.supportsVariables) {
+    <label class="d-inline-flex align-items-center gap-2 mt-3" style="font-size: 0.8rem; cursor: pointer">
+      <input type="checkbox" class="form-check-input" [(ngModel)]="docSendPersonalize" />
+      Fill {{ '{' }}{{ '{' }}variables{{ '}' }}{{ '}' }} with each record's own data
+    </label>
+  }
+  <small class="text-muted d-block mt-2">
+    <i class="bi bi-info-circle me-1"></i>Each record's phone/email field is used automatically.
+    WhatsApp documents follow the 24h-window rule.
+  </small>
+
+  <div modalFooter class="d-flex justify-content-end gap-2">
+    <button class="btn btn-outline-secondary" (click)="docSendOpen.set(false)">Cancel</button>
+    <button class="btn btn-primary" [disabled]="docSending()" (click)="doDocSend()">
+      @if (docSending()) { <span class="spinner-border spinner-border-sm me-1"></span> Sending… }
+      @else { <i class="bi bi-send me-1"></i> Send to {{ selectedIds().size }} records }
+    </button>
+  </div>
+</app-modal>

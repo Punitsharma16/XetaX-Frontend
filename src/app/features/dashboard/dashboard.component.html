@@ -1,0 +1,326 @@
+<!-- Header -->
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+  <div>
+    <h1 class="page-title">{{ greeting }}, {{ user()?.name?.split(' ')?.[0] }}</h1>
+    <p class="page-subtitle">
+      Here is what's happening across your workspace right now.
+      @if (summary()?.ownOnly) {
+        <span class="badge badge-soft-muted ms-1">Showing only records assigned to you</span>
+      }
+    </p>
+  </div>
+
+  <div class="d-flex gap-2">
+    <button type="button" class="btn btn-outline-secondary" (click)="load()">
+      <i class="bi bi-arrow-clockwise"></i> Refresh
+    </button>
+    <a class="btn btn-primary" routerLink="/app/forms">
+      <i class="bi bi-plus-lg"></i> New form
+    </a>
+  </div>
+</div>
+
+<!-- AI hero -->
+<div class="card ai-hero mb-3">
+  <div class="ai-hero__spark"><i class="bi bi-stars"></i></div>
+  <div class="ai-hero__body">
+    <div class="ai-hero__title">
+      Ask your CRM anything <span class="ai-badge">AI</span>
+    </div>
+    <div class="ai-hero__text">
+      The assistant reads and builds your forms, fields, stages, automations and records — in plain language.
+    </div>
+    <div class="ai-hero__actions">
+      <a class="ai-hero__chip" routerLink="/app/ai" [queryParams]="{ q: 'Show my forms' }">Show my forms</a>
+      <a class="ai-hero__chip" routerLink="/app/ai" [queryParams]="{ q: 'How many new records came in this week?' }">This week's numbers</a>
+      <a class="ai-hero__chip" routerLink="/app/ai" [queryParams]="{ q: 'Build an automation on one of my forms: ' }">Build an automation</a>
+    </div>
+  </div>
+  <a class="btn btn-ai ai-hero__open" routerLink="/app/ai">
+    <i class="bi bi-stars"></i> Open assistant
+  </a>
+</div>
+
+<!-- KPIs -->
+<div class="row g-3 mb-3">
+  @if (loading()) {
+    @for (i of [1, 2, 3, 4, 5, 6, 7]; track i) {
+      <div class="col-6 col-md-4 col-xl">
+        <div class="card h-100">
+          <div class="card-body d-flex align-items-center gap-3">
+            <div class="skeleton" style="width: 40px; height: 40px; border-radius: 12px"></div>
+            <div class="flex-fill">
+              <div class="skeleton mb-2" style="height: 10px; width: 60%"></div>
+              <div class="skeleton" style="height: 18px; width: 35%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  } @else {
+    @for (kpi of kpis(); track kpi.label) {
+      <div class="col-6 col-md-4 col-xl">
+        <a class="card h-100 kpi-card text-decoration-none" [routerLink]="kpi.route">
+          <div class="card-body kpi-body">
+            <span class="kpi-icon" [class]="'kpi-icon--' + kpi.tone">
+              <i class="bi" [class]="kpi.icon"></i>
+            </span>
+            <div class="kpi-value">{{ kpi.value }}</div>
+            <div class="kpi-label">{{ kpi.label }}</div>
+            <div class="kpi-hint">{{ kpi.hint }}</div>
+          </div>
+        </a>
+      </div>
+    }
+  }
+</div>
+
+@if (failed()) {
+  <div class="card">
+    <div class="card-body text-center text-muted py-5">
+      <i class="bi bi-cloud-slash d-block mb-2" style="font-size: 1.6rem"></i>
+      Could not load your dashboard. <button class="btn btn-link p-0" (click)="load()">Try again</button>
+    </div>
+  </div>
+} @else {
+  <div class="row g-3">
+    <!-- ------------------------------------------------- left column -->
+    <div class="col-12 col-xl-7 d-flex flex-column gap-3">
+
+      <!-- Pipelines -->
+      @if (summary()?.recordsVisible) {
+        <div class="card">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <span><i class="bi bi-signpost-split me-2"></i>Your pipelines</span>
+            <a class="btn btn-light btn-sm" routerLink="/app/records">Open records</a>
+          </div>
+          @if (loading()) {
+            <div class="card-body">
+              @for (i of [1, 2]; track i) {
+                <div class="mb-3">
+                  <div class="skeleton mb-2" style="height: 12px; width: 30%"></div>
+                  <div class="skeleton" style="height: 14px; width: 100%; border-radius: 8px"></div>
+                </div>
+              }
+            </div>
+          } @else if (!summary()?.pipelines?.length) {
+            <div class="card-body text-center text-muted py-4">
+              <i class="bi bi-signpost-split d-block mb-2" style="font-size: 1.4rem"></i>
+              No records yet — your pipeline overview appears here as work comes in.
+              <div class="mt-2">
+                <a class="btn btn-primary btn-sm" routerLink="/app/forms">
+                  <i class="bi bi-grid-1x2 me-1"></i>Start from a template
+                </a>
+              </div>
+            </div>
+          } @else {
+            <div class="card-body d-flex flex-column gap-3">
+              @for (pipeline of summary()!.pipelines; track pipeline.formId) {
+                <a class="pipe" [routerLink]="['/app/forms', pipeline.formId]">
+                  <div class="pipe__head">
+                    <span class="pipe__icon"
+                          [style.background]="(pipeline.color || '#4f46e5') + '1f'"
+                          [style.color]="pipeline.color || '#4f46e5'">
+                      <i class="bi" [class]="pipeline.icon || 'bi-table'"></i>
+                    </span>
+                    <span class="pipe__name">{{ pipeline.formName }}</span>
+                    <span class="pipe__total">{{ pipeline.records }} record{{ pipeline.records === 1 ? '' : 's' }}</span>
+                  </div>
+                  <div class="pipe__bar">
+                    @for (slice of pipeline.stages; track slice.name) {
+                      <span class="pipe__slice"
+                            [style.width.%]="slicePercent(pipeline, slice)"
+                            [style.background]="slice.color || '#94a3b8'"
+                            [class.pipe__slice--empty]="!slice.count"
+                            [title]="slice.name + ': ' + slice.count"></span>
+                    }
+                  </div>
+                  <div class="pipe__legend">
+                    @for (slice of pipeline.stages; track slice.name) {
+                      <span class="pipe__chip">
+                        <i [style.background]="slice.color || '#94a3b8'"></i>
+                        {{ slice.name }} <b>{{ slice.count }}</b>
+                        @if (slice.isFinal) { <span class="pipe__lock">🔒</span> }
+                      </span>
+                    }
+                  </div>
+                </a>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Recent activity -->
+      @if (summary()?.recordsVisible && summary()?.recent?.length) {
+        <div class="card">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <span><i class="bi bi-clock-history me-2"></i>Latest records</span>
+            <a class="btn btn-light btn-sm" routerLink="/app/records">View all</a>
+          </div>
+          <div class="list-group list-group-flush">
+            @for (record of summary()!.recent; track record.recordId) {
+              <a class="list-group-item recent-row" [routerLink]="['/app/records']"
+                 [queryParams]="{ formId: record.formId }">
+                <span class="recent-row__avatar">{{ (record.title || '?').charAt(0).toUpperCase() }}</span>
+                <span class="min-w-0">
+                  <span class="recent-row__title">{{ record.title || 'Untitled record' }}</span>
+                  <span class="recent-row__meta">{{ record.formName }}</span>
+                </span>
+                <span class="ms-auto text-end">
+                  @if (record.stageName) {
+                    <span class="badge badge-soft-primary d-block mb-1">{{ record.stageName }}</span>
+                  }
+                  <small class="text-muted">{{ record.createdAt | date: 'd MMM, h:mm a' }}</small>
+                </span>
+              </a>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- ------------------------------------------------ right column -->
+    <div class="col-12 col-xl-5 d-flex flex-column gap-3">
+
+      <!-- Setup checklist -->
+      @if (isAdmin() && summary() && !setupAllDone()) {
+        <div class="card">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <span><i class="bi bi-rocket-takeoff me-2"></i>Get the most out of XetaX</span>
+            <span class="badge badge-soft-primary">{{ setupDone() }}/{{ setupSteps().length }}</span>
+          </div>
+          <div class="card-body pt-2">
+            <div class="setup-progress mb-2">
+              <span [style.width.%]="(setupDone() / setupSteps().length) * 100"></span>
+            </div>
+            <div class="d-flex flex-column">
+              @for (step of setupSteps(); track step.label) {
+                <a class="setup-step" [class.setup-step--done]="step.done" [routerLink]="step.route">
+                  <span class="setup-step__check">
+                    <i class="bi" [class]="step.done ? 'bi-check-lg' : step.icon"></i>
+                  </span>
+                  <span class="min-w-0">
+                    <span class="setup-step__label">{{ step.label }}</span>
+                    @if (!step.done) {
+                      <span class="setup-step__hint">{{ step.hint }}</span>
+                    }
+                  </span>
+                  @if (!step.done) {
+                    <i class="bi bi-chevron-right ms-auto text-muted"></i>
+                  }
+                </a>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- Quick actions -->
+      <div class="card">
+        <div class="card-header"><i class="bi bi-stars me-2"></i>Quick actions</div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-6">
+              <a class="quick-tile" routerLink="/app/forms">
+                <i class="bi bi-grid-1x2"></i><span>Templates</span>
+              </a>
+            </div>
+            <div class="col-6">
+              <a class="quick-tile" routerLink="/app/contacts">
+                <i class="bi bi-person-lines-fill"></i><span>Contacts</span>
+              </a>
+            </div>
+            @if (canSee('records.view|records.view.own')) {
+              <div class="col-6">
+                <a class="quick-tile" routerLink="/app/records">
+                  <i class="bi bi-collection"></i><span>Records</span>
+                </a>
+              </div>
+              <div class="col-6">
+                <a class="quick-tile" routerLink="/app/search">
+                  <i class="bi bi-search"></i><span>Advanced search</span>
+                </a>
+              </div>
+            }
+            <div class="col-6">
+              <a class="quick-tile" routerLink="/app/meetings">
+                <i class="bi bi-camera-video"></i><span>New meeting</span>
+              </a>
+            </div>
+            <div class="col-6">
+              <a class="quick-tile" routerLink="/app/whatsapp">
+                <i class="bi bi-whatsapp"></i><span>WhatsApp</span>
+              </a>
+            </div>
+            @if (isAdmin()) {
+              <div class="col-6">
+                <a class="quick-tile" routerLink="/app/users">
+                  <i class="bi bi-people"></i><span>Team</span>
+                </a>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Upcoming meetings -->
+      @if (summary()?.meetings?.length) {
+        <div class="card">
+          <div class="card-header d-flex align-items-center justify-content-between">
+            <span><i class="bi bi-camera-video me-2"></i>Upcoming meetings</span>
+            <a class="btn btn-light btn-sm" routerLink="/app/meetings">All meetings</a>
+          </div>
+          <div class="list-group list-group-flush">
+            @for (meeting of summary()!.meetings; track meeting.id) {
+              <a class="list-group-item recent-row" routerLink="/app/meetings">
+                <span class="recent-row__avatar recent-row__avatar--teal"><i class="bi bi-camera-video"></i></span>
+                <span class="min-w-0">
+                  <span class="recent-row__title">{{ meeting.title }}</span>
+                  <span class="recent-row__meta">
+                    @if (meeting.status === 'LIVE') { Live now }
+                    @else { {{ meeting.scheduledAt | date: 'EEE d MMM, h:mm a' }} }
+                  </span>
+                </span>
+                @if (meeting.status === 'LIVE') {
+                  <span class="badge badge-soft-success ms-auto">LIVE</span>
+                }
+              </a>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Channels status -->
+      @if (summary()) {
+        <div class="card">
+          <div class="card-header"><i class="bi bi-broadcast me-2"></i>Channels</div>
+          <div class="card-body d-flex flex-column gap-2">
+            <a class="chan" routerLink="/app/whatsapp">
+              <span class="chan__dot" [class.chan__dot--on]="summary()!.whatsapp.connected"></span>
+              <i class="bi bi-whatsapp"></i>
+              <span class="min-w-0">
+                <b>WhatsApp Business</b>
+                <small>
+                  @if (summary()!.whatsapp.connected) {
+                    Connected · {{ summary()!.whatsapp.sent7d }} sent this week
+                  } @else { Not connected yet }
+                </small>
+              </span>
+              <i class="bi bi-chevron-right ms-auto text-muted"></i>
+            </a>
+            <a class="chan" routerLink="/app/profile">
+              <span class="chan__dot" [class.chan__dot--on]="summary()!.emailConfigured"></span>
+              <i class="bi bi-envelope-at"></i>
+              <span class="min-w-0">
+                <b>Email (SMTP)</b>
+                <small>{{ summary()!.emailConfigured ? 'Sending as your address' : 'Add it from your profile' }}</small>
+              </span>
+              <i class="bi bi-chevron-right ms-auto text-muted"></i>
+            </a>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+}

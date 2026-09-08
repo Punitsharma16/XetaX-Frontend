@@ -1,0 +1,72 @@
+.min-w-0 {
+  min-width: 0;
+}
+
+.rule-icon {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+  border-radius: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--warning-50);
+  color: var(--warning-600);
+  font-size: 1.2rem;
+}
+
+.alert-warning {
+  background: var(--warning-50);
+  border-color: transparent;
+  color: var(--warning-600);
+  border-radius: var(--radius-md);
+}
+
+/* ----------------------------------------------------- when / if / then -- */
+
+.rule-section {
+  padding-bottom: 1.1rem;
+  margin-bottom: 1.1rem;
+  border-bottom: 1px dashed var(--border-subtle);
+}
+
+.rule-section--last {
+  padding-bottom: 0;
+  margin-bottom: 0;
+  border-bottom: 0;
+}
+
+.rule-label {
+  margin-bottom: 0.65rem;
+}
+
+.rule-chip {
+  display: inline-block;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-pill);
+}
+
+.rule-chip--when {
+  background: var(--brand-50);
+  color: var(--brand-700);
+}
+
+.rule-chip--if {
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+}
+
+.rule-chip--then {
+  background: var(--warning-50);
+  color: var(--warning-600);
+}
+
+.placeholder-chip {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.65rem;
+  padding: 0.1rem 0.45rem;
+}

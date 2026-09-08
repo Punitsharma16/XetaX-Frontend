@@ -1,0 +1,380 @@
+@if (failed()) {
+  <div class="card">
+    <app-error-state title="Invoice not found" message="It may have been deleted.">
+      <a class="btn btn-primary" routerLink="/app/invoices"><i class="bi bi-arrow-left"></i> Back</a>
+    </app-error-state>
+  </div>
+} @else {
+  <app-page-header
+    [title]="isNew() ? 'New invoice' : (invoice()?.number || 'Invoice')"
+    [subtitle]="isNew() ? 'Attach to a contact or a closed record, add items, send.' : (invoice()?.customerName || '')"
+    icon="bi-receipt"
+  >
+    <a class="btn btn-outline-secondary" routerLink="/app/invoices">
+      <i class="bi bi-arrow-left"></i> All invoices
+    </a>
+    @if (!isNew() && invoice(); as inv) {
+      <button class="btn btn-outline-secondary" (click)="downloadPdf()">
+        <i class="bi bi-file-earmark-pdf me-1"></i>PDF
+      </button>
+      @if (inv.status !== 'CANCELLED') {
+        <button class="btn btn-outline-primary" (click)="send('EMAIL')" [disabled]="sending() !== null">
+          <i class="bi bi-envelope me-1"></i>{{ sending() === 'EMAIL' ? 'Sending…' : 'Email' }}
+        </button>
+        <button class="btn btn-outline-success" (click)="send('WHATSAPP')" [disabled]="sending() !== null">
+          <i class="bi bi-whatsapp me-1"></i>{{ sending() === 'WHATSAPP' ? 'Sending…' : 'WhatsApp' }}
+        </button>
+        @if (inv.status !== 'PAID') {
+          <button class="btn btn-primary" (click)="openPayment()">
+            <i class="bi bi-cash-coin me-1"></i>Record payment
+          </button>
+        }
+      }
+    }
+  </app-page-header>
+
+  <!-- --------------------------------------------------- status banner -->
+  @if (!isNew() && invoice(); as inv) {
+    <div class="inv-banner inv-banner--{{ inv.status | lowercase }} mb-3">
+      <span class="badge {{ statusClass(inv.status) }}">{{ inv.status }}</span>
+      <span class="inv-banner__text">
+        Total <b>Rs. {{ inv.total | number: '1.2-2' }}</b>
+        · Paid <b class="text-success">Rs. {{ inv.amountPaid | number: '1.2-2' }}</b>
+        · Balance <b>Rs. {{ balance() | number: '1.2-2' }}</b>
+      </span>
+      <span class="ms-auto d-flex gap-2">
+        @if (inv.status === 'DRAFT') {
+          <button class="btn btn-outline-danger btn-sm" (click)="deleteDraft()">
+            <i class="bi bi-trash me-1"></i>Delete draft
+          </button>
+        } @else if (inv.status !== 'PAID' && inv.status !== 'CANCELLED') {
+          <button class="btn btn-outline-danger btn-sm" (click)="cancelInvoice()">
+            <i class="bi bi-x-circle me-1"></i>Cancel invoice
+          </button>
+        }
+      </span>
+    </div>
+  }
+
+  <div class="row g-3 align-items-start">
+    <!-- ------------------------------------------------- the invoice form -->
+    <div class="col-12 col-xl-8 d-flex flex-column gap-3">
+      @if (editable()) {
+        <div class="ai-draft-bar">
+          <i class="bi bi-stars ai-draft-bar__spark"></i>
+          <input class="form-control" [(ngModel)]="aiPrompt" [disabled]="aiDrafting()"
+                 placeholder='Describe it — "Ramesh ke liye website 15k + 1 saal hosting 5k, 18% GST"'
+                 (keydown.enter)="draftWithAi()" />
+          <button class="btn btn-ai" (click)="draftWithAi()" [disabled]="aiDrafting()">
+            @if (aiDrafting()) {
+              <span class="spinner-border spinner-border-sm"></span> Drafting…
+            } @else {
+              <i class="bi bi-stars me-1"></i>Draft with AI
+            }
+          </button>
+        </div>
+      }
+
+      <!-- customer -->
+      <div class="card mb-0">
+        <div class="card-header bg-transparent">
+          <h6 class="mb-0 inv-section"><i class="bi bi-person me-2"></i>Customer</h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            @if (isNew() && !attachedRecordId) {
+              <div class="col-12">
+                <label class="form-label">Pick a contact <span class="text-muted">(optional — or type below)</span></label>
+                <select class="form-select" [(ngModel)]="selectedContactId" (ngModelChange)="onContactPicked()">
+                  <option [ngValue]="null">— none —</option>
+                  @for (contact of contacts(); track contact.id) {
+                    <option [ngValue]="contact.id">{{ contact.name }}</option>
+                  }
+                </select>
+              </div>
+            }
+            @if (attachedRecordId) {
+              <div class="col-12">
+                <span class="inv-chip"><i class="bi bi-collection me-1"></i>Linked to a closed record</span>
+              </div>
+            }
+            <div class="col-12 col-md-6">
+              <label class="form-label">Customer / business name <span class="text-danger">*</span></label>
+              <input class="form-control" [(ngModel)]="customerName" placeholder="Customer / business name"
+                     [disabled]="!editable()" />
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">Phone</label>
+              <input class="form-control" [(ngModel)]="customerPhone" placeholder="Phone" [disabled]="!editable()" />
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">Email</label>
+              <input class="form-control" [(ngModel)]="customerEmail" placeholder="Email" [disabled]="!editable()" />
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">Customer GSTIN <span class="text-muted">(optional)</span></label>
+              <input class="form-control" [(ngModel)]="customerGstin" placeholder="Customer GSTIN"
+                     [disabled]="!editable()" />
+            </div>
+            <div class="col-12">
+              <label class="form-label">Address</label>
+              <input class="form-control" [(ngModel)]="customerAddress" placeholder="Address" [disabled]="!editable()" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- invoice details -->
+      <div class="card mb-0">
+        <div class="card-header bg-transparent">
+          <h6 class="mb-0 inv-section"><i class="bi bi-receipt me-2"></i>Invoice details</h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12 col-md-4">
+              <label class="form-label">Issue date</label>
+              <input type="date" class="form-control" [(ngModel)]="issueDate" [disabled]="!editable()" />
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label">Due date</label>
+              <input type="date" class="form-control" [(ngModel)]="dueDate" [disabled]="!editable()" />
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label">Your GSTIN <span class="text-muted">(optional)</span></label>
+              <input class="form-control" [(ngModel)]="sellerGstin" placeholder="Seller GSTIN" [disabled]="!editable()" />
+            </div>
+            @if (isNew()) {
+              <div class="col-12">
+                <small class="text-secondary"><i class="bi bi-info-circle me-1"></i>The invoice number is issued automatically on save.</small>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- items -->
+      <div class="card mb-0">
+        <div class="card-header bg-transparent">
+          <h6 class="mb-0 inv-section"><i class="bi bi-list-ul me-2"></i>Items</h6>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table align-middle inv-items mb-2">
+              <thead>
+                <tr>
+                  <th style="width: 4%">#</th>
+                  <th style="width: 32%">Description</th>
+                  <th style="width: 13%">HSN/SAC</th>
+                  <th style="width: 10%" class="text-end">Qty</th>
+                  <th style="width: 12%">Unit</th>
+                  <th style="width: 13%" class="text-end">Rate (Rs.)</th>
+                  <th style="width: 12%" class="text-end">Amount</th>
+                  <th style="width: 4%"></th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of items(); track row.uid; let i = $index) {
+                  <tr>
+                    <td class="text-secondary">{{ i + 1 }}</td>
+                    <td>
+                      <input class="form-control form-control-sm" [(ngModel)]="row.description"
+                             placeholder="Item or service…" [disabled]="!editable()" />
+                    </td>
+                    <td><input class="form-control form-control-sm" [(ngModel)]="row.hsn"
+                               placeholder="—" [disabled]="!editable()" /></td>
+                    <td><input type="number" min="0" class="form-control form-control-sm text-end"
+                               [(ngModel)]="row.quantity" [disabled]="!editable()" /></td>
+                    <td>
+                      <select class="form-select form-select-sm" [(ngModel)]="row.unit" [disabled]="!editable()">
+                        @for (u of units; track u) { <option [value]="u">{{ u }}</option> }
+                      </select>
+                    </td>
+                    <td><input type="number" min="0" class="form-control form-control-sm text-end"
+                               [(ngModel)]="row.unitPrice" [disabled]="!editable()" /></td>
+                    <td class="text-end fw-semibold">{{ lineAmount(row) | number: '1.2-2' }}</td>
+                    <td class="text-end">
+                      @if (editable() && items().length > 1) {
+                        <button class="btn btn-sm btn-outline-danger border-0" (click)="removeItem(row.uid)"
+                                title="Remove line">
+                          <i class="bi bi-x-lg"></i>
+                        </button>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          @if (editable()) {
+            <button class="btn btn-sm btn-outline-primary" (click)="addItem()">
+              <i class="bi bi-plus-lg me-1"></i>Add line
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- tax + totals -->
+      <div class="card mb-0">
+        <div class="card-header bg-transparent">
+          <h6 class="mb-0 inv-section"><i class="bi bi-calculator me-2"></i>Tax &amp; totals</h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-3 mb-3">
+            <div class="col-6 col-md-3">
+              <label class="form-label">GST %</label>
+              <input type="number" min="0" max="100" class="form-control text-end" [(ngModel)]="taxPercent"
+                     [disabled]="!editable()" />
+            </div>
+            <div class="col-6 col-md-4">
+              <label class="form-label">GST type</label>
+              <select class="form-select" [(ngModel)]="gstMode" [disabled]="!editable()">
+                <option value="">Plain tax</option>
+                <option value="INTRA">CGST + SGST</option>
+                <option value="INTER">IGST</option>
+              </select>
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label">Discount (Rs.)</label>
+              <input type="number" min="0" class="form-control text-end" [(ngModel)]="discount"
+                     [disabled]="!editable()" />
+            </div>
+          </div>
+
+          <div class="inv-totals ms-auto" style="max-width: 340px">
+            <div class="inv-line"><span>Subtotal</span><b>Rs. {{ subtotal() | number: '1.2-2' }}</b></div>
+            <div class="inv-line">
+              <span>{{ gstMode === 'INTER' ? 'IGST' : 'GST' }} ({{ taxPercent || 0 }}%)</span>
+              <b>Rs. {{ taxAmount() | number: '1.2-2' }}</b>
+            </div>
+            @if (gstMode === 'INTRA' && taxAmount() > 0) {
+              <div class="inv-line inv-line--sub">
+                <span>· CGST ({{ (taxPercent || 0) / 2 }}%)</span>
+                <b>Rs. {{ taxAmount() / 2 | number: '1.2-2' }}</b>
+              </div>
+              <div class="inv-line inv-line--sub">
+                <span>· SGST ({{ (taxPercent || 0) / 2 }}%)</span>
+                <b>Rs. {{ taxAmount() / 2 | number: '1.2-2' }}</b>
+              </div>
+            }
+            <div class="inv-line"><span>Discount</span><b>- Rs. {{ discount || 0 | number: '1.2-2' }}</b></div>
+            @if (roundOffPreview() !== 0) {
+              <div class="inv-line">
+                <span>Round Off</span>
+                <b>{{ roundOffPreview() > 0 ? '+' : '-' }} Rs. {{ (roundOffPreview() < 0 ? -roundOffPreview() : roundOffPreview()) | number: '1.2-2' }}</b>
+              </div>
+            }
+            <div class="inv-line inv-line--grand"><span>Total</span><b>Rs. {{ grandTotal() | number: '1.2-2' }}</b></div>
+            <div class="inv-words">{{ amountInWords() }}</div>
+            @if (!isNew() && invoice(); as inv) {
+              <div class="inv-line text-success"><span>Paid</span><b>Rs. {{ inv.amountPaid | number: '1.2-2' }}</b></div>
+              <div class="inv-line inv-line--grand"><span>Balance Due</span><b>Rs. {{ balance() | number: '1.2-2' }}</b></div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- bank + notes -->
+      <div class="card mb-0">
+        <div class="card-header bg-transparent">
+          <h6 class="mb-0 inv-section"><i class="bi bi-bank me-2"></i>Bank details &amp; notes</h6>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12">
+              <label class="form-label">Bank details <span class="text-muted">(printed on the PDF)</span></label>
+              <textarea class="form-control" rows="2" [(ngModel)]="bankDetails" [disabled]="!editable()"
+                        placeholder="A/c name · A/c no · IFSC · UPI id"></textarea>
+            </div>
+            <div class="col-12">
+              <label class="form-label">Notes / terms</label>
+              <textarea class="form-control" rows="2" [(ngModel)]="notes" [disabled]="!editable()"
+                        placeholder="Payment terms, a thank-you…"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      @if (editable()) {
+        <div class="d-flex justify-content-end">
+          <button class="btn btn-primary btn-lg px-4" (click)="save()" [disabled]="saving()">
+            @if (saving()) {
+              <span class="spinner-border spinner-border-sm"></span> Saving…
+            } @else {
+              <i class="bi bi-check2 me-1"></i>{{ isNew() ? 'Create invoice' : 'Save changes' }}
+            }
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- --------------------------------------------------------- sidebar -->
+    <div class="col-12 col-xl-4 d-flex flex-column gap-3">
+      @if (!isNew() && payments().length) {
+        <div class="card mb-0">
+          <div class="card-header bg-transparent">
+            <h6 class="mb-0 inv-section"><i class="bi bi-cash-stack me-2"></i>Payments</h6>
+          </div>
+          <ul class="list-group list-group-flush">
+            @for (payment of payments(); track payment.id) {
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                  <div class="fw-semibold">Rs. {{ payment.amount | number: '1.2-2' }}</div>
+                  <small class="text-secondary">
+                    {{ payment.paidOn | date: 'dd MMM yyyy' }} · {{ payment.mode }}
+                    @if (payment.reference) { · {{ payment.reference }} }
+                  </small>
+                </div>
+                <i class="bi bi-check2-circle text-success"></i>
+              </li>
+            }
+          </ul>
+        </div>
+      }
+      @if (isNew()) {
+        <div class="card mb-0">
+          <div class="card-body">
+            <h6 class="inv-section mb-2"><i class="bi bi-lightbulb me-2"></i>Tips</h6>
+            <ul class="mb-0 ps-3" style="font-size: 0.82rem; color: var(--bs-secondary-color)">
+              <li class="mb-1">Type the whole invoice in one line and hit <b>Draft with AI</b>.</li>
+              <li class="mb-1">Totals, tax and discount are recalculated on the server — what you see is what the PDF says.</li>
+              <li>The invoice number is issued automatically on save.</li>
+            </ul>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- --------------------------------------------------- payment modal -->
+  <app-modal [open]="paymentOpen()" title="Record a payment" icon="bi-cash-coin"
+             (closed)="paymentOpen.set(false)">
+    <div class="row g-3">
+      <div class="col-6">
+        <label class="form-label">Amount (Rs.) <span class="text-danger">*</span></label>
+        <input type="number" min="0" class="form-control" [(ngModel)]="payAmount" />
+      </div>
+      <div class="col-6">
+        <label class="form-label">Date</label>
+        <input type="date" class="form-control" [(ngModel)]="payDate" />
+      </div>
+      <div class="col-6">
+        <label class="form-label">Mode</label>
+        <select class="form-select" [(ngModel)]="payMode">
+          @for (mode of modes; track mode) {
+            <option [value]="mode">{{ mode }}</option>
+          }
+        </select>
+      </div>
+      <div class="col-6">
+        <label class="form-label">Reference <span class="text-muted">(UTR / txn id)</span></label>
+        <input class="form-control" [(ngModel)]="payReference" />
+      </div>
+    </div>
+    <div modalFooter>
+      <button class="btn btn-outline-secondary" (click)="paymentOpen.set(false)">Close</button>
+      <button class="btn btn-primary" (click)="submitPayment()">
+        <i class="bi bi-check2 me-1"></i>Record payment
+      </button>
+    </div>
+  </app-modal>
+}

@@ -1,0 +1,162 @@
+.mt-card {
+  border: 1px solid var(--border-subtle, #e9ecef);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: var(--shadow-sm);
+}
+
+.mt-btn {
+  background: var(--brand-600, #4f46e5);
+  border: 1px solid var(--brand-600, #4f46e5);
+  color: #fff;
+  font-weight: 600;
+}
+.mt-btn:hover:not(:disabled) { background: var(--brand-500, #6366f1); color: #fff; }
+.mt-btn:disabled { opacity: 0.65; color: #fff; }
+
+.mt-tabs {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--surface-sunken, #f1f3f5);
+  border: 1px solid var(--border-subtle, #e9ecef);
+}
+.mt-tabs__pill {
+  border: 0;
+  background: transparent;
+  padding: 0.35rem 0.95rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary, #495057);
+  cursor: pointer;
+}
+.mt-tabs__pill.is-active {
+  background: var(--surface-card, #fff);
+  color: var(--brand-600, #4f46e5);
+  box-shadow: var(--shadow-sm);
+}
+
+.mt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.mt-meeting { padding: 1rem 1.1rem; }
+
+.mt-meeting__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.mt-meeting__code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.7rem;
+  color: var(--text-muted, #6c757d);
+}
+
+.mt-live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #fff;
+  margin-right: 4px;
+  animation: mtPulse 1.4s infinite;
+}
+@keyframes mtPulse { 50% { opacity: 0.3; } }
+
+.mt-meeting__title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+.mt-meeting__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  font-size: 0.76rem;
+  color: var(--text-secondary, #6c757d);
+  margin-bottom: 0.8rem;
+}
+
+.mt-meeting__actions { display: flex; gap: 0.4rem; align-items: center; }
+
+.mt-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--border-subtle, #e9ecef);
+  border-radius: 10px;
+  background: var(--surface-sunken, #f8f9fa);
+  font-size: 0.78rem;
+  font-family: ui-monospace, monospace;
+}
+
+.mt-share-wa {
+  background: #128c7e; border-color: #128c7e; color: #fff; text-align: left; font-weight: 600;
+}
+.mt-share-wa:hover:not(:disabled) { background: #16a34a; color: #fff; }
+.mt-share-wa:disabled { opacity: 0.6; color: #fff; }
+.mt-share-wa small, .mt-share-mail small { opacity: 0.8; font-size: 0.7rem; }
+
+.mt-share-mail {
+  background: var(--brand-600, #4f46e5); border-color: var(--brand-600, #4f46e5);
+  color: #fff; text-align: left; font-weight: 600;
+}
+.mt-share-mail:hover:not(:disabled) { background: var(--brand-500, #6366f1); color: #fff; }
+.mt-share-mail:disabled { opacity: 0.6; color: #fff; }
+
+.mt-share-note {
+  font-size: 0.78rem;
+  padding: 0.55rem 0.8rem;
+  border-radius: 10px;
+  background: var(--bs-warning-bg-subtle, #fff3cd);
+  border: 1px solid var(--bs-warning-border-subtle, #ffe69c);
+  color: #8a6d00;
+}
+
+.mt-notes { display: grid; gap: 0.6rem; max-height: 420px; overflow-y: auto; }
+.mt-note {
+  border: 1px solid var(--border-subtle, #e9ecef);
+  border-left: 3px solid var(--brand-500, #6366f1);
+  border-radius: 10px;
+  padding: 0.55rem 0.8rem;
+}
+.mt-note__time { font-size: 0.68rem; color: var(--text-muted, #6c757d); margin-bottom: 2px; }
+.mt-note__text { font-size: 0.85rem; white-space: pre-wrap; }
+
+.mt-invitee-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr auto;
+  gap: 0.4rem;
+}
+
+@media (max-width: 576px) {
+  .mt-invitee-row { grid-template-columns: 1fr; }
+}
+
+.mt-inv-list {
+  display: grid;
+  gap: 0.4rem;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.mt-inv {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  border: 1px solid var(--border-subtle, #e9ecef);
+  border-radius: 10px;
+  padding: 0.45rem 0.7rem;
+}
+
+.mt-inv__who b { font-size: 0.83rem; display: block; }
+.mt-inv__who small { color: var(--text-muted, #6c757d); font-size: 0.7rem; }
