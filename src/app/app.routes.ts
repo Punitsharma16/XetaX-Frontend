@@ -426,6 +426,15 @@ export const routes: Routes = [
       import('./features/publicform/public-form.component').then((m) => m.PublicFormComponent),
   },
 
-  { path: '', pathMatch: 'full', redirectTo: 'app/dashboard' },
+  // Root = the sign-in screen itself (signed-in users are sent to the dashboard
+  // by guestGuard). No redirect chain, no ?returnUrl on a plain visit.
+  {
+    path: '',
+    pathMatch: 'full',
+    title: 'Sign in · XetaX CRM',
+    canActivate: [guestGuard],
+    loadComponent: () =>
+      import('./features/auth/login/login.component').then((m) => m.LoginComponent),
+  },
   { path: '**', redirectTo: 'app/dashboard' },
 ];

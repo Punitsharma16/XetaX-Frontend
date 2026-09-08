@@ -15,8 +15,11 @@ export const authGuard: CanActivateFn = (_route, state) => {
     return true;
   }
 
+  // Remember a deep link (a record, an invoice…) — but not the default landing
+  // page, so a plain visit shows a clean /login.
+  const isDefault = !state.url || state.url === '/' || /^\/app(\/dashboard)?\/?$/.test(state.url);
   return router.createUrlTree(['/login'], {
-    queryParams: state.url && state.url !== '/' ? { returnUrl: state.url } : {},
+    queryParams: isDefault ? {} : { returnUrl: state.url },
   });
 };
 
