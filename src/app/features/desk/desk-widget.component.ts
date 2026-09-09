@@ -38,6 +38,8 @@ export class DeskWidgetComponent implements OnDestroy {
   readonly tab = signal<Tab>('requests');
   readonly openCount = signal(0);
   readonly mineCount = signal(0);
+  /** Requests that expired before anyone answered — kept out of the red badge. */
+  readonly missedCount = signal(0);
   readonly badge = computed(() => this.openCount() + this.mineCount());
   readonly canHandle = computed(() => this.perms.has('desk.handle'));
 
@@ -82,6 +84,7 @@ export class DeskWidgetComponent implements OnDestroy {
         this.lastBadge = b.open;
         this.openCount.set(b.open);
         this.mineCount.set(b.mine);
+        this.missedCount.set(b.missed ?? 0);
         if (this.open() && total >= 0) this.loadState();
       },
       error: () => {},
@@ -118,6 +121,7 @@ export class DeskWidgetComponent implements OnDestroy {
         this.state.set(s);
         this.openCount.set(s.requests.length);
         this.mineCount.set(s.mine.length);
+        this.missedCount.set((s.missed ?? []).length);
       },
       error: () => {},
     });

@@ -91,6 +91,7 @@
         <div class="desk-tabs">
           <button type="button" [class.is-active]="tab() === 'requests'" (click)="setTab('requests')">
             Requests @if (openCount()) { <span class="desk-pill">{{ openCount() }}</span> }
+            @if (!openCount() && missedCount()) { <span class="desk-pill desk-pill--muted">{{ missedCount() }}</span> }
           </button>
           <button type="button" [class.is-active]="tab() === 'mine'" (click)="setTab('mine')">
             My chats @if (mineCount()) { <span class="desk-pill desk-pill--muted">{{ mineCount() }}</span> }
@@ -116,7 +117,30 @@
                 </div>
               </div>
             } @empty {
-              <div class="desk-empty"><i class="bi bi-emoji-smile"></i><p>No one is waiting. Requests appear here when a customer asks for a person.</p></div>
+              @if (!(state()?.missed ?? []).length) {
+                <div class="desk-empty"><i class="bi bi-emoji-smile"></i><p>No one is waiting. Requests appear here when a customer asks for a person.</p></div>
+              }
+            }
+
+            @if ((state()?.missed ?? []).length) {
+              <div class="desk-sub">Missed in the last 24 hours — you can still reply</div>
+              @for (r of state()?.missed ?? []; track r.id) {
+                <div class="desk-card desk-card--missed">
+                  <div class="desk-card__top">
+                    <i class="bi {{ channelIcon(r.channel) }} desk-card__ch"></i>
+                    <b class="text-truncate">{{ r.customer }}</b>
+                    <span class="desk-card__time">{{ r.createdAt | date: 'dd MMM, h:mm a' }}</span>
+                  </div>
+                  @if (r.lastMessage) { <div class="desk-card__msg">“{{ r.lastMessage }}”</div> }
+                  @if (r.aiSummary) { <div class="desk-card__sum"><i class="bi bi-stars me-1"></i>{{ r.aiSummary }}</div> }
+                  <div class="desk-card__why">{{ r.status === 'DECLINED' ? 'Sent back to the AI' : 'Nobody answered in time' }}</div>
+                  <div class="desk-card__btns">
+                    <button type="button" class="btn btn-sm btn-outline-primary" (click)="accept(r)">
+                      <i class="bi bi-reply me-1"></i>Take it now
+                    </button>
+                  </div>
+                </div>
+              }
             }
           } @else if (tab() === 'mine') {
             @for (s of state()?.mine ?? []; track s.id) {

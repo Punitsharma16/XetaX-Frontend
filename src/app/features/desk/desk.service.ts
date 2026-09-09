@@ -6,6 +6,8 @@ import { CrmApiService } from '../../core/services/crm-api.service';
 export interface DeskBadge {
   open: number;
   mine: number;
+  /** Requests nobody answered in time — shown in the drawer, not in the red count. */
+  missed: number;
   enabled: boolean;
 }
 
@@ -20,6 +22,8 @@ export interface HandoffRow {
   createdAt: string;
   escalated: boolean;
   recordId: string | null;
+  status?: string;
+  resolvedAt?: string | null;
 }
 
 export interface DeskSession {
@@ -45,6 +49,8 @@ export interface DeskState {
   requests: HandoffRow[];
   mine: DeskSession[];
   others: DeskSession[];
+  /** Expired / declined in the last 24h — still pickable. */
+  missed: HandoffRow[];
   enabled: boolean;
 }
 
