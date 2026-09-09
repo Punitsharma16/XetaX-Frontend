@@ -166,3 +166,15 @@
 }
 .tpl-auto em { color: var(--text-secondary, #6c757d); font-size: 0.72rem; }
 .tpl-auto small { color: var(--text-muted, #adb5bd); }
+
+/* pack gallery extras */
+.tpl-tabs { display: inline-flex; gap: 4px; padding: 4px; border-radius: 999px; background: var(--surface-sunken, #f1f3f5); border: 1px solid var(--border-subtle, #e9ecef); }
+.tpl-tab { border: 0; background: transparent; padding: 0.3rem 0.85rem; border-radius: 999px; font-size: 0.78rem; font-weight: 600; color: var(--text-secondary, #495057); cursor: pointer; }
+.tpl-tab.is-active { background: var(--surface-card, #fff); color: var(--brand-600, #4f46e5); box-shadow: var(--shadow-sm); }
+.tpl-tab__n { background: var(--brand-50, #eef2ff); color: var(--brand-600, #4f46e5); border-radius: 999px; font-size: 0.66rem; padding: 0.05rem 0.4rem; margin-left: 0.25rem; }
+.tpl-card { position: relative; }
+.tpl-card__top { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; width: 100%; }
+.tpl-badge { font-size: 0.62rem; font-weight: 600; letter-spacing: 0.02em; padding: 0.15rem 0.5rem; border-radius: 999px; background: var(--surface-sunken, #f1f3f5); color: var(--text-secondary, #6c757d); }
+.tpl-badge--ok { background: rgba(16, 185, 129, 0.12); color: #059669; }
+.tpl-card__inc { display: flex; flex-wrap: wrap; gap: 0.35rem 0.6rem; margin-top: 0.35rem; font-size: 0.66rem; color: var(--brand-600, #4f46e5); font-weight: 600; }
+.tpl-card__tools { position: absolute; right: 0.5rem; bottom: 0.5rem; display: flex; gap: 0.25rem; }

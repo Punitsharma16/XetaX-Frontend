@@ -111,6 +111,11 @@
                       <i class="bi bi-pencil me-2"></i>Edit details
                     </button>
                   </li>
+                  <li>
+                    <button type="button" class="dropdown-item" (click)="openExport(form, $event)">
+                      <i class="bi bi-box-seam me-2"></i>Save as pack
+                    </button>
+                  </li>
                   <li><hr class="dropdown-divider" /></li>
                   <li>
                     <button type="button" class="dropdown-item text-danger" (click)="remove(form, $event)">
@@ -250,28 +255,93 @@
   (answered)="load()"
 />
 
-<!-- ------------------------------------------------- template gallery -->
-<app-modal [open]="galleryOpen()" title="Start from a template" icon="bi-grid-1x2" size="xl"
+<!-- ------------------------------------------------- pack gallery -->
+<app-modal [open]="galleryOpen()" title="Start from a vertical pack" icon="bi-box-seam" size="xl"
            (closed)="galleryOpen.set(false)">
+  <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+    <div class="tpl-tabs">
+      <button type="button" class="tpl-tab" [class.is-active]="galleryTab() === 'builtin'" (click)="galleryTab.set('builtin')">
+        <i class="bi bi-stars me-1"></i>Industry packs <span class="tpl-tab__n">{{ builtinPacks().length }}</span>
+      </button>
+      <button type="button" class="tpl-tab" [class.is-active]="galleryTab() === 'mine'" (click)="galleryTab.set('mine')">
+        <i class="bi bi-person-workspace me-1"></i>My packs <span class="tpl-tab__n">{{ myPacks().length }}</span>
+      </button>
+    </div>
+    <button type="button" class="btn btn-outline-secondary btn-sm" (click)="importOpen.set(true)">
+      <i class="bi bi-upload me-1"></i>Import pack JSON
+    </button>
+  </div>
   <p class="text-muted small mb-3">
-    Pick your business — you see a full <b>preview</b> first (fields, stages, automation flow);
-    nothing is created until you confirm.
+    A pack sets up the whole workflow for a business: form, pipeline, draft automations, WhatsApp templates,
+    an AI assistant and a sales playbook. You see a full <b>preview</b> first; nothing is created until you confirm.
   </p>
   <div class="tpl-grid">
-    @for (template of templates(); track template.key) {
+    @for (template of (galleryTab() === 'builtin' ? builtinPacks() : myPacks()); track template.key) {
       <button type="button" class="tpl-card" (click)="openPreview(template)">
-        <span class="tpl-card__icon" [style.background]="template.color + '22'"
-              [style.color]="template.color"><i class="bi" [class]="template.icon"></i></span>
+        <span class="tpl-card__top">
+          <span class="tpl-card__icon" [style.background]="template.color + '22'"
+                [style.color]="template.color"><i class="bi" [class]="template.icon"></i></span>
+          @if (template.installed) { <span class="tpl-badge tpl-badge--ok"><i class="bi bi-check2"></i> Installed</span> }
+          @else if (template.industry) { <span class="tpl-badge">{{ template.industry }}</span> }
+        </span>
         <span class="tpl-card__name">{{ template.name }}</span>
         <span class="tpl-card__tag">{{ template.tagline }}</span>
         <span class="tpl-card__meta">
-          {{ template.fields.length }} fields · {{ template.stages.length }} stages ·
-          {{ template.automations.length }} automations
+          {{ template.includes.fields }} fields · {{ template.includes.stages }} stages · {{ template.includes.automations }} automations
         </span>
+        <span class="tpl-card__inc">
+          @if (template.includes.agent) { <span title="AI assistant"><i class="bi bi-robot"></i> AI agent</span> }
+          @if (template.includes.playbook) { <span title="Sales playbook"><i class="bi bi-lightning-charge"></i> Playbook · {{ template.includes.playbookRules }} rules</span> }
+          @if (template.includes.whatsappTemplates) { <span title="WhatsApp templates"><i class="bi bi-whatsapp"></i> {{ template.includes.whatsappTemplates }} templates</span> }
+        </span>
+        @if (!template.builtin) {
+          <span class="tpl-card__tools">
+            <a class="btn btn-light btn-sm" (click)="copyPackJson(template, $event)" title="Copy JSON"><i class="bi bi-clipboard"></i></a>
+            <a class="btn btn-light btn-sm text-danger" (click)="deletePack(template, $event)" title="Delete pack"><i class="bi bi-trash"></i></a>
+          </span>
+        }
       </button>
     } @empty {
-      <div class="text-muted small p-3">Loading templates…</div>
+      @if (galleryTab() === 'mine') {
+        <div class="text-muted small p-3">
+          No packs of your own yet. Open a form's menu → <b>Save as pack</b> to turn your setup into a reusable pack,
+          or import one from a colleague.
+        </div>
+      } @else {
+        <div class="text-muted small p-3">Loading packs…</div>
+      }
     }
+  </div>
+</app-modal>
+
+<!-- ------------------------------------------------------- save as pack -->
+<app-modal [open]="!!exportFor()" [title]="'Save as pack — ' + (exportFor()?.name || '')" icon="bi-box-seam" size="md"
+           (closed)="exportFor.set(null)">
+  <p class="text-muted small">
+    Snapshots this form's fields, stages, automations, WhatsApp drafts, the AI assistant linked to it and its playbook.
+    Install it again in one click, or copy its JSON to another workspace.
+  </p>
+  <label class="form-label">Pack name</label>
+  <input class="form-control" [(ngModel)]="packName" />
+  <div modalFooter class="d-flex justify-content-end gap-2 w-100">
+    <button class="btn btn-outline-secondary" (click)="exportFor.set(null)">Cancel</button>
+    <button class="btn btn-primary" [disabled]="exporting()" (click)="confirmExport()">
+      @if (exporting()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+      Save pack
+    </button>
+  </div>
+</app-modal>
+
+<!-- ------------------------------------------------------- import pack -->
+<app-modal [open]="importOpen()" title="Import a pack" icon="bi-upload" size="lg" (closed)="importOpen.set(false)">
+  <p class="text-muted small">Paste the pack JSON (from "Copy JSON" on any pack, or a partner). It is validated before it is saved.</p>
+  <textarea class="form-control font-monospace" rows="12" [(ngModel)]="importJson" placeholder='{ "key": "my_pack", "name": "…", "fields": [...], "stages": [...] }'></textarea>
+  <div modalFooter class="d-flex justify-content-end gap-2 w-100">
+    <button class="btn btn-outline-secondary" (click)="importOpen.set(false)">Cancel</button>
+    <button class="btn btn-primary" [disabled]="importing() || !importJson.trim()" (click)="confirmImport()">
+      @if (importing()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+      Import
+    </button>
   </div>
 </app-modal>
 
@@ -324,15 +394,62 @@
         </div>
       </div>
 
-      <div class="col-12">
+      @if (t.agent || t.includes.playbook || t.includes.whatsappTemplates) {
+        <div class="col-12">
+          <div class="row g-3">
+            @if (t.agent) {
+              <div class="col-12 col-lg-4">
+                <h6 class="tpl-h"><i class="bi bi-robot me-1"></i>AI assistant</h6>
+                <div class="tpl-auto">
+                  <b>{{ t.agent.name }}</b>
+                  <span>{{ t.agent.persona }}</span>
+                  @if (t.agent.stageHints?.length) { <small>Moves the pipeline: {{ t.agent.stageHints!.length }} rules ({{ t.agent.pipelineMode === 'AUTO' ? 'automatic' : 'suggests, you approve' }})</small> }
+                </div>
+              </div>
+            }
+            @if (t.includes.playbook) {
+              <div class="col-12 col-lg-4">
+                <h6 class="tpl-h"><i class="bi bi-lightning-charge me-1"></i>Sales playbook (off until you switch it on)</h6>
+                <div class="tpl-auto">
+                  <b>Goal: {{ t.playbook?.goal }}</b>
+                  @for (r of t.playbook?.rules || []; track r.name) {
+                    <span>• {{ r.name }} <small>— {{ playbookLine(r) }}</small></span>
+                  }
+                </div>
+              </div>
+            }
+            @if (t.includes.whatsappTemplates) {
+              <div class="col-12 col-lg-4">
+                <h6 class="tpl-h"><i class="bi bi-whatsapp me-1"></i>WhatsApp templates (drafts, submit when connected)</h6>
+                <div class="tpl-autos">
+                  @for (w of t.whatsappTemplates || []; track w.name) {
+                    <div class="tpl-auto"><b>{{ w.purpose || w.name }}</b><em>"{{ w.bodyText }}"</em></div>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <div class="col-12 col-lg-6">
         <label class="form-label">Form name</label>
         <input class="form-control" [(ngModel)]="templateFormName" />
+      </div>
+      <div class="col-12 col-lg-6">
+        <label class="form-label d-block">Install</label>
+        <div class="d-flex flex-wrap gap-3">
+          <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="apAuto" [(ngModel)]="applyAutomations" /><label class="form-check-label" for="apAuto">Automations</label></div>
+          <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="apWa" [(ngModel)]="applyWhatsapp" [disabled]="!t.includes.whatsappTemplates" /><label class="form-check-label" for="apWa">WhatsApp drafts</label></div>
+          <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="apAg" [(ngModel)]="applyAgent" [disabled]="!t.agent" /><label class="form-check-label" for="apAg">AI assistant</label></div>
+          <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="apPb" [(ngModel)]="applyPlaybook" [disabled]="!t.includes.playbook" /><label class="form-check-label" for="apPb">Playbook</label></div>
+        </div>
       </div>
     </div>
   }
   <div modalFooter class="d-flex justify-content-between align-items-center w-100">
     <span class="text-muted small">
-      <i class="bi bi-info-circle me-1"></i>Automations are created INACTIVE — review the messages/fields,
+      <i class="bi bi-info-circle me-1"></i>Automations and the playbook are created OFF — review the messages,
       then switch them on yourself.
     </span>
     <div class="d-flex gap-2">

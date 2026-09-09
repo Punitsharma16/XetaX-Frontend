@@ -5,7 +5,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../core/authentication/auth.service';
 import { CrmApiService } from '../../core/services/crm-api.service';
 import { ToastService } from '../../core/services/toast.service';
-import { ApplyResult, FormTemplate, TemplateService } from '../forms/template.service';
+import { ApplyResult, PackCard, TemplateService } from '../forms/template.service';
 import { OrgRole, TeamMember, TeamService } from '../users/team.service';
 import { UserService } from '../users/user.service';
 import { ONBOARDING_DONE_KEY, ONBOARDING_STEP_KEY } from './onboarding-storage';
@@ -77,7 +77,7 @@ export class OnboardingComponent {
 
   // ----------------------------------------------------------- step 2: template
 
-  readonly templates = signal<FormTemplate[] | null>(null);
+  readonly templates = signal<PackCard[] | null>(null);
   readonly templatesFailed = signal(false);
   readonly applyingKey = signal<string | null>(null);
   readonly applied = signal<ApplyResult | null>(null);
@@ -208,7 +208,7 @@ export class OnboardingComponent {
     });
   }
 
-  applyTemplate(template: FormTemplate): void {
+  applyTemplate(template: PackCard): void {
     if (this.applyingKey()) return;
     this.applyingKey.set(template.key);
     this.templateService.apply(template.key).subscribe({

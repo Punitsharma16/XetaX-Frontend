@@ -60,6 +60,7 @@ export enum AutomationActionType {
       emailMessage) may use {fieldKey} placeholders. */
   SEND_WHATSAPP = 'SEND_WHATSAPP',
   SEND_DOCUMENT = 'SEND_DOCUMENT',
+  CREATE_TASK = 'CREATE_TASK',
 }
 
 export enum ConditionOperator {

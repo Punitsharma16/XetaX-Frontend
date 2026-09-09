@@ -39,6 +39,7 @@ const ACTION_LABELS: Record<AutomationActionType, string> = {
   [AutomationActionType.ADJUST_FIELD]: 'Increase / decrease a field',
   [AutomationActionType.SEND_WHATSAPP]: 'Send a WhatsApp message',
   [AutomationActionType.SEND_DOCUMENT]: 'Send a document (auto-filled)',
+  [AutomationActionType.CREATE_TASK]: 'Create a task for a person',
 };
 
 const TRIGGER_LABELS: Record<AutomationTrigger, string> = {
@@ -357,6 +358,10 @@ export class AutomationDetailComponent {
           );
         }
         return '';
+
+      case AutomationActionType.CREATE_TASK:
+        if (!this.actionValue.trim()) return this.warn('Give the task a title.');
+        return this.actionValue.trim();
 
       case AutomationActionType.ADJUST_FIELD: {
         if (!this.actionFieldId) return this.warn('Pick the field to adjust.');

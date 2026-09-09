@@ -290,6 +290,54 @@
   }
 }
 
+<!-- ------------------------------------------- drafts from vertical packs -->
+@if (pendingDrafts().length) {
+  <div class="card wa-card mt-3">
+    <div class="card-header wa-card__head">
+      <div>
+        <span class="fw-semibold"><i class="bi bi-box-seam me-1"></i>Ready-made templates from your pack</span>
+        <div class="text-muted small">
+          Written for your industry. {{ config()?.status === 'CONNECTED' ? 'Submit each one to Meta with one click.' : 'Connect WhatsApp above, then submit them to Meta in one click.' }}
+        </div>
+      </div>
+      <span class="wa-chip wa-chip--wait">{{ pendingDrafts().length }} waiting</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table align-middle mb-0 wa-table">
+        <thead>
+          <tr><th>Purpose</th><th>Name</th><th>Message</th><th>Category</th><th class="text-end"></th></tr>
+        </thead>
+        <tbody>
+          @for (d of pendingDrafts(); track d.id) {
+            <tr>
+              <td class="fw-medium">{{ d.purpose || '—' }}</td>
+              <td><code>{{ d.name }}</code></td>
+              <td class="text-muted small" style="max-width: 380px">
+                {{ d.bodyText }}
+                @if (d.status === 'FAILED' && d.error) {
+                  <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ d.error }}</div>
+                }
+              </td>
+              <td><span class="wa-cat">{{ d.category }}</span></td>
+              <td class="text-end text-nowrap">
+                <button class="btn wa-btn btn-sm" [disabled]="config()?.status !== 'CONNECTED' || submittingDraft() !== null"
+                        (click)="submitDraft(d)" title="Submit to Meta for approval">
+                  @if (submittingDraft() === d.id) { <span class="spinner-border spinner-border-sm me-1"></span> }
+                  @else { <i class="bi bi-send me-1"></i> }
+                  Submit
+                </button>
+                <button class="btn btn-outline-secondary btn-sm ms-1" (click)="deleteDraft(d)" title="Remove draft">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+}
+
 <!-- --------------------------------------------------- new template modal -->
 <app-modal
   [open]="tplOpen()"

@@ -16,7 +16,7 @@ import {
 import { FormService } from '../form.service';
 import { Router } from '@angular/router';
 import {
-  FormTemplate,
+  PackCard,
   TemplateService,
 } from '../template.service';
 
@@ -63,29 +63,51 @@ export class FormsListComponent {
 
   readonly modalOpen = signal(false);
 
-  /* ------------------------------------------------ business templates */
+  /* ------------------------------------------------ vertical packs */
   private readonly templateService = inject(TemplateService);
   private readonly router = inject(Router);
-  readonly templates = signal<FormTemplate[]>([]);
+  readonly templates = signal<PackCard[]>([]);
   readonly galleryOpen = signal(false);
-  readonly previewFor = signal<FormTemplate | null>(null);
+  readonly galleryTab = signal<'builtin' | 'mine'>('builtin');
+  readonly previewFor = signal<PackCard | null>(null);
   readonly applying = signal(false);
   templateFormName = '';
+  applyAgent = true;
+  applyPlaybook = true;
+  applyAutomations = true;
+  applyWhatsapp = true;
+
+  readonly builtinPacks = computed(() => this.templates().filter((t) => t.builtin));
+  readonly myPacks = computed(() => this.templates().filter((t) => !t.builtin));
+
+  /* save-as-pack + import */
+  readonly exportFor = signal<FormResponse | null>(null);
+  readonly exporting = signal(false);
+  packName = '';
+  readonly importOpen = signal(false);
+  readonly importing = signal(false);
+  importJson = '';
 
   openGallery(): void {
     this.galleryOpen.set(true);
-    if (!this.templates().length) {
-      this.templateService.catalog().subscribe({
-        next: (list) => this.templates.set(list),
-        error: () => this.templates.set([]),
-      });
-    }
+    this.loadPacks();
+  }
+
+  private loadPacks(): void {
+    this.templateService.catalog().subscribe({
+      next: (list) => this.templates.set(list),
+      error: () => this.templates.set([]),
+    });
   }
 
   /** Step 1: card click => full preview (kya-kya banega) — abhi kuch create NAHI hota. */
-  openPreview(template: FormTemplate): void {
+  openPreview(template: PackCard): void {
     this.previewFor.set(template);
     this.templateFormName = template.name;
+    this.applyAgent = !!template.agent;
+    this.applyPlaybook = !!template.includes?.playbook;
+    this.applyAutomations = true;
+    this.applyWhatsapp = true;
   }
 
   /** Step 2: user ke confirm par hi create hota hai. */
@@ -93,19 +115,122 @@ export class FormsListComponent {
     const template = this.previewFor();
     if (!template) return;
     this.applying.set(true);
-    this.templateService.apply(template.key, this.templateFormName.trim() || undefined).subscribe({
-      next: (result) => {
-        this.applying.set(false);
-        this.previewFor.set(null);
-        this.galleryOpen.set(false);
-        this.toast.success(
-          `${result.form.name} ready!`,
-          `${result.fieldCount} fields, ${result.stageCount} stages, ${result.automationCount} draft automations. ${result.note}`,
-        );
-        this.router.navigate(['/app/forms', result.form.id]);
+    this.templateService
+      .apply(template.key, {
+        name: this.templateFormName.trim() || undefined,
+        includeAgent: this.applyAgent,
+        includePlaybook: this.applyPlaybook,
+        includeAutomations: this.applyAutomations,
+        includeWhatsapp: this.applyWhatsapp,
+      })
+      .subscribe({
+        next: (result) => {
+          this.applying.set(false);
+          this.previewFor.set(null);
+          this.galleryOpen.set(false);
+          const parts = [
+            `${result.fieldCount} fields`,
+            `${result.stageCount} stages`,
+            `${result.automationCount} draft automations`,
+          ];
+          if (result.whatsappDraftCount) parts.push(`${result.whatsappDraftCount} WhatsApp drafts`);
+          if (result.agentId) parts.push('an AI assistant');
+          if (result.playbookId) parts.push('a sales playbook');
+          this.toast.success(`${result.form.name} ready!`, `${parts.join(', ')}. ${result.note}`);
+          this.router.navigate(['/app/forms', result.form.id]);
+        },
+        error: () => this.applying.set(false),
+      });
+  }
+
+  openExport(form: FormResponse, event?: Event): void {
+    event?.stopPropagation();
+    this.exportFor.set(form);
+    this.packName = form.name;
+  }
+
+  confirmExport(): void {
+    const form = this.exportFor();
+    if (!form) return;
+    this.exporting.set(true);
+    this.templateService.exportForm(form.id, this.packName.trim() || undefined).subscribe({
+      next: (pack) => {
+        this.exporting.set(false);
+        this.exportFor.set(null);
+        this.toast.success('Pack saved', `"${pack.name}" is under My packs — install it in any workspace or share its JSON.`);
+        this.loadPacks();
       },
-      error: () => this.applying.set(false),
+      error: () => this.exporting.set(false),
     });
+  }
+
+  confirmImport(): void {
+    const json = this.importJson.trim();
+    if (!json) return;
+    this.importing.set(true);
+    this.templateService.importPack(json).subscribe({
+      next: (pack) => {
+        this.importing.set(false);
+        this.importOpen.set(false);
+        this.importJson = '';
+        this.galleryTab.set('mine');
+        this.toast.success('Pack imported', `"${pack.name}" is ready to install.`);
+        this.loadPacks();
+      },
+      error: () => this.importing.set(false),
+    });
+  }
+
+  deletePack(pack: PackCard, event?: Event): void {
+    event?.stopPropagation();
+    if (!pack.customId) return;
+    this.confirm.confirmDelete(`pack "${pack.name}"`).subscribe((ok) => {
+      if (!ok) return;
+      this.templateService.deleteCustom(pack.customId!).subscribe({ next: () => this.loadPacks() });
+    });
+  }
+
+  packJsonUrl(pack: PackCard): string {
+    return pack.customId ? this.templateService.customJsonUrl(pack.customId) : '';
+  }
+
+  copyPackJson(pack: PackCard, event?: Event): void {
+    event?.stopPropagation();
+    const json = JSON.stringify(
+      {
+        key: pack.key, name: pack.name, icon: pack.icon, color: pack.color, tagline: pack.tagline,
+        description: pack.description, industry: pack.industry, tags: pack.tags, fields: pack.fields,
+        stages: pack.stages, automations: pack.automations, whatsappTemplates: pack.whatsappTemplates,
+        agent: pack.agent, playbook: pack.playbook,
+      },
+      null,
+      2,
+    );
+    navigator.clipboard?.writeText(json).then(
+      () => this.toast.success('Copied', 'Pack JSON is on your clipboard — paste it into "Import pack" anywhere.'),
+      () => this.toast.error('Copy failed'),
+    );
+  }
+
+  playbookLine(r: { name: string; trigger: string; action: string; afterMinutes?: number | null }): string {
+    const when: Record<string, string> = {
+      NO_REPLY: 'customer silent',
+      STAGE_IDLE: 'stuck in stage',
+      RECORD_CREATED: 'after a new record',
+      QUALIFIED: 'once qualified',
+      INTEREST: 'AI interest signal',
+    };
+    const what: Record<string, string> = {
+      SEND_MESSAGE: 'send a message',
+      SEND_DOCUMENT: 'send the quotation',
+      MOVE_STAGE: 'move the stage',
+      CREATE_TASK: 'create a task',
+      HANDOFF: 'hand to a person',
+      NOTIFY: 'notify the team',
+    };
+    const mins = r.afterMinutes ?? 0;
+    const delay = mins >= 1440 ? `${Math.round(mins / 1440)}d` : mins >= 60 ? `${Math.round(mins / 60)}h` : mins ? `${mins}m` : '';
+    return `${when[r.trigger] ?? r.trigger}${delay ? ' ' + delay : ''} → ${what[r.action] ?? r.action}`;
   }
 
   automationLine(a: {
@@ -118,7 +243,9 @@ export class FormsListComponent {
       : a.actionType === 'SEND_EMAIL' ? 'an email is sent'
         : a.actionType === 'SEND_DOCUMENT' ? 'a document is auto-filled & sent'
           : a.actionType === 'ADJUST_FIELD' ? 'a field is updated'
-            : 'an action runs';
+            : a.actionType === 'CREATE_TASK' ? 'a task is created for a person'
+              : a.actionType === 'CHANGE_STAGE' ? 'the stage changes'
+                : 'an action runs';
     const when = a.trigger === 'RECORD_CREATED'
       ? 'As soon as a record is created'
       : a.trigger === 'STATUS_CHANGED' && a.triggerStatusName

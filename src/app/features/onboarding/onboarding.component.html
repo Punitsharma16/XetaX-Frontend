@@ -101,8 +101,8 @@
       @case (1) {
         <h2 class="ob__title">Pick a template or start blank</h2>
         <p class="ob__blurb">
-          A template creates a ready-made form with its fields, pipeline stages and draft automations
-          in one click. You can rename or change everything afterwards.
+          A pack sets up your whole workflow in one click: form, pipeline, draft automations, WhatsApp
+          message templates, an AI assistant and a sales playbook for your industry. Rename or change anything afterwards.
         </p>
 
         @if (applied(); as result) {
@@ -116,12 +116,22 @@
                 {{ result.fieldCount }} field{{ result.fieldCount === 1 ? '' : 's' }} ·
                 {{ result.stageCount }} stage{{ result.stageCount === 1 ? '' : 's' }} ·
                 {{ result.automationCount }} draft automation{{ result.automationCount === 1 ? '' : 's' }}
+                @if (result.whatsappDraftCount) { · {{ result.whatsappDraftCount }} WhatsApp drafts }
+                @if (result.agentId) { · AI assistant }
+                @if (result.playbookId) { · sales playbook }
               </div>
               @if (result.note) { <div class="ob__result-note">{{ result.note }}</div> }
             </div>
-            <a class="btn btn-outline-secondary btn-sm" [routerLink]="['/app/forms', result.form.id]">
-              <i class="bi bi-gear me-1"></i>Open form
-            </a>
+            <div class="d-flex flex-column gap-1">
+              <a class="btn btn-outline-secondary btn-sm" [routerLink]="['/app/forms', result.form.id]">
+                <i class="bi bi-gear me-1"></i>Open form
+              </a>
+              @if (result.agentId) {
+                <a class="btn btn-outline-secondary btn-sm" [routerLink]="['/app/agents', result.agentId]">
+                  <i class="bi bi-robot me-1"></i>AI assistant
+                </a>
+              }
+            </div>
           </div>
         } @else {
           @if (templates() === null) {
@@ -151,9 +161,12 @@
                   @if (t.tagline) { <div class="ob__tpl-tag">{{ t.tagline }}</div> }
                   <div class="ob__tpl-desc">{{ t.description }}</div>
                   <div class="ob__tpl-meta">
-                    {{ t.fields.length || 0 }} fields · {{ t.stages.length || 0 }} stages ·
-                    {{ t.automations.length || 0 }} automations
+                    {{ t.includes.fields }} fields · {{ t.includes.stages }} stages · {{ t.includes.automations }} automations
+                    @if (t.includes.agent) { · <i class="bi bi-robot"></i> AI agent }
+                    @if (t.includes.playbook) { · <i class="bi bi-lightning-charge"></i> playbook }
+                    @if (t.includes.whatsappTemplates) { · <i class="bi bi-whatsapp"></i> {{ t.includes.whatsappTemplates }} templates }
                   </div>
+                  @if (t.installed) { <div class="ob__tpl-installed"><i class="bi bi-check2-circle me-1"></i>Already installed</div> }
                   <button type="button" class="btn ag-btn btn-sm mt-auto" [disabled]="applyingKey() !== null" (click)="applyTemplate(t)">
                     @if (applyingKey() === t.key) { <span class="spinner-border spinner-border-sm me-1"></span> }
                     @else { <i class="bi bi-magic me-1"></i> }

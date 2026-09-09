@@ -28,6 +28,10 @@
     <button class="ag-tabs__pill" [class.is-active]="tab() === 'channels'" (click)="tab.set('channels')">
       <i class="bi bi-diagram-3 me-1"></i>Channels &amp; Pipeline
     </button>
+    <button class="ag-tabs__pill" [class.is-active]="tab() === 'playbook'" (click)="tab.set('playbook')">
+      <i class="bi bi-lightning-charge me-1"></i>Sales Playbook
+      @if (playbook()?.active) { <span class="ag-count">on</span> }
+    </button>
     <button class="ag-tabs__pill" [class.is-active]="tab() === 'settings'" (click)="tab.set('settings')">
       <i class="bi bi-gear"></i> Settings
     </button>
@@ -319,6 +323,310 @@
         </div>
       </div>
     </div>
+  }
+
+  <!-- -------------------------------------------------------- PLAYBOOK -->
+  @if (tab() === 'playbook') {
+    <div class="card ag-card mb-3">
+      <div class="card-body">
+        <div class="d-flex flex-wrap align-items-start justify-content-between gap-2">
+          <div>
+            <h6 class="mb-1"><i class="bi bi-lightning-charge me-2 text-warning"></i>Sales playbook — the assistant that closes</h6>
+            <p class="text-secondary small mb-0">
+              Rules that follow up on their own, send the quotation, move stages and hand hot leads to a person.
+              Delivery order: WhatsApp (24h window) → approved template → email → a task for your team. Nothing is dropped.
+            </p>
+          </div>
+          <div class="form-check form-switch mt-1">
+            <input class="form-check-input" type="checkbox" id="pbActive" [(ngModel)]="pbActive" />
+            <label class="form-check-label fw-semibold" for="pbActive">{{ pbActive ? 'Playbook ON' : 'Playbook OFF' }}</label>
+          </div>
+        </div>
+
+        <div class="row g-3 mt-1">
+          <div class="col-12 col-md-5">
+            <label class="form-label">Pipeline (form) it works on</label>
+            <select class="form-select" [(ngModel)]="pbFormId" (ngModelChange)="onPlaybookFormChange()">
+              <option [ngValue]="null">Pick a form…</option>
+              @for (f of forms(); track f.id) { <option [ngValue]="f.id">{{ f.name }}</option> }
+            </select>
+            <div class="form-text">Usually the same form as "Where conversations are saved".</div>
+          </div>
+          <div class="col-12 col-md-7">
+            <label class="form-label">Goal (what a closed deal looks like)</label>
+            <input class="form-control" [(ngModel)]="pbGoal" placeholder="Book a site visit, then a booking with token amount" />
+            <div class="form-text">Goes into every conversation and every AI-written follow-up.</div>
+          </div>
+        </div>
+
+        @if (pbFormId) {
+          <div class="row g-3 mt-1">
+            <div class="col-12 col-lg-6">
+              <label class="form-label">A lead is <b>qualified</b> once these are filled</label>
+              <div class="d-flex flex-wrap gap-1">
+                @for (f of pbFields(); track f.id) {
+                  <button type="button" class="pb-chip" [class.is-on]="pbQualification.includes(f.fieldKey)" (click)="toggleQualification(f.fieldKey)">
+                    {{ f.label }}
+                  </button>
+                } @empty { <span class="text-muted small">This form has no fields yet.</span> }
+              </div>
+            </div>
+            <div class="col-6 col-lg-2">
+              <label class="form-label">Quiet from</label>
+              <input class="form-control" type="number" min="0" max="23" [(ngModel)]="pbQuietStart" />
+            </div>
+            <div class="col-6 col-lg-2">
+              <label class="form-label">Quiet until</label>
+              <input class="form-control" type="number" min="0" max="23" [(ngModel)]="pbQuietEnd" />
+              <div class="form-text">Hours (IST). Same value = no quiet hours.</div>
+            </div>
+            <div class="col-6 col-lg-2">
+              <label class="form-label">Max follow-ups / lead</label>
+              <input class="form-control" type="number" min="0" max="20" [(ngModel)]="pbMaxFollowUps" />
+            </div>
+            <div class="col-12 col-lg-6">
+              <label class="form-label">Quotation / brochure the assistant may send</label>
+              <select class="form-select" [(ngModel)]="pbDocumentId">
+                <option [ngValue]="null">— none —</option>
+                @for (d of documents(); track d.id) { <option [ngValue]="d.id">{{ d.name }}{{ d.supportsVariables ? ' · auto-fill' : '' }}</option> }
+              </select>
+              <div class="form-text">Upload it under Documents. .docx files get {{ '{{fieldKey}}' }} placeholders filled per lead.</div>
+            </div>
+          </div>
+
+          <hr />
+          <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+            <h6 class="mb-0"><i class="bi bi-list-check me-2"></i>Rules <span class="ag-count">{{ pbRules.length }}</span></h6>
+            <button class="btn btn-outline-secondary btn-sm" (click)="newRule()"><i class="bi bi-plus-lg me-1"></i>Add rule</button>
+          </div>
+          @if (!pbRules.length) {
+            <div class="ag-hint">No rules yet. Start with "Customer has not replied for 1 day → send a message (AI-written)".</div>
+          }
+          <div class="pb-rules">
+            @for (r of pbRules; track $index; let i = $index) {
+              <div class="pb-rule" [class.is-off]="!r.active">
+                <div class="pb-rule__main">
+                  <div class="pb-rule__name">
+                    {{ r.name }}
+                    @if (!r.active) { <span class="badge text-bg-secondary ms-1">off</span> }
+                  </div>
+                  <div class="pb-rule__meta">
+                    <span class="pb-tag">{{ ruleSummary(r) }}</span>
+                    <i class="bi bi-arrow-right mx-1 text-muted"></i>
+                    <span class="pb-tag pb-tag--act">{{ actionLabels[r.action] || r.action }}</span>
+                    @if (r.action === 'SEND_MESSAGE' && r.aiCompose) { <span class="pb-tag pb-tag--ai"><i class="bi bi-stars"></i> AI writes it</span> }
+                    @if (r.action === 'MOVE_STAGE' && r.targetStageId) { <span class="pb-tag">→ {{ pbStageName(r.targetStageId) }}</span> }
+                    @if (r.conditions.length) { <span class="pb-tag">{{ r.conditions.length }} condition{{ r.conditions.length === 1 ? '' : 's' }}</span> }
+                  </div>
+                  @if (r.message) { <div class="pb-rule__msg">"{{ r.message }}"</div> }
+                </div>
+                <div class="pb-rule__tools">
+                  <button class="btn btn-light btn-sm" (click)="moveRule(i, -1)" [disabled]="i === 0" title="Up"><i class="bi bi-chevron-up"></i></button>
+                  <button class="btn btn-light btn-sm" (click)="moveRule(i, 1)" [disabled]="i === pbRules.length - 1" title="Down"><i class="bi bi-chevron-down"></i></button>
+                  <button class="btn btn-light btn-sm" (click)="editRule(i)" title="Edit"><i class="bi bi-pencil"></i></button>
+                  <button class="btn btn-light btn-sm text-danger" (click)="removeRule(i)" title="Remove"><i class="bi bi-trash"></i></button>
+                </div>
+              </div>
+            }
+          </div>
+
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+            <div class="d-flex gap-2">
+              <button class="btn btn-outline-secondary btn-sm" [disabled]="!playbook()?.id || pbBusy() !== null" (click)="previewPlaybook()">
+                @if (pbBusy() === 'preview') { <span class="spinner-border spinner-border-sm me-1"></span> } @else { <i class="bi bi-eye me-1"></i> }
+                Preview (dry run)
+              </button>
+              <button class="btn btn-outline-secondary btn-sm" [disabled]="!playbook()?.id || !playbook()?.active || pbBusy() !== null" (click)="runPlaybookNow()">
+                @if (pbBusy() === 'run') { <span class="spinner-border spinner-border-sm me-1"></span> } @else { <i class="bi bi-play-fill me-1"></i> }
+                Run now
+              </button>
+            </div>
+            <button class="btn ag-btn" [disabled]="savingPlaybook()" (click)="savePlaybook()">
+              @if (savingPlaybook()) { <span class="spinner-border spinner-border-sm me-1"></span> } @else { <i class="bi bi-check2 me-1"></i> }
+              Save playbook
+            </button>
+          </div>
+
+          @if (pbStats(); as stats) {
+            <div class="ag-hint mt-3">
+              <b>Right now:</b>
+              @for (st of stats; track st.ruleId) {
+                <span class="d-inline-block me-3">{{ st.ruleName }} — <b>{{ st.matched }}</b> lead{{ st.matched === 1 ? '' : 's' }}{{ st.fired ? ', ' + st.fired + ' fired' : '' }}{{ st.note ? ' (' + st.note + ')' : '' }}</span>
+              } @empty { <span>no active rules.</span> }
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+    @if (pbRuns().length) {
+      <div class="card ag-card">
+        <div class="card-body">
+          <h6 class="mb-2"><i class="bi bi-clock-history me-2"></i>Recent playbook activity</h6>
+          <div class="table-responsive">
+            <table class="table table-sm align-middle mb-0 pb-table">
+              <thead><tr><th>When</th><th>Rule</th><th>Lead</th><th>Result</th></tr></thead>
+              <tbody>
+                @for (run of pbRuns(); track run.id) {
+                  <tr>
+                    <td class="text-nowrap text-muted">{{ (run.lastRunAt || run.nextEligibleAt) | date: 'dd MMM, HH:mm' }}{{ !run.lastRunAt && run.nextEligibleAt ? ' (scheduled)' : '' }}</td>
+                    <td>{{ run.ruleName }}<span class="text-muted"> · #{{ run.runCount }}</span></td>
+                    <td><a [routerLink]="['/app/records', playbook()?.formSlug, run.recordId]">open</a></td>
+                    <td><i class="bi me-1" [class]="channelIcon(run.channel)"></i>{{ run.outcome || run.status }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- rule editor -->
+    @if (editingRule(); as r) {
+      <div class="pb-overlay" (click)="editingRule.set(null)"></div>
+      <div class="pb-editor card ag-card">
+        <div class="card-body">
+          <h6 class="mb-3">{{ editingIndex() >= 0 ? 'Edit rule' : 'New rule' }}</h6>
+          <div class="row g-3">
+            <div class="col-12 col-md-8">
+              <label class="form-label">Name</label>
+              <input class="form-control" [(ngModel)]="r.name" placeholder="Follow up silent leads" />
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label d-block">Active</label>
+              <div class="form-check form-switch mt-2"><input class="form-check-input" type="checkbox" id="rAct" [(ngModel)]="r.active" /><label class="form-check-label" for="rAct">{{ r.active ? 'On' : 'Off' }}</label></div>
+            </div>
+
+            <div class="col-12"><span class="rule-chip">When</span></div>
+            <div class="col-12 col-md-6">
+              <select class="form-select" [(ngModel)]="r.trigger">
+                @for (t of triggers; track t) { <option [value]="t">{{ triggerLabels[t] }}</option> }
+              </select>
+            </div>
+            @if (r.trigger === 'NO_REPLY' || r.trigger === 'STAGE_IDLE' || r.trigger === 'RECORD_CREATED') {
+              <div class="col-6 col-md-3"><input class="form-control" type="number" min="0" [(ngModel)]="ruleDelayValue" /></div>
+              <div class="col-6 col-md-3">
+                <select class="form-select" [(ngModel)]="ruleDelayUnit">
+                  @for (u of delayUnits; track u.mult) { <option [ngValue]="u.mult">{{ u.label }}</option> }
+                </select>
+              </div>
+            }
+            @if (r.trigger === 'INTEREST') {
+              <div class="col-12 col-md-6">
+                <select class="form-select" [(ngModel)]="r.interest">
+                  <option value="HOT">HOT — ready to buy</option>
+                  <option value="WARM">WARM — interested</option>
+                  <option value="COLD">COLD — unhappy / not interested</option>
+                </select>
+              </div>
+            }
+            @if (r.trigger === 'QUALIFIED' && !pbQualification.length) {
+              <div class="col-12"><div class="ag-hint">Pick the qualification fields above first, otherwise this never fires.</div></div>
+            }
+            <div class="col-12">
+              <label class="form-label">Only for leads in these stages <span class="text-muted">(none = every open stage)</span></label>
+              <div class="d-flex flex-wrap gap-1">
+                @for (s of pbStages(); track s.id) {
+                  <button type="button" class="pb-chip" [class.is-on]="r.stageIds.includes(s.id)" (click)="toggleRuleStage(s.id)">{{ s.name }}</button>
+                }
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label">Max times per lead</label>
+              <input class="form-control" type="number" min="1" max="50" [(ngModel)]="r.maxRepeats" />
+            </div>
+            @if ((r.maxRepeats || 1) > 1) {
+              <div class="col-6 col-md-3">
+                <label class="form-label">Repeat every</label>
+                <input class="form-control" type="number" min="1" [(ngModel)]="ruleRepeatValue" />
+              </div>
+              <div class="col-6 col-md-3">
+                <label class="form-label">&nbsp;</label>
+                <select class="form-select" [(ngModel)]="ruleRepeatUnit">
+                  @for (u of delayUnits; track u.mult) { <option [ngValue]="u.mult">{{ u.label }}</option> }
+                </select>
+              </div>
+            }
+
+            <div class="col-12 d-flex align-items-center gap-2">
+              <span class="rule-chip">Only if</span>
+              <button type="button" class="btn btn-light btn-sm" (click)="addCondition()"><i class="bi bi-plus-lg me-1"></i>Condition</button>
+            </div>
+            @for (c of r.conditions; track $index; let ci = $index) {
+              <div class="col-12 col-md-4">
+                <select class="form-select" [(ngModel)]="c.fieldKey">
+                  @for (f of pbFields(); track f.id) { <option [value]="f.fieldKey">{{ f.label }}</option> }
+                </select>
+              </div>
+              <div class="col-6 col-md-3">
+                <select class="form-select" [(ngModel)]="c.op">
+                  <option value="EQUALS">is</option><option value="NOT_EQUALS">is not</option><option value="CONTAINS">contains</option>
+                  <option value="BLANK">is blank</option><option value="NOT_BLANK">is filled</option><option value="GT">greater than</option><option value="LT">less than</option>
+                </select>
+              </div>
+              <div class="col-5 col-md-4">
+                <input class="form-control" [(ngModel)]="c.value" [disabled]="c.op === 'BLANK' || c.op === 'NOT_BLANK'" placeholder="value" />
+              </div>
+              <div class="col-1 text-end"><button class="btn btn-light btn-sm text-danger" (click)="removeCondition(ci)"><i class="bi bi-x-lg"></i></button></div>
+            }
+
+            <div class="col-12"><span class="rule-chip rule-chip--then">Then</span></div>
+            <div class="col-12 col-md-6">
+              <select class="form-select" [(ngModel)]="r.action">
+                @for (a of actions; track a) { <option [value]="a">{{ actionLabels[a] }}</option> }
+              </select>
+            </div>
+            @if (r.action === 'MOVE_STAGE') {
+              <div class="col-12 col-md-6">
+                <select class="form-select" [(ngModel)]="r.targetStageId">
+                  <option [ngValue]="null">Move to…</option>
+                  @for (s of pbStages(); track s.id) { <option [ngValue]="s.id">{{ s.name }}</option> }
+                </select>
+              </div>
+            }
+            @if (r.action === 'SEND_DOCUMENT') {
+              <div class="col-12 col-md-6">
+                <select class="form-select" [(ngModel)]="r.documentId">
+                  <option [ngValue]="null">Use the playbook's quotation</option>
+                  @for (d of documents(); track d.id) { <option [ngValue]="d.id">{{ d.name }}</option> }
+                </select>
+              </div>
+            }
+            @if (r.action === 'CREATE_TASK' || r.action === 'HANDOFF') {
+              <div class="col-12 col-md-4"><input class="form-control" [(ngModel)]="r.taskTitle" placeholder="Task title" /></div>
+              <div class="col-12 col-md-2"><input class="form-control" type="number" min="1" [(ngModel)]="r.taskDueHours" placeholder="Due in h" title="Due in hours" /></div>
+            }
+            @if (r.action === 'SEND_MESSAGE' || r.action === 'SEND_DOCUMENT' || r.action === 'CREATE_TASK' || r.action === 'HANDOFF' || r.action === 'NOTIFY') {
+              <div class="col-12">
+                @if (r.action === 'SEND_MESSAGE' || r.action === 'SEND_DOCUMENT') {
+                  <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="rAi" [(ngModel)]="r.aiCompose" />
+                    <label class="form-check-label" for="rAi"><i class="bi bi-stars me-1"></i>Let the assistant write it from the goal + what it knows about the lead (text below becomes the hint)</label>
+                  </div>
+                }
+                <textarea class="form-control" rows="3" [(ngModel)]="r.message"
+                  [placeholder]="r.action === 'SEND_MESSAGE' ? 'Hi {name}, just checking in — shall I share a quick proposal?' : r.action === 'SEND_DOCUMENT' ? 'Caption sent with the document' : 'Notes for the person'"></textarea>
+                <div class="form-text">
+                  Placeholders: @for (f of pbFields(); track f.id) { <code class="me-1">{{ '{' + f.fieldKey + '}' }}</code> }
+                </div>
+              </div>
+              @if (r.action === 'SEND_MESSAGE') {
+                <div class="col-12 col-md-6">
+                  <label class="form-label">Approved WhatsApp template for cold sends <span class="text-muted">(optional)</span></label>
+                  <input class="form-control" [(ngModel)]="r.templateName" placeholder="followup_no_reply" />
+                  <div class="form-text">Used when the 24h window is closed; {{ '{{1}}' }} gets the lead's name.</div>
+                </div>
+              }
+            }
+          </div>
+          <div class="d-flex justify-content-end gap-2 mt-3">
+            <button class="btn btn-outline-secondary" (click)="editingRule.set(null)">Cancel</button>
+            <button class="btn ag-btn" (click)="commitRule()"><i class="bi bi-check2 me-1"></i>{{ editingIndex() >= 0 ? 'Update rule' : 'Add rule' }}</button>
+          </div>
+        </div>
+      </div>
+    }
   }
 
   @if (tab() === 'settings') {

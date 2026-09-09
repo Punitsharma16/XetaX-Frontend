@@ -69,3 +69,37 @@
   border: 1px solid var(--border-subtle, #e9ecef);
   border-radius: 10px; padding: 0.6rem 0.8rem;
 }
+
+/* playbook */
+.pb-chip {
+  border: 1px solid var(--border-subtle, #e9ecef); background: var(--surface-card, #fff);
+  border-radius: 999px; padding: 0.2rem 0.65rem; font-size: 0.74rem; font-weight: 600;
+  color: var(--text-secondary, #495057); cursor: pointer;
+}
+.pb-chip.is-on { background: var(--brand-600, #4f46e5); border-color: var(--brand-600, #4f46e5); color: #fff; }
+.pb-rules { display: grid; gap: 0.5rem; }
+.pb-rule {
+  display: flex; gap: 0.75rem; align-items: flex-start; justify-content: space-between;
+  border: 1px solid var(--border-subtle, #e9ecef); border-radius: 12px; padding: 0.65rem 0.8rem;
+  background: var(--surface-card, #fff);
+}
+.pb-rule.is-off { opacity: 0.6; }
+.pb-rule__main { min-width: 0; flex: 1; }
+.pb-rule__name { font-weight: 700; font-size: 0.88rem; }
+.pb-rule__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem; margin-top: 0.25rem; font-size: 0.72rem; }
+.pb-rule__msg { font-size: 0.76rem; color: var(--text-secondary, #6c757d); margin-top: 0.3rem; font-style: italic; }
+.pb-rule__tools { display: flex; gap: 0.2rem; flex-shrink: 0; }
+.pb-tag { background: var(--surface-sunken, #f1f3f5); border-radius: 999px; padding: 0.1rem 0.5rem; }
+.pb-tag--act { background: var(--brand-50, #eef2ff); color: var(--brand-600, #4f46e5); font-weight: 600; }
+.pb-tag--ai { background: rgba(245, 158, 11, 0.15); color: #b45309; font-weight: 600; }
+.pb-table { font-size: 0.78rem; }
+.pb-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); z-index: 1050; }
+.pb-editor {
+  position: fixed; top: 4vh; left: 50%; transform: translateX(-50%); width: min(860px, 94vw);
+  max-height: 92vh; overflow-y: auto; z-index: 1051;
+}
+.rule-chip {
+  display: inline-block; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  background: var(--surface-sunken, #f1f3f5); color: var(--text-secondary, #495057); border-radius: 999px; padding: 0.15rem 0.6rem;
+}
+.rule-chip--then { background: var(--brand-50, #eef2ff); color: var(--brand-600, #4f46e5); }

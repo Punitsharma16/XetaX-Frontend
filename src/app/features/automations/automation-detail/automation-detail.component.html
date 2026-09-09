@@ -289,6 +289,35 @@
             </div>
           }
 
+          <!-- CREATE_TASK -->
+          @if (actionType === ActionType.CREATE_TASK) {
+            <div class="col-12 col-md-7">
+              <label class="form-label">Task title</label>
+              <input class="form-control" [(ngModel)]="actionValue" name="taskTitle" placeholder="Call {name} about the quotation" />
+            </div>
+            <div class="col-12 col-md-5">
+              <label class="form-label">Due in (hours)</label>
+              <input class="form-control" type="number" min="1" [(ngModel)]="emailSubject" name="taskDue" placeholder="24" />
+            </div>
+            <div class="col-12">
+              <label class="form-label">Notes for the person</label>
+              <textarea class="form-control" rows="3" [(ngModel)]="emailMessage" name="taskNotes" placeholder="What to do and why"></textarea>
+              @if (fieldKeys().length) {
+                <div class="mt-2 d-flex flex-wrap gap-1 align-items-center">
+                  <span class="text-muted" style="font-size: 0.7rem">Insert field:</span>
+                  @for (key of fieldKeys(); track key) {
+                    <button type="button" class="btn btn-light btn-sm placeholder-chip" (click)="appendPlaceholder(key)">
+                      {{ '{' + key + '}' }}
+                    </button>
+                  }
+                </div>
+              }
+              <div class="form-text">
+                Assigned to the record's assignee, otherwise the workspace owner. Shows up in Tasks with a bell notification.
+              </div>
+            </div>
+          }
+
           <!-- SEND_DOCUMENT -->
           @if (actionType === ActionType.SEND_DOCUMENT) {
             <div class="col-12 col-md-4">

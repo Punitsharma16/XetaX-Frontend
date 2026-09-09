@@ -11,6 +11,7 @@ import {
   ErrorStateComponent,
 } from '../../../shared/components/state/state-views.component';
 import { WhatsAppNavComponent } from '../whatsapp-nav.component';
+import { TemplateDraft, TemplateService } from '../../forms/template.service';
 import {
   EmbeddedSignupMeta,
   WhatsAppConfig,
@@ -44,6 +45,40 @@ export class WhatsAppSettingsComponent implements OnDestroy {
   private readonly whatsapp = inject(WhatsAppService);
   private readonly toast = inject(ToastService);
   private readonly confirm = inject(ConfirmService);
+  private readonly packTemplates = inject(TemplateService);
+
+  /* ------------------------------------------------ drafts shipped by packs */
+  readonly drafts = signal<TemplateDraft[]>([]);
+  readonly submittingDraft = signal<number | null>(null);
+  readonly pendingDrafts = computed(() => this.drafts().filter((d) => d.status !== 'SUBMITTED'));
+
+  loadDrafts(): void {
+    this.packTemplates.drafts().subscribe({ next: (list) => this.drafts.set(list ?? []), error: () => this.drafts.set([]) });
+  }
+
+  submitDraft(draft: TemplateDraft): void {
+    if (this.submittingDraft()) return;
+    this.submittingDraft.set(draft.id);
+    this.packTemplates.submitDraft(draft.id).subscribe({
+      next: () => {
+        this.submittingDraft.set(null);
+        this.toast.success('Submitted to Meta', `"${draft.name}" is in review — press Sync later to see the status.`);
+        this.loadDrafts();
+        this.loadTemplates();
+      },
+      error: () => {
+        this.submittingDraft.set(null);
+        this.loadDrafts();
+      },
+    });
+  }
+
+  deleteDraft(draft: TemplateDraft): void {
+    this.confirm.confirmDelete(`draft "${draft.name}"`).subscribe((ok) => {
+      if (!ok) return;
+      this.packTemplates.deleteDraft(draft.id).subscribe({ next: () => this.loadDrafts() });
+    });
+  }
 
   readonly loading = signal(true);
   readonly error = signal(false);
@@ -176,6 +211,7 @@ export class WhatsAppSettingsComponent implements OnDestroy {
   };
 
   constructor() {
+    this.loadDrafts();
     window.addEventListener('message', this.onSignupMessage);
     this.reload();
   }
