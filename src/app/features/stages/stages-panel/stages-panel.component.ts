@@ -122,6 +122,11 @@ export class StagesPanelComponent {
 
   onCodeInput(): void {
     this.codeTouched = true;
+    // The code must be uppercase — fix it as it is typed instead of showing a
+    // validation error (stages that came from a pack are edited here too).
+    const control = this.editorForm.controls.code;
+    const upper = (control.value ?? '').toUpperCase().replace(/[^A-Z0-9_]/g, '_');
+    if (upper !== control.value) control.setValue(upper, { emitEvent: false });
   }
 
   pickColor(color: string): void {
