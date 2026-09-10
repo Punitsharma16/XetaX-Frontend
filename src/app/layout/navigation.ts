@@ -8,6 +8,8 @@ export interface NavItem {
   perm?: string;
   /** Rendered as a small trailing pill (e.g. "Beta"). */
   badge?: string;
+  /** Only for XetaX's own team — hidden from every customer account. */
+  platformOnly?: boolean;
 }
 
 export interface NavSection {
@@ -65,6 +67,7 @@ export const NAVIGATION: NavSection[] = [
       { label: 'Facebook Ads', icon: 'bi-megaphone', route: '/app/ads', perm: 'integrations.view' },
       { label: 'Integrations', icon: 'bi-plug', route: '/app/integrations', perm: 'integrations.view' },
       { label: 'Team', icon: 'bi-people', route: '/app/users', perm: 'team.manage' },
+      { label: 'Platform', icon: 'bi-shield-lock', route: '/app/platform', platformOnly: true },
     ],
   },
 ];

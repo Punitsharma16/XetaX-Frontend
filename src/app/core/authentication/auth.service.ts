@@ -44,6 +44,8 @@ export class AuthService {
   readonly user = this._user.asReadonly();
   readonly isAuthenticated = computed(() => this._user() !== null);
   readonly isAdmin = computed(() => this._user()?.isAdmin === true);
+  /** XetaX's own team — gates the platform console. */
+  readonly isPlatformAdmin = computed(() => this._user()?.platformAdmin === true);
   readonly roles = computed(() => this._user()?.roles ?? []);
   readonly initials = computed(() => {
     const name = this._user()?.name?.trim();
@@ -103,6 +105,7 @@ export class AuthService {
       company: dto.company ?? null,
       phone: dto.phone ?? null,
       isAdmin,
+      platformAdmin: dto.platformAdmin === true,
       isEnabled: dto.enable ?? dto.isEnable ?? true,
       roles,
     };

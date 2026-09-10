@@ -1,0 +1,204 @@
+<app-page-header
+  title="Platform"
+  icon="bi-shield-lock"
+  subtitle="Every workspace on XetaX — what they are on, what they use, and the two levers you have."
+>
+  <button type="button" class="btn btn-outline-secondary" (click)="load()" title="Refresh">
+    <i class="bi bi-arrow-clockwise"></i>
+  </button>
+</app-page-header>
+
+@if (overview(); as o) {
+  <div class="pf-tiles mb-3">
+    <div class="pf-tile"><span>Workspaces</span><b>{{ o.workspaces }}</b></div>
+    <div class="pf-tile"><span>Paying</span><b>{{ o.payingWorkspaces }}</b></div>
+    <div class="pf-tile pf-tile--hero"><span>Booked</span><b>₹{{ o.bookedAmount | number: '1.0-0' }}</b></div>
+    <div class="pf-tile" [class.pf-tile--warn]="o.expiringIn14Days > 0">
+      <span>Expiring in 14 days</span><b>{{ o.expiringIn14Days }}</b>
+    </div>
+    <div class="pf-tile"><span>Team members</span><b>{{ o.members }}</b></div>
+    <div class="pf-tile"><span>AI this month</span><b>{{ o.aiThisMonth.assistant + o.aiThisMonth.agent | number }}</b></div>
+  </div>
+}
+
+<div class="card">
+  <div class="card-header d-flex flex-wrap gap-2 align-items-center justify-content-between">
+    <span class="fw-semibold"><i class="bi bi-buildings me-1"></i>Workspaces</span>
+    <div class="d-flex gap-2">
+      <input class="form-control form-control-sm" style="width: 220px" placeholder="Name, email, company…"
+             [(ngModel)]="term" (keyup.enter)="load()" />
+      <select class="form-select form-select-sm w-auto" [(ngModel)]="planFilter" (ngModelChange)="load()">
+        <option value="">All plans</option>
+        @for (p of plans(); track p.key) { <option [value]="p.key">{{ p.label }}</option> }
+      </select>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="card-body text-muted small">Loading…</div>
+  } @else if (workspaces().length) {
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 pf-table">
+        <thead>
+          <tr>
+            <th>Workspace</th><th>Plan</th><th class="text-end">Team</th><th class="text-end">Records</th>
+            <th class="text-end">AI used</th><th>Ends</th><th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (w of workspaces(); track w.ownerUserId) {
+            <tr [class.pf-row--off]="!w.enabled">
+              <td>
+                <div class="fw-medium">{{ w.company || w.name }}</div>
+                <div class="text-muted small">{{ w.email }}</div>
+              </td>
+              <td>
+                <span class="badge" [class]="planBadge(w)">{{ w.planLabel }}</span>
+                @if (!w.enabled) { <span class="badge text-bg-danger ms-1">Disabled</span> }
+              </td>
+              <td class="text-end">{{ w.members + 1 }}</td>
+              <td class="text-end">{{ w.records | number }}</td>
+              <td class="text-end">{{ w.assistantUsed + w.agentUsed | number }}</td>
+              <td class="text-nowrap">
+                @if (w.platformAdmin) {
+                  <span class="text-muted small">never</span>
+                } @else if (daysLeft(w) !== null) {
+                  <span [class.text-danger]="(daysLeft(w) ?? 0) < 7">{{ daysLeft(w) }} days</span>
+                } @else {
+                  <span class="text-muted small">—</span>
+                }
+              </td>
+              <td class="text-end">
+                <button class="btn btn-sm btn-outline-secondary" (click)="open(w)">Manage</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <div class="card-body">
+      <app-empty-state icon="bi-buildings" title="No workspaces match"
+        message="Try a different search, or clear the plan filter." />
+    </div>
+  }
+</div>
+
+<!-- ------------------------------------------------------------- manage -->
+@if (selected(); as w) {
+  <div class="pf-overlay" (click)="selected.set(null)"></div>
+  <aside class="pf-drawer card">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-start gap-2">
+        <div>
+          <h5 class="mb-0">{{ w.company || w.name }}</h5>
+          <div class="text-muted small">{{ w.email }} @if (w.phone) { · {{ w.phone }} }</div>
+        </div>
+        <button class="btn btn-sm btn-light" (click)="selected.set(null)"><i class="bi bi-x-lg"></i></button>
+      </div>
+
+      <div class="pf-facts mt-3">
+        <div><span>Plan</span><b>{{ w.planLabel }}</b></div>
+        <div><span>Team</span><b>{{ w.members + 1 }}</b></div>
+        <div><span>Forms</span><b>{{ w.forms }}</b></div>
+        <div><span>Records</span><b>{{ w.records | number }}</b></div>
+        <div><span>Assistant</span><b>{{ w.assistantUsed }} / {{ w.assistantQuota }}</b></div>
+        <div><span>Agent</span><b>{{ w.agentUsed }} / {{ w.agentQuota }}</b></div>
+        <div><span>Top-up left</span><b>{{ w.topupBalance | number }}</b></div>
+        <div><span>Ends</span><b>{{ w.platformAdmin ? 'never' : (w.subscriptionEndsAt ? (w.subscriptionEndsAt | date: 'dd MMM yyyy') : '—') }}</b></div>
+      </div>
+
+      @if (!w.platformAdmin) {
+        <hr />
+        <h6 class="mb-2"><i class="bi bi-credit-card me-1"></i>Set the plan</h6>
+        <div class="row g-2">
+          <div class="col-6">
+            <label class="form-label">Plan</label>
+            <select class="form-select form-select-sm" [(ngModel)]="planKey" (ngModelChange)="onPlanChange()">
+              @for (k of planKeys(); track k) { <option [value]="k">{{ k }}</option> }
+            </select>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Months</label>
+            <input class="form-control form-control-sm" type="number" min="1" max="36"
+                   [(ngModel)]="months" (ngModelChange)="onMonthsChange()" />
+          </div>
+          <div class="col-6">
+            <label class="form-label">Amount received (₹)</label>
+            <input class="form-control form-control-sm" type="number" min="0" [(ngModel)]="amount" />
+          </div>
+          <div class="col-6">
+            <label class="form-label">Payment ref</label>
+            <input class="form-control form-control-sm" [(ngModel)]="paymentRef" placeholder="UTR / invoice no." />
+          </div>
+          <div class="col-12">
+            <input class="form-control form-control-sm" [(ngModel)]="planNote" placeholder="Note (optional)" />
+          </div>
+          <div class="col-12 d-flex justify-content-end">
+            <button class="btn btn-sm btn-primary" [disabled]="busy()" (click)="savePlan()">
+              @if (busy()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+              Activate
+            </button>
+          </div>
+        </div>
+
+        <hr />
+        <h6 class="mb-2"><i class="bi bi-stars me-1"></i>AI credits</h6>
+        <div class="d-flex gap-2 align-items-end">
+          <div class="flex-grow-1">
+            <label class="form-label">Messages to add</label>
+            <input class="form-control form-control-sm" type="number" [(ngModel)]="creditMessages" />
+            <div class="form-text">Never expires, shared by the assistant and the agents. Negative takes credits back.</div>
+          </div>
+          <button class="btn btn-sm btn-outline-primary" [disabled]="busy()" (click)="addCredit()">Add</button>
+        </div>
+      } @else {
+        <div class="alert alert-dark py-2 small mt-3 mb-0">
+          <i class="bi bi-shield-lock me-1"></i>This is a platform account. It never expires and cannot be
+          disabled — only its AI usage is metered.
+        </div>
+      }
+
+      @if (w.team.length) {
+        <hr />
+        <h6 class="mb-2"><i class="bi bi-people me-1"></i>Team</h6>
+        <ul class="pf-team">
+          @for (m of w.team; track m.id) {
+            <li><b>{{ m.name || m.email }}</b><span>{{ m.email }}</span>
+              @if (!m.enabled) { <em>disabled</em> }
+            </li>
+          }
+        </ul>
+      }
+
+      @if (w.subscriptions.length) {
+        <hr />
+        <h6 class="mb-2"><i class="bi bi-clock-history me-1"></i>Payment history</h6>
+        <div class="table-responsive">
+          <table class="table table-sm mb-0 pf-table">
+            <thead><tr><th>Plan</th><th>From</th><th>To</th><th class="text-end">Amount</th><th>Status</th></tr></thead>
+            <tbody>
+              @for (s of w.subscriptions; track s.startsAt) {
+                <tr>
+                  <td>{{ s.planKey }}</td>
+                  <td>{{ s.startsAt | date: 'dd MMM yy' }}</td>
+                  <td>{{ s.endsAt | date: 'dd MMM yy' }}</td>
+                  <td class="text-end">₹{{ s.amount | number: '1.0-0' }}</td>
+                  <td><span class="badge text-bg-light">{{ s.status }}</span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (!w.platformAdmin) {
+        <hr />
+        <button class="btn btn-sm w-100" [class.btn-outline-danger]="w.enabled" [class.btn-outline-success]="!w.enabled"
+                [disabled]="busy()" (click)="toggleEnabled()">
+          {{ w.enabled ? 'Disable this workspace' : 'Enable this workspace' }}
+        </button>
+      }
+    </div>
+  </aside>
+}

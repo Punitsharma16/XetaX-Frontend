@@ -108,6 +108,8 @@ export class ShellComponent {
   }
 
   private canSee(item: NavItem): boolean {
+    // The platform console belongs to XetaX, not to the customer.
+    if (item.platformOnly && !this.auth.isPlatformAdmin()) return false;
     // perm supports alternatives: 'a|b' => visible when EITHER is granted.
     if (item.perm && !item.perm.split('|').some((key) => this.perms.has(key))) return false;
     if (!item.roles?.length) return true;

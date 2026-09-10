@@ -369,6 +369,16 @@ export const routes: Routes = [
           ),
       },
 
+      // ---- Platform back office (XetaX team only; the API refuses everyone else) ----
+      {
+        path: 'platform',
+        title: 'Platform · XetaX CRM',
+        loadComponent: () =>
+          import('./features/platform/platform-console/platform-console.component').then(
+            (m) => m.PlatformConsoleComponent,
+          ),
+      },
+
       // ---- Users & own profile ----
       {
         path: 'users',

@@ -48,6 +48,9 @@ export interface AuthUser {
   /** Serialised as `admin`; `isAdmin` kept for tolerance. */
   admin?: boolean;
   isAdmin?: boolean;
+
+  /** True only for the XetaX team's own accounts — never for a customer. */
+  platformAdmin?: boolean | null;
 }
 
 /** Payload accepted by POST/PUT /auth/api/v1/users — password only on create. */
@@ -83,6 +86,8 @@ export interface SessionUser {
   company: string | null;
   phone: string | null;
   isAdmin: boolean;
+  /** Runs the platform itself: the back-office console, not a workspace. */
+  platformAdmin: boolean;
   isEnabled: boolean;
   roles: string[];
 }
