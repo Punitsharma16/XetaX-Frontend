@@ -45,7 +45,6 @@ export const NAVIGATION: NavSection[] = [
     items: [
       { label: 'Forms', icon: 'bi-ui-checks-grid', route: '/app/forms', perm: 'forms.view' },
       { label: 'Records', icon: 'bi-collection', route: '/app/records', perm: 'records.view|records.view.own' },
-      { label: 'Advanced Search', icon: 'bi-search', route: '/app/search', perm: 'records.view|records.view.own' },
       { label: 'Documents', icon: 'bi-folder2-open', route: '/app/documents', perm: 'documents.view' },
       { label: 'Invoices', icon: 'bi-receipt', route: '/app/invoices', perm: 'invoices.view' },
     ],
