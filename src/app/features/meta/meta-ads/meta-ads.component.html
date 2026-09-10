@@ -1,0 +1,248 @@
+<app-page-header
+  title="Facebook & Instagram ads"
+  icon="bi-megaphone"
+  subtitle="Lead-form ads land in your pipeline the second they are submitted — and you see what the spend actually produced."
+>
+  <button type="button" class="btn btn-outline-secondary" (click)="load()" title="Refresh">
+    <i class="bi bi-arrow-clockwise"></i>
+  </button>
+  @if (connected()) {
+    <button type="button" class="btn btn-outline-secondary" [disabled]="syncing()" (click)="syncSpend()">
+      @if (syncing()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+      @else { <i class="bi bi-cloud-download me-1"></i> }
+      Update spend
+    </button>
+  }
+</app-page-header>
+
+@if (!configured()) {
+  <div class="card mb-3">
+    <div class="card-body">
+      <h6 class="mb-1"><i class="bi bi-gear me-2"></i>Not set up on the server yet</h6>
+      <p class="text-secondary small mb-0">
+        The Facebook Login configuration is missing. Set <code>META_LEADS_CONFIG_ID</code> in the server
+        environment, then reload this page.
+      </p>
+    </div>
+  </div>
+} @else if (!connected()) {
+  <!-- ------------------------------------------------------ not connected -->
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div>
+          <h6 class="mb-1"><i class="bi bi-facebook me-2 text-primary"></i>Connect your Facebook Page</h6>
+          <p class="text-secondary small mb-0">
+            You keep running ads exactly as you do today, in Ads Manager. We only read the leads they
+            produce and what each campaign spent.
+          </p>
+        </div>
+        <button type="button" class="btn btn-primary" [disabled]="connecting()" (click)="connect()">
+          @if (connecting()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+          @else { <i class="bi bi-facebook me-1"></i> }
+          Connect Facebook
+        </button>
+      </div>
+
+      <hr />
+      <div class="ma-steps">
+        <div class="ma-step"><span>1</span><b>Connect the Page</b><small>The one your lead ads run from. You must be its admin.</small></div>
+        <div class="ma-step"><span>2</span><b>Pick where leads land</b><small>Any form in your CRM — fields are matched for you.</small></div>
+        <div class="ma-step"><span>3</span><b>Leads arrive on their own</b><small>Automations and the sales playbook take it from there.</small></div>
+      </div>
+    </div>
+  </div>
+} @else if (connection(); as c) {
+  <!-- --------------------------------------------------------- connected -->
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
+        <div>
+          <h6 class="mb-1">
+            <i class="bi bi-facebook me-2 text-primary"></i>{{ c.pageName }}
+            <span class="badge text-bg-success ms-1">Connected</span>
+            @if (c.instagram) { <span class="badge text-bg-light ms-1"><i class="bi bi-instagram me-1"></i>Instagram too</span> }
+          </h6>
+          <div class="text-secondary small">
+            @if (c.lastLeadAt) { Last lead {{ c.lastLeadAt | date: 'dd MMM, h:mm a' }} }
+            @else { No leads yet — they appear here the moment someone submits your ad form. }
+          </div>
+        </div>
+        <button type="button" class="btn btn-outline-danger btn-sm" (click)="disconnect()">Disconnect</button>
+      </div>
+
+      <div class="row g-3 mt-1">
+        <div class="col-12 col-md-4">
+          <label class="form-label">Leads become records in</label>
+          <select class="form-select" [(ngModel)]="editFormId" (ngModelChange)="onFormChange()">
+            <option [ngValue]="null">— pick a form —</option>
+            @for (f of forms(); track f.id) { <option [ngValue]="f.id">{{ f.name }}</option> }
+          </select>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label">A sale means this stage</label>
+          <select class="form-select" [(ngModel)]="editWonStageId" [disabled]="!editFormId">
+            <option [ngValue]="null">— not set —</option>
+            @for (s of stages(); track s.id) { <option [ngValue]="s.id">{{ s.name }}</option> }
+          </select>
+          <div class="form-text">Used for cost per sale below.</div>
+        </div>
+        <div class="col-12 col-md-4">
+          <label class="form-label">Ad account (for spend)</label>
+          <select class="form-select" [(ngModel)]="editAdAccountId">
+            <option value="">— none —</option>
+            @if (c.adAccountId) { <option [value]="c.adAccountId">{{ c.adAccountName || c.adAccountId }}</option> }
+            @for (a of adAccounts(); track a.id) {
+              @if (a.id !== c.adAccountId) { <option [value]="a.id">{{ a.name }}</option> }
+            }
+          </select>
+        </div>
+        <div class="col-12 d-flex justify-content-end">
+          <button class="btn btn-primary" [disabled]="saving()" (click)="saveSettings()">
+            @if (saving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+            @else { <i class="bi bi-check2 me-1"></i> }
+            Save
+          </button>
+        </div>
+      </div>
+
+      @if (c.status === 'ERROR' && c.lastError) {
+        <div class="alert alert-warning py-2 mt-3 mb-0 small">
+          <i class="bi bi-exclamation-triangle me-1"></i>{{ c.lastError }}
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- ----------------------------------------------------------- report -->
+  <div class="card mb-3">
+    <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+      <span class="fw-semibold"><i class="bi bi-graph-up-arrow me-1"></i>What the spend produced</span>
+      <select class="form-select form-select-sm w-auto" [(ngModel)]="rangeDays" (ngModelChange)="loadReport()">
+        <option [ngValue]="7">Last 7 days</option>
+        <option [ngValue]="30">Last 30 days</option>
+        <option [ngValue]="90">Last 90 days</option>
+      </select>
+    </div>
+
+    @if (report(); as r) {
+      <div class="card-body pb-0">
+        <div class="ma-tiles">
+          <div class="ma-tile"><span>Spend</span><b>{{ r.currency }} {{ r.totals.spend | number: '1.0-0' }}</b></div>
+          <div class="ma-tile"><span>Leads</span><b>{{ r.totals.leads }}</b></div>
+          <div class="ma-tile"><span>Cost per lead</span><b>{{ r.totals.costPerLead ? (r.currency + ' ' + (r.totals.costPerLead | number: '1.0-0')) : '—' }}</b></div>
+          <div class="ma-tile"><span>Sales</span><b>{{ r.totals.won }}</b></div>
+          <div class="ma-tile ma-tile--hero"><span>Cost per sale</span><b>{{ r.totals.costPerWon ? (r.currency + ' ' + (r.totals.costPerWon | number: '1.0-0')) : '—' }}</b></div>
+        </div>
+        @if (!r.wonStageConfigured) {
+          <div class="text-secondary small mt-2">
+            <i class="bi bi-info-circle me-1"></i>Pick the stage that counts as a sale above to see cost per sale.
+          </div>
+        }
+      </div>
+
+      <div class="table-responsive mt-3">
+        <table class="table table-sm align-middle mb-0 ma-table">
+          <thead>
+            <tr>
+              <th>Campaign</th><th class="text-end">Spend</th><th class="text-end">Leads</th>
+              <th class="text-end">Per lead</th><th class="text-end">Sales</th><th class="text-end">Per sale</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of r.campaigns; track row.campaignId || row.campaign) {
+              <tr>
+                <td class="fw-medium">{{ row.campaign }}</td>
+                <td class="text-end">{{ row.spend | number: '1.0-0' }}</td>
+                <td class="text-end">{{ row.leads }}</td>
+                <td class="text-end">{{ row.costPerLead ? (row.costPerLead | number: '1.0-0') : '—' }}</td>
+                <td class="text-end">{{ row.won }}</td>
+                <td class="text-end fw-semibold">{{ row.costPerWon ? (row.costPerWon | number: '1.0-0') : '—' }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6" class="text-center text-muted py-3">
+                No spend pulled yet. Press <b>Update spend</b> above.
+              </td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <div class="card-body text-muted small">Loading…</div>
+    }
+  </div>
+
+  <!-- ----------------------------------------------------- recent leads -->
+  <div class="card">
+    <div class="card-header fw-semibold"><i class="bi bi-person-plus me-1"></i>Latest leads from ads</div>
+    @if (recent().length) {
+      <div class="table-responsive">
+        <table class="table table-sm align-middle mb-0 ma-table">
+          <thead><tr><th>When</th><th>Campaign</th><th>Ad</th><th>From</th><th></th></tr></thead>
+          <tbody>
+            @for (l of recent(); track l.recordId) {
+              <tr>
+                <td class="text-nowrap text-muted">{{ l.at | date: 'dd MMM, h:mm a' }}</td>
+                <td>{{ l.campaign || '—' }}</td>
+                <td class="text-truncate" style="max-width: 260px">{{ l.ad || l.form || '—' }}</td>
+                <td>
+                  <span class="badge text-bg-light">
+                    <i class="bi" [class.bi-instagram]="l.platform === 'instagram'" [class.bi-facebook]="l.platform !== 'instagram'"></i>
+                    {{ l.platform === 'instagram' ? 'Instagram' : 'Facebook' }}
+                  </span>
+                </td>
+                <td class="text-end">
+                  @if (l.recordId) {
+                    <a class="btn btn-sm btn-outline-secondary" [routerLink]="['/app/records']" [queryParams]="{ open: l.recordId }">Open</a>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <div class="card-body">
+        <app-empty-state icon="bi-megaphone" title="No ad leads yet"
+          message="As soon as someone submits your Facebook or Instagram lead form, the record shows up here." />
+      </div>
+    }
+  </div>
+}
+
+<!-- ---------------------------------------------------------- page picker -->
+@if (pickerOpen()) {
+  <div class="ma-overlay" (click)="pickerOpen.set(false)"></div>
+  <div class="ma-picker card">
+    <div class="card-body">
+      <h6 class="mb-3">Choose what to connect</h6>
+      <div class="mb-3">
+        <label class="form-label">Facebook Page</label>
+        <select class="form-select" [(ngModel)]="pickPageId">
+          @for (p of pages(); track p.id) { <option [value]="p.id">{{ p.name }}</option> }
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Ad account <span class="text-muted">(for spend — optional)</span></label>
+        <select class="form-select" [(ngModel)]="pickAdAccountId">
+          <option value="">— skip for now —</option>
+          @for (a of adAccounts(); track a.id) { <option [value]="a.id">{{ a.name }} ({{ a.currency }})</option> }
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label">Leads become records in</label>
+        <select class="form-select" [(ngModel)]="pickFormId">
+          <option [ngValue]="null">— pick a form —</option>
+          @for (f of forms(); track f.id) { <option [ngValue]="f.id">{{ f.name }}</option> }
+        </select>
+      </div>
+      <div class="d-flex justify-content-end gap-2">
+        <button class="btn btn-outline-secondary" (click)="pickerOpen.set(false)">Cancel</button>
+        <button class="btn btn-primary" [disabled]="saving()" (click)="confirmPage()">
+          @if (saving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+          Connect
+        </button>
+      </div>
+    </div>
+  </div>
+}

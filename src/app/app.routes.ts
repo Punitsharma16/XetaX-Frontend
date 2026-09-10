@@ -355,6 +355,12 @@ export const routes: Routes = [
 
       // ---- Integrations ----
       {
+        path: 'ads',
+        title: 'Facebook Ads · XetaX CRM',
+        loadComponent: () =>
+          import('./features/meta/meta-ads/meta-ads.component').then((m) => m.MetaAdsComponent),
+      },
+      {
         path: 'integrations',
         title: 'Integrations · XetaX CRM',
         loadComponent: () =>

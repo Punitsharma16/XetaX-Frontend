@@ -240,7 +240,7 @@ export class WhatsAppSettingsComponent implements OnDestroy {
     this.whatsapp.getSignupMeta().subscribe({
       next: (meta) => {
         this.meta.set(meta);
-        if (meta.configured) this.loadFbSdk(meta.appId);
+        if (meta.configured) void this.loadFbSdk(meta.appId);
       },
     });
   }
@@ -251,17 +251,72 @@ export class WhatsAppSettingsComponent implements OnDestroy {
 
   /* ------------------------------------------------------ embedded signup */
 
-  private loadFbSdk(appId: string): void {
-    if (window.FB || document.getElementById('fb-sdk')) return;
-    window.fbAsyncInit = () => {
-      window.FB?.init({ appId, autoLogAppEvents: true, xfbml: false, version: 'v23.0' });
-    };
-    const script = document.createElement('script');
-    script.id = 'fb-sdk';
-    script.src = 'https://connect.facebook.net/en_US/sdk.js';
-    script.async = true;
-    script.defer = true;
-    document.body.appendChild(script);
+  /**
+   * Resolves once Meta's SDK is usable, false if it never loads. Clicking
+   * Connect used to do nothing at all when the script had not finished
+   * downloading (or an ad-blocker had eaten it) — the button just showed
+   * "try again in a second" forever.
+   */
+  private fbReady: Promise<boolean> | null = null;
+  private fbInited = false;
+
+  private loadFbSdk(appId: string): Promise<boolean> {
+    if (this.fbReady) return this.fbReady;
+
+    this.fbReady = new Promise<boolean>((resolve) => {
+      const init = (): void => {
+        if (!window.FB) {
+          resolve(false);
+          return;
+        }
+        if (!this.fbInited) {
+          this.fbInited = true;
+          try {
+            window.FB.init({
+              appId,
+              autoLogAppEvents: true,
+              xfbml: false,
+              version: this.meta()?.graphApiVersion || 'v23.0',
+            });
+          } catch {
+            /* already initialised by an earlier visit */
+          }
+        }
+        resolve(true);
+      };
+
+      if (window.FB) {
+        init();
+        return;
+      }
+
+      const existing = document.getElementById('fb-sdk');
+      if (!existing) {
+        window.fbAsyncInit = init;
+        const script = document.createElement('script');
+        script.id = 'fb-sdk';
+        script.src = 'https://connect.facebook.net/en_US/sdk.js';
+        script.async = true;
+        script.defer = true;
+        script.onerror = () => resolve(false);
+        document.body.appendChild(script);
+      }
+
+      // The tag can be left over from an earlier visit to this page, in which
+      // case fbAsyncInit has already fired and will not fire again.
+      const startedAt = Date.now();
+      const poll = setInterval(() => {
+        if (window.FB) {
+          clearInterval(poll);
+          init();
+        } else if (Date.now() - startedAt > 12000) {
+          clearInterval(poll);
+          resolve(false);
+        }
+      }, 150);
+    });
+
+    return this.fbReady;
   }
 
   launchSignup(): void {
@@ -273,10 +328,27 @@ export class WhatsAppSettingsComponent implements OnDestroy {
       );
       return;
     }
-    if (!window.FB) {
-      this.toast.warning('One moment', 'Meta SDK is still loading — try again in a second.');
+    if (window.FB) {
+      this.openSignup(meta);
       return;
     }
+    // Still downloading: wait for it instead of asking the person to click again.
+    this.connecting.set(true);
+    this.loadFbSdk(meta.appId).then((ready) => {
+      this.connecting.set(false);
+      if (!ready) {
+        this.toast.error(
+          "Meta's popup could not load",
+          'An ad-blocker or privacy extension usually blocks connect.facebook.net. Allow it for this page and retry, or use Manual setup below.',
+        );
+        this.showManual.set(true);
+        return;
+      }
+      this.openSignup(meta);
+    });
+  }
+
+  private openSignup(meta: EmbeddedSignupMeta): void {
     this.connecting.set(true);
     window.FB.login(
       (response: any) => {

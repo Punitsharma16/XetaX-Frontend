@@ -187,3 +187,10 @@
   word-break: break-all;
   margin: 0 0 0.75rem;
 }
+
+.int-fb { border: 1px solid var(--border-subtle, #e9ecef); color: inherit; }
+.int-fb:hover { border-color: var(--brand-600, #4f46e5); }
+.int-fb__icon {
+  width: 40px; height: 40px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--brand-50, #eef2ff); color: var(--brand-600, #4f46e5); font-size: 1.1rem;
+}

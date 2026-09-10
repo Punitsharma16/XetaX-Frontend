@@ -63,6 +63,7 @@ export const NAVIGATION: NavSection[] = [
     title: 'Configuration',
     items: [
       { label: 'Automations', icon: 'bi-lightning-charge', route: '/app/automations', perm: 'automations.view' },
+      { label: 'Facebook Ads', icon: 'bi-megaphone', route: '/app/ads', perm: 'integrations.view' },
       { label: 'Integrations', icon: 'bi-plug', route: '/app/integrations', perm: 'integrations.view' },
       { label: 'Team', icon: 'bi-people', route: '/app/users', perm: 'team.manage' },
     ],
