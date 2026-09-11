@@ -46,7 +46,10 @@ export class PublicChatComponent implements OnDestroy {
   private readonly bodyEl = viewChild<ElementRef<HTMLElement>>('body');
   private sid = '';
   private mode: 'ai' | 'waiting' | 'human' | string = 'ai';
+  /** /updates cursor. Advanced by polls AND by every /chat reply (see below). */
   private lastId = 0;
+  /** Ids already painted — a poll can never draw a line twice, whatever the cursor says. */
+  private readonly seen = new Set<number>();
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private prefill: Record<string, string> = {};
 
@@ -96,7 +99,7 @@ export class PublicChatComponent implements OnDestroy {
     this.push('me', q);
     if (this.mode === 'ai') this.typing.set(true);
 
-    this.http.post<{ data?: { reply?: string; mode?: string } }>(
+    this.http.post<{ data?: { reply?: string; mode?: string; lastMessageId?: number } }>(
       `${this.base}/api/public/agents/${this.key()}/chat`,
       { sessionId: this.sid, message: q, ...this.prefill },
     ).subscribe({
@@ -104,6 +107,10 @@ export class PublicChatComponent implements OnDestroy {
         this.typing.set(false);
         const d = res?.data ?? {};
         if (d.reply) this.push('bot', d.reply);
+        // The reply above is painted from this response, and the backend has
+        // stored it too. Move the cursor past it — otherwise the first poll
+        // after a hand-off (cursor still 0) replays every earlier AI line.
+        this.advance(d.lastMessageId);
         this.setMode(d.mode || 'ai');
         this.busy.set(false);
       },
@@ -124,7 +131,9 @@ export class PublicChatComponent implements OnDestroy {
       next: (res) => {
         const d = res?.data ?? {};
         for (const m of d.messages ?? []) {
-          if (m.id > this.lastId) this.lastId = m.id;
+          if (this.seen.has(m.id)) continue;
+          this.seen.add(m.id);
+          this.advance(m.id);
           if (m.role === 'HUMAN') this.push('human', m.text);
           else if (m.role === 'AI') this.push('bot', m.text);
           else if (m.role === 'SYSTEM' && /joined/.test(m.text)) this.push('sys', m.text);
@@ -133,6 +142,10 @@ export class PublicChatComponent implements OnDestroy {
       },
       error: () => { /* transient — next tick retries */ },
     });
+  }
+
+  private advance(id?: number): void {
+    if (id && id > this.lastId) this.lastId = id;
   }
 
   private setMode(m: string): void {
