@@ -56,6 +56,7 @@ export const NAVIGATION: NavSection[] = [
     items: [
       { label: 'Contacts', icon: 'bi-person-lines-fill', route: '/app/contacts', perm: 'contacts.view' },
       { label: 'WhatsApp', icon: 'bi-whatsapp', route: '/app/whatsapp', perm: 'whatsapp.view' },
+      { label: 'Email Campaigns', icon: 'bi-envelope-paper', route: '/app/email-campaigns', perm: 'email.campaigns' },
       { label: 'Meetings', icon: 'bi-camera-video', route: '/app/meetings', perm: 'meetings.view' },
       { label: 'AI Agents', icon: 'bi-robot', route: '/app/agents', perm: 'agents.manage' },
     ],

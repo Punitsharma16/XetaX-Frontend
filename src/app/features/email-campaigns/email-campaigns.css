@@ -1,0 +1,164 @@
+/* Shared email campaign styles — same bones as the WhatsApp campaign pages,
+   with the mail accent instead of the WhatsApp green. */
+:host {
+  --em-600: var(--email-600, #3b5bdb);
+  --em-500: var(--email-500, #4c6ef5);
+  --em-soft: var(--email-soft, #edf2ff);
+}
+
+.em-card {
+  border: 1px solid var(--border-subtle, #e9ecef);
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: var(--shadow-sm);
+}
+
+.em-btn {
+  background: var(--em-600) !important;
+  border: 1px solid var(--em-600) !important;
+  color: #fff !important;
+  font-weight: 600;
+}
+
+.em-btn:hover:not(:disabled) {
+  background: var(--em-500) !important;
+  border-color: var(--em-500) !important;
+}
+
+.em-btn:disabled {
+  opacity: 0.65;
+}
+
+table thead th {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted, #6c757d);
+}
+
+.progress-bar.bg-success {
+  background-color: var(--em-600) !important;
+}
+
+/* "No sender yet" notice shown on the list and the wizard */
+.sender-notice {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--warning-300, #ffe08a);
+  background: var(--warning-soft, #fff8e1);
+  border-radius: var(--radius-md, 10px);
+  font-size: 0.85rem;
+}
+
+.sender-notice i {
+  font-size: 1.1rem;
+  color: var(--warning-600, #b58100);
+}
+
+.sender-ok {
+  font-size: 0.8rem;
+  color: var(--text-muted, #6c757d);
+}
+
+/* stat tiles on the detail page */
+.stat-card {
+  border: 1px solid var(--border-subtle, #e9ecef);
+  border-radius: var(--radius-md, 10px);
+  background: var(--surface-card, #fff);
+  box-shadow: var(--shadow-sm);
+  padding: 0.6rem 0.8rem;
+  text-align: center;
+  height: 100%;
+}
+
+.stat-card__value {
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.stat-card__label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted, #6c757d);
+}
+
+.stat-card--bad .stat-card__value {
+  color: var(--danger-600, #dc3545);
+}
+
+.message-preview {
+  font-family: inherit;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  margin: 0;
+}
+
+/* wizard */
+.wizard-steps {
+  display: flex;
+  gap: 1rem;
+}
+
+.wizard-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.82rem;
+  color: var(--text-muted, #6c757d);
+}
+
+.wizard-step__num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  background: var(--surface-sunken, #f1f3f5);
+}
+
+.wizard-step--on {
+  color: var(--text-primary, #212529);
+}
+
+.wizard-step--on .wizard-step__num {
+  background: var(--em-soft);
+  color: var(--em-600);
+}
+
+.source-card {
+  flex: 1 1 0;
+  max-width: 260px;
+  border: 1px solid var(--border-subtle, #dee2e6);
+  border-radius: var(--radius-md, 10px);
+  padding: 0.9rem;
+  cursor: pointer;
+}
+
+.source-card i {
+  font-size: 1.2rem;
+  color: var(--text-muted, #6c757d);
+}
+
+.source-card--on {
+  border-color: var(--em-600);
+  background: var(--em-soft);
+}
+
+.review-list dt {
+  font-size: 0.8rem;
+  color: var(--text-muted, #6c757d);
+}
+
+.review-message {
+  font-family: inherit;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  background: var(--surface-sunken, #f8f9fa);
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+}

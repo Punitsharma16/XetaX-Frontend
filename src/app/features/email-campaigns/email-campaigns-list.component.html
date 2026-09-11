@@ -1,0 +1,104 @@
+<app-page-header
+  title="Email campaigns"
+  icon="bi-envelope-paper"
+  subtitle="Bulk email to your records, contacts or an uploaded list — sent from your own email account."
+>
+  <a class="btn em-btn btn-sm" routerLink="/app/email-campaigns/new">
+    <i class="bi bi-plus-lg me-1"></i>New campaign
+  </a>
+</app-page-header>
+
+@if (sender(); as s) {
+  @if (!s.configured) {
+    <div class="sender-notice mb-3">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <div>
+        <strong>No sender email yet.</strong> Campaigns go out from your own email account —
+        add it under <a routerLink="/app/profile">Profile → Email (SMTP)</a> first.
+      </div>
+    </div>
+  } @else {
+    <p class="sender-ok mb-3">
+      <i class="bi bi-envelope-check me-1"></i>Sending as <strong>{{ s.fromEmail }}</strong>
+      · up to {{ s.maxRecipients | number }} recipients per campaign · {{ s.sendsPerMinute }} emails/min
+    </p>
+  }
+}
+
+@if (error()) {
+  <app-error-state>
+    <button class="btn btn-outline-secondary btn-sm" (click)="load(0)">Retry</button>
+  </app-error-state>
+} @else if (loading()) {
+  <div class="card em-card p-3"><app-table-skeleton [rows]="5" [cols]="6" /></div>
+} @else if (!page().content.length) {
+  <div class="card em-card p-3">
+    <app-empty-state
+      icon="bi-envelope-paper"
+      title="No email campaigns yet"
+      message="Create a campaign to email many customers at once — from your CRM records, your contacts or a CSV list."
+    />
+    <div class="text-center pb-3">
+      <a class="btn em-btn" routerLink="/app/email-campaigns/new">
+        <i class="bi bi-plus-lg me-1"></i>Create first campaign
+      </a>
+    </div>
+  </div>
+} @else {
+  <div class="card em-card">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Subject</th>
+            <th>Audience</th>
+            <th>Status</th>
+            <th style="min-width: 160px">Progress</th>
+            <th class="text-end">Sent</th>
+            <th class="text-end">Failed</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (campaign of page().content; track campaign.id) {
+            <tr>
+              <td>
+                <a class="fw-medium text-decoration-none" [routerLink]="[campaign.id]">{{
+                  campaign.name
+                }}</a>
+              </td>
+              <td class="text-muted small text-truncate" style="max-width: 220px">{{ campaign.subject }}</td>
+              <td class="text-muted small">{{ campaign.targetDescription || campaign.sourceType }}</td>
+              <td>
+                <span class="badge" [class]="badge(campaign.status)">{{ campaign.status }}</span>
+              </td>
+              <td>
+                <div class="progress" style="height: 6px">
+                  <div class="progress-bar bg-success" [style.width.%]="progress(campaign)"></div>
+                </div>
+                <span class="text-muted" style="font-size: 0.7rem"
+                  >{{ campaign.sentCount + campaign.failedCount }}/{{ campaign.totalCount }}</span
+                >
+              </td>
+              <td class="text-end">{{ campaign.sentCount }}</td>
+              <td class="text-end" [class.text-danger]="campaign.failedCount">{{
+                campaign.failedCount
+              }}</td>
+              <td class="text-muted small">{{ campaign.createdAt | date: 'mediumDate' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div class="card-footer">
+      <app-pagination
+        [page]="page().number"
+        [size]="page().size"
+        [totalElements]="page().totalElements"
+        [totalPages]="page().totalPages"
+        (pageChange)="load($event)"
+      />
+    </div>
+  </div>
+}

@@ -283,6 +283,32 @@ export const routes: Routes = [
           ),
       },
 
+      // ---- Email campaigns (bulk email from the org's own SMTP) ----
+      {
+        path: 'email-campaigns',
+        title: 'Email campaigns · XetaX CRM',
+        loadComponent: () =>
+          import('./features/email-campaigns/email-campaigns-list.component').then(
+            (m) => m.EmailCampaignsListComponent,
+          ),
+      },
+      {
+        path: 'email-campaigns/new',
+        title: 'New email campaign · XetaX CRM',
+        loadComponent: () =>
+          import('./features/email-campaigns/email-campaign-create.component').then(
+            (m) => m.EmailCampaignCreateComponent,
+          ),
+      },
+      {
+        path: 'email-campaigns/:id',
+        title: 'Email campaign · XetaX CRM',
+        loadComponent: () =>
+          import('./features/email-campaigns/email-campaign-detail.component').then(
+            (m) => m.EmailCampaignDetailComponent,
+          ),
+      },
+
       // ---- AI Agents ----
       {
         path: 'agents',
