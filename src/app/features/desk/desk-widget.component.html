@@ -44,7 +44,7 @@
           </details>
         }
 
-        <div class="desk-thread">
+        <div class="desk-thread" #thread>
           @for (m of messages(); track m.id) {
             @if (m.role === 'SYSTEM') {
               <div class="desk-sys">{{ m.text }}</div>
@@ -106,6 +106,7 @@
                 <div class="desk-card__top">
                   <i class="bi {{ channelIcon(r.channel) }} desk-card__ch"></i>
                   <b class="text-truncate">{{ r.customer }}</b>
+                  @if (r.unreadCount) { <span class="desk-unread">{{ r.unreadCount > 99 ? '99+' : r.unreadCount }}</span> }
                   <span class="desk-card__time">waiting {{ waitingFor(r.createdAt) }}</span>
                 </div>
                 @if (r.lastMessage) { <div class="desk-card__msg">“{{ r.lastMessage }}”</div> }
@@ -151,10 +152,9 @@
                     <b class="text-truncate">{{ s.customer }}</b>
                     <span class="desk-card__time">{{ s.lastMessageAt | date: 'h:mm a' }}</span>
                   </div>
-                  <div class="desk-row__last text-truncate">
-                    @if (s.lastRole === 'CUSTOMER') { <span class="desk-dot"></span> }{{ s.lastMessage }}
-                  </div>
+                  <div class="desk-row__last text-truncate">{{ s.lastMessage }}</div>
                 </div>
+                @if (s.unreadCount) { <span class="desk-unread">{{ s.unreadCount > 99 ? '99+' : s.unreadCount }}</span> }
               </button>
             } @empty {
               <div class="desk-empty"><i class="bi bi-chat-square-text"></i><p>Chats you accept show up here.</p></div>
@@ -171,6 +171,7 @@
                     </div>
                     <div class="desk-row__last text-truncate">{{ s.lastMessage }}</div>
                   </div>
+                  @if (s.unreadCount) { <span class="desk-unread">{{ s.unreadCount > 99 ? '99+' : s.unreadCount }}</span> }
                 </button>
               }
             }

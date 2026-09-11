@@ -50,6 +50,7 @@
 .desk-row { display: flex; gap: 0.6rem; align-items: center; width: 100%; text-align: left; border: 0; background: transparent; padding: 0.55rem 0.5rem; border-radius: 10px; font-size: 0.82rem; color: var(--bs-body-color); }
 .desk-row:hover { background: var(--bs-tertiary-bg); }
 .desk-row__last { font-size: 0.75rem; color: var(--bs-secondary-color); }
+.desk-unread { flex: 0 0 auto; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: #ef4444; color: #fff; font-size: 0.68rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
 .desk-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ef4444; margin-right: 5px; vertical-align: middle; }
 .desk-sub { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--bs-secondary-color); padding: 0.4rem 0.5rem 0; }
 .desk-link { font-size: 0.78rem; text-align: center; padding: 0.4rem; }
@@ -68,8 +69,10 @@
 .desk-msg__meta { font-size: 0.66rem; color: var(--bs-secondary-color); margin-top: 2px; padding: 0 4px; }
 .desk-msg--customer { align-self: flex-start; }
 .desk-msg--customer .desk-msg__bubble { border-bottom-left-radius: 4px; }
-.desk-msg--ai { align-self: flex-start; }
-.desk-msg--ai .desk-msg__bubble { border-left: 3px solid var(--brand-400, #818cf8); border-bottom-left-radius: 4px; }
+/* The assistant speaks for the team, so its lines sit with the team's —
+   same blue, right side; the "Assistant" label under the bubble tells them apart. */
+.desk-msg--ai { align-self: flex-end; align-items: flex-end; }
+.desk-msg--ai .desk-msg__bubble { background: var(--brand-600, #4f46e5); color: #fff; border-color: transparent; border-bottom-right-radius: 4px; }
 .desk-msg--human { align-self: flex-end; align-items: flex-end; }
 .desk-msg--human .desk-msg__bubble { background: var(--brand-600, #4f46e5); color: #fff; border-color: transparent; border-bottom-right-radius: 4px; }
 .desk-sys { align-self: center; font-size: 0.68rem; color: var(--bs-secondary-color); font-style: italic; }

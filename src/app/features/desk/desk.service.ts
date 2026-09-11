@@ -22,6 +22,8 @@ export interface HandoffRow {
   createdAt: string;
   escalated: boolean;
   recordId: string | null;
+  /** Customer lines since the hand-off was raised. */
+  unreadCount?: number;
   status?: string;
   resolvedAt?: string | null;
 }
@@ -40,6 +42,8 @@ export interface DeskSession {
   lastMessage: string;
   lastRole: string;
   summary: string | null;
+  /** Customer lines nobody on the team has opened yet. */
+  unreadCount?: number;
   summaryAt?: string | null;
   pendingStageId?: number | null;
   pendingStageName?: string | null;

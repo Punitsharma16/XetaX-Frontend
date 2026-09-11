@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, afterRenderEffect, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { DatePipe, LowerCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -52,6 +52,8 @@ export class DeskWidgetComponent implements OnDestroy {
   draft = '';
   assignTo = '';
 
+  private readonly thread = viewChild<ElementRef<HTMLElement>>('thread');
+
   private badgeTimer: ReturnType<typeof setInterval> | null = null;
   private chatTimer: ReturnType<typeof setInterval> | null = null;
   private lastBadge = 0;
@@ -63,6 +65,14 @@ export class DeskWidgetComponent implements OnDestroy {
     // Deep link from a bell notification: /app/…?desk=open
     effect(() => {
       if (this.router.url.includes('desk=open') && this.enabled() && !this.open()) this.toggle();
+    });
+    // Pin the thread to its newest line. This runs after Angular has painted
+    // the new bubbles — a microtask fired before the render, so the pane
+    // scrolled to the *old* bottom and the reader still had to scroll.
+    afterRenderEffect(() => {
+      this.messages();
+      const pane = this.thread()?.nativeElement;
+      if (pane) pane.scrollTop = pane.scrollHeight;
     });
   }
 
@@ -183,11 +193,10 @@ export class DeskWidgetComponent implements OnDestroy {
         else if (res.messages.length) this.messages.update((list) => [...list, ...res.messages]);
         const last = this.messages().at(-1);
         if (last) this.lastMessageId = last.id;
-        this.active.set(res.session);
-        queueMicrotask(() => {
-          const pane = document.querySelector('.desk-thread');
-          if (pane) pane.scrollTop = pane.scrollHeight;
-        });
+        // Everything up to here is on screen now — the list must not keep
+        // counting it as unread until the next state poll catches up.
+        this.active.set({ ...res.session, unreadCount: 0 });
+        this.markSeen(res.session.id);
       },
       error: () => {},
     });
@@ -238,6 +247,11 @@ export class DeskWidgetComponent implements OnDestroy {
         this.loadState();
       },
     });
+  }
+
+  private markSeen(sessionId: number): void {
+    const clear = (rows: DeskSession[]) => rows.map((r) => (r.id === sessionId ? { ...r, unreadCount: 0 } : r));
+    this.state.update((st) => (st ? { ...st, mine: clear(st.mine), others: clear(st.others) } : st));
   }
 
   /* ------------------------------------------------------------ helpers */
