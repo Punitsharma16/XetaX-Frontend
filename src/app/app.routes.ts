@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 
 import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
+import { platformGuard } from './core/guards/platform.guard';
 
 /**
  * Every feature is lazy-loaded, so a signed-out visitor downloads nothing but
@@ -399,6 +400,7 @@ export const routes: Routes = [
       {
         path: 'platform',
         title: 'Platform · XetaX CRM',
+        canActivate: [platformGuard],
         loadComponent: () =>
           import('./features/platform/platform-console/platform-console.component').then(
             (m) => m.PlatformConsoleComponent,

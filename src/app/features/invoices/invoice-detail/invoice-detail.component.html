@@ -309,6 +309,15 @@
 
     <!-- --------------------------------------------------------- sidebar -->
     <div class="col-12 col-xl-4 d-flex flex-column gap-3">
+      @if (!isNew() && !payments().length) {
+        <div class="card mb-0">
+          <div class="card-body text-center py-4">
+            <i class="bi bi-cash-stack d-block mb-2" style="font-size: 1.4rem; color: var(--text-muted)"></i>
+            <div class="fw-semibold">No payments yet</div>
+            <div class="text-secondary" style="font-size: 0.8rem">Record one when money comes in — the balance updates here.</div>
+          </div>
+        </div>
+      }
       @if (!isNew() && payments().length) {
         <div class="card mb-0">
           <div class="card-header bg-transparent">

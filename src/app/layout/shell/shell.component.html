@@ -167,7 +167,7 @@
             <span class="topbar__user-meta d-none d-md-flex">
               <span class="topbar__user-name">{{ user()?.name }}</span>
               <span class="topbar__user-role">
-                {{ user()?.isAdmin ? 'Administrator' : (user()?.roles?.[0] || 'Member') }}
+                {{ perms.isOwner() ? 'Owner' : (perms.role() || (user()?.isAdmin ? 'Administrator' : 'Member')) }}
               </span>
             </span>
             <i class="bi bi-chevron-down topbar__user-caret d-none d-md-inline"></i>

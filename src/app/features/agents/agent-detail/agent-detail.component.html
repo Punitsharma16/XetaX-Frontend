@@ -54,7 +54,14 @@
         </div>
 
         @if (srcMode === 'pdf') {
-          <input type="file" accept="application/pdf" class="form-control" (change)="onPdfPicked($event)" />
+          <label class="dropzone">
+            <input type="file" accept="application/pdf" class="dropzone__input" (change)="onPdfPicked($event)" />
+            <i class="bi bi-file-earmark-pdf dropzone__icon"></i>
+            <span class="dropzone__text">
+              <b>{{ pdfName() || 'Choose a PDF' }}</b>
+              <small>{{ pdfName() ? 'Click to pick a different file' : 'or drop it here' }}</small>
+            </span>
+          </label>
           <div class="form-text">
             Text-based PDFs only (not scanned images).
             @if (pdfName()) { <span class="text-success ms-1"><i class="bi bi-check2"></i>{{ pdfName() }}</span> }

@@ -127,3 +127,10 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Header in a narrow side column: keep the controls on one line and let the
+   title give way first, instead of the button breaking into two lines. */
+.task-done-toggle { white-space: nowrap; display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.78rem; color: var(--text-muted); cursor: pointer; }
+.task-panel__head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }
+.task-panel__head > span { min-width: 0; white-space: nowrap; }
+.task-panel__head .btn { white-space: nowrap; }

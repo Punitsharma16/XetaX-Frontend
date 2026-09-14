@@ -116,16 +116,25 @@ export class ShellComponent {
     return this.auth.isAdmin() || this.auth.hasAnyRole(item.roles);
   }
 
+  /** Route segments whose auto-title ("Whatsapp", "Users", "Ai") reads wrong. */
+  private static readonly CRUMB_LABELS: Record<string, string> = {
+    whatsapp: 'WhatsApp', users: 'Team', ai: 'AI Assistant', agents: 'AI Agents',
+    ads: 'Facebook Ads', 'email-campaigns': 'Email Campaigns', search: 'Advanced search',
+  };
+
   private toBreadcrumbs(url: string): string[] {
     return url
       .split('?')[0]
       .split('/')
       .filter((part) => part && part !== 'app')
-      .map((part) =>
-        decodeURIComponent(part)
-          .replace(/-/g, ' ')
-          .replace(/\b\w/g, (c) => c.toUpperCase()),
-      );
+      .map((part) => {
+        const raw = decodeURIComponent(part);
+        if (ShellComponent.CRUMB_LABELS[raw]) return ShellComponent.CRUMB_LABELS[raw];
+        // A record id (24-hex) or a UUID says nothing to a person — the page
+        // header already shows the record's own title.
+        if (/^[0-9a-f]{24}$/i.test(raw) || /^[0-9a-f-]{36}$/i.test(raw)) return 'Details';
+        return raw.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+      });
   }
 
   toggleSidebar(): void {
