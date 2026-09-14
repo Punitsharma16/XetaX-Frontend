@@ -263,6 +263,14 @@ export const routes: Routes = [
       // to land on the 404 page. Keep it pointing at the inbox so they open.
       { path: 'whatsapp/inbox', pathMatch: 'full', redirectTo: 'whatsapp/conversations' },
       {
+        path: 'whatsapp/flows',
+        title: 'WhatsApp Flows · XetaX CRM',
+        loadComponent: () =>
+          import('./features/whatsapp/flows/flows.component').then(
+            (m) => m.WhatsAppFlowsComponent,
+          ),
+      },
+      {
         path: 'whatsapp/campaigns',
         title: 'WhatsApp campaigns · XetaX CRM',
         loadComponent: () =>

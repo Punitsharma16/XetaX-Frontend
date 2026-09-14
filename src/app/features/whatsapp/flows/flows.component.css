@@ -1,0 +1,26 @@
+.flow-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.flow-card {
+  height: 100%;
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+
+.wa-btn {
+  background: #25d366;
+  border-color: #25d366;
+  color: #fff;
+}
+
+.wa-btn:hover,
+.wa-btn:focus {
+  background: #1ebe5b;
+  border-color: #1ebe5b;
+  color: #fff;
+}

@@ -24,6 +24,9 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       <a class="wa-nav__pill" routerLink="/app/whatsapp/conversations" routerLinkActive="is-active">
         <i class="bi bi-chat-dots"></i> Inbox
       </a>
+      <a class="wa-nav__pill" routerLink="/app/whatsapp/flows" routerLinkActive="is-active">
+        <i class="bi bi-ui-checks-grid me-1"></i>Flows
+      </a>
       <a class="wa-nav__pill" routerLink="/app/whatsapp/campaigns" routerLinkActive="is-active">
         <i class="bi bi-megaphone"></i> Campaigns
       </a>

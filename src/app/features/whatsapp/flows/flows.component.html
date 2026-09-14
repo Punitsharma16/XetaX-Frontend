@@ -1,0 +1,268 @@
+<app-page-header
+  title="Flows"
+  icon="bi-ui-checks-grid"
+  subtitle="Forms your customers fill without ever leaving the chat."
+>
+  <button class="btn btn-outline-secondary btn-sm me-2" (click)="openResponses(null)">
+    <i class="bi bi-inbox me-1"></i>All submissions
+  </button>
+  <button class="btn wa-btn btn-sm" (click)="openCreate()">
+    <i class="bi bi-plus-lg me-1"></i>New Flow
+  </button>
+</app-page-header>
+
+<app-whatsapp-nav />
+
+@if (error()) {
+  <app-error-state>
+    <button class="btn btn-outline-secondary btn-sm" (click)="reload()">Retry</button>
+  </app-error-state>
+} @else if (loading()) {
+  <div class="card"><div class="card-body text-muted small">Loading…</div></div>
+} @else if (!flows().length) {
+  <div class="card">
+    <div class="card-body">
+      <app-empty-state
+        icon="bi-ui-checks-grid"
+        title="No Flows yet"
+        message="A Flow asks your questions inside WhatsApp — name, budget, a date — and writes the answers straight into a CRM record. Build one from a form you already have."
+      >
+        <button class="btn wa-btn" (click)="openCreate()">
+          <i class="bi bi-plus-lg me-1"></i>Build your first Flow
+        </button>
+      </app-empty-state>
+    </div>
+  </div>
+} @else {
+  <div class="flow-grid">
+    @for (flow of flows(); track flow.id) {
+      <div class="card flow-card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <div class="min-w-0">
+              <div class="fw-semibold text-truncate">{{ flow.name }}</div>
+              <div class="text-muted small text-truncate">
+                <i class="bi bi-collection me-1"></i>{{ formName(flow.formId) }}
+              </div>
+            </div>
+            <span class="badge" [class]="badge(flow.status)">{{ flow.status }}</span>
+          </div>
+
+          <div class="text-muted small mt-2">
+            {{ flow.category }}
+            @if (flow.publishedAt) {
+              · published {{ flow.publishedAt | date: 'mediumDate' }}
+            }
+          </div>
+
+          @if (flow.lastError) {
+            <div class="alert alert-warning py-2 px-2 small mt-2 mb-0">
+              <i class="bi bi-exclamation-triangle me-1"></i>{{ flow.lastError }}
+            </div>
+          }
+
+          <div class="d-flex flex-wrap gap-2 mt-3">
+            @if (flow.status === 'DRAFT') {
+              <button class="btn wa-btn btn-sm" [disabled]="busy()" (click)="publish(flow)">
+                <i class="bi bi-cloud-upload me-1"></i>Publish
+              </button>
+            }
+            @if (flow.status === 'PUBLISHED') {
+              <button class="btn wa-btn btn-sm" (click)="openSend(flow)">
+                <i class="bi bi-send me-1"></i>Send
+              </button>
+            }
+            <button class="btn btn-outline-secondary btn-sm" (click)="preview(flow)">
+              <i class="bi bi-eye me-1"></i>Preview
+            </button>
+            <button class="btn btn-outline-secondary btn-sm" (click)="openResponses(flow)">
+              <i class="bi bi-inbox me-1"></i>Submissions
+            </button>
+            @if (flow.status === 'PUBLISHED') {
+              <button class="btn btn-outline-secondary btn-sm" (click)="retire(flow)">
+                <i class="bi bi-archive me-1"></i>Retire
+              </button>
+            } @else {
+              <button class="btn btn-outline-danger btn-sm" (click)="remove(flow)">
+                <i class="bi bi-trash"></i>
+              </button>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+}
+
+<!-- ------------------------------------------------------- new Flow -->
+<app-modal
+  [open]="createOpen()"
+  title="New Flow"
+  icon="bi-ui-checks-grid"
+  size="lg"
+  (closed)="createOpen.set(false)"
+>
+  <div class="row g-3">
+    <div class="col-12 col-md-7">
+      <label class="form-label">Name</label>
+      <input class="form-control" [(ngModel)]="draftName" name="flowName" placeholder="Book a demo" />
+    </div>
+    <div class="col-12 col-md-5">
+      <label class="form-label">What it is for</label>
+      <select class="form-select" [(ngModel)]="draftCategory" name="flowCategory">
+        @for (category of categories(); track category) {
+          <option [value]="category">{{ category.replace('_', ' ') | titlecase }}</option>
+        }
+      </select>
+    </div>
+
+    @if (!advanced()) {
+      <div class="col-12">
+        <label class="form-label">Build it from this form</label>
+        <select class="form-select" [(ngModel)]="draftFormId" name="flowForm">
+          @for (form of crmForms(); track form.id) {
+            <option [ngValue]="form.id">{{ form.name }}</option>
+          }
+        </select>
+        <div class="form-text">
+          Every visible field becomes a question, and the answers land back in a
+          new record of this form. Files and multi-select are skipped — WhatsApp
+          has no control for them.
+        </div>
+      </div>
+    } @else {
+      <div class="col-12">
+        <label class="form-label">Flow JSON</label>
+        <textarea class="form-control font-monospace" rows="10" [(ngModel)]="draftJson"
+                  name="flowJson" placeholder='{ "version": "7.0", "screens": [ … ] }'></textarea>
+        <div class="form-text">Meta validates this on upload and reports any problem back here.</div>
+      </div>
+      <div class="col-12">
+        <label class="form-label">Write answers into this form <span class="text-muted fw-normal">(optional)</span></label>
+        <select class="form-select" [(ngModel)]="draftFormId" name="flowFormAdvanced">
+          <option [ngValue]="null">Just keep the answers</option>
+          @for (form of crmForms(); track form.id) {
+            <option [ngValue]="form.id">{{ form.name }}</option>
+          }
+        </select>
+      </div>
+    }
+
+    <div class="col-12 d-flex flex-wrap gap-3 align-items-center">
+      <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="flowPublish" [(ngModel)]="draftPublish" name="flowPublish" />
+        <label class="form-check-label" for="flowPublish">Publish right away</label>
+      </div>
+      <button class="btn btn-link btn-sm p-0" (click)="advanced.set(!advanced())">
+        {{ advanced() ? 'Build from a form instead' : 'Paste my own Flow JSON' }}
+      </button>
+    </div>
+  </div>
+
+  <div modalFooter class="d-flex justify-content-end gap-2">
+    <button class="btn btn-outline-secondary" (click)="createOpen.set(false)">Cancel</button>
+    <button class="btn wa-btn" [disabled]="busy()" (click)="create()">
+      @if (busy()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+      Create Flow
+    </button>
+  </div>
+</app-modal>
+
+<!-- ----------------------------------------------------------- send -->
+<app-modal
+  [open]="sendOpen()"
+  [title]="'Send ' + (sendFlow?.name || 'Flow')"
+  icon="bi-send"
+  (closed)="sendOpen.set(false)"
+>
+  <div class="row g-3">
+    <div class="col-12">
+      <label class="form-label">Customer's WhatsApp number</label>
+      <input class="form-control" [(ngModel)]="sendPhone" name="sendPhone" placeholder="919876543210" />
+    </div>
+    <div class="col-12">
+      <label class="form-label">Message above the button</label>
+      <textarea class="form-control" rows="3" [(ngModel)]="sendBody" name="sendBody"></textarea>
+    </div>
+    <div class="col-12 col-md-6">
+      <label class="form-label">Button label</label>
+      <input class="form-control" [(ngModel)]="sendCta" name="sendCta" maxlength="20" />
+    </div>
+    <div class="col-12">
+      <div class="alert alert-light border small mb-0">
+        <i class="bi bi-clock-history me-1"></i>
+        A Flow on its own can only go to someone who messaged you in the last 24
+        hours. Outside that window, send a template with a Flow button instead.
+      </div>
+    </div>
+  </div>
+
+  <div modalFooter class="d-flex justify-content-end gap-2">
+    <button class="btn btn-outline-secondary" (click)="sendOpen.set(false)">Cancel</button>
+    <button class="btn wa-btn" [disabled]="busy()" (click)="send()">
+      @if (busy()) { <span class="spinner-border spinner-border-sm me-1"></span> }
+      Send
+    </button>
+  </div>
+</app-modal>
+
+<!-- ---------------------------------------------------- submissions -->
+<app-modal
+  [open]="responsesOpen()"
+  [title]="responsesFor() ? (responsesFor()!.name + ' — submissions') : 'All Flow submissions'"
+  icon="bi-inbox"
+  size="xl"
+  (closed)="responsesOpen.set(false)"
+>
+  @if (responsesLoading()) {
+    <div class="text-muted small">Loading…</div>
+  } @else if (!responses().length) {
+    <app-empty-state
+      icon="bi-inbox"
+      title="Nothing submitted yet"
+      message="Answers appear here the moment a customer taps Submit in WhatsApp."
+    />
+  } @else {
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead>
+          <tr>
+            <th>When</th>
+            <th>Customer</th>
+            @if (!responsesFor()) { <th>Flow</th> }
+            <th>Answers</th>
+            <th>Outcome</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of responses(); track row.id) {
+            <tr>
+              <td class="text-muted small text-nowrap">{{ row.submittedAt | date: 'short' }}</td>
+              <td class="text-nowrap">{{ row.customerPhone || '—' }}</td>
+              @if (!responsesFor()) { <td class="text-muted small">{{ row.flowName || '—' }}</td> }
+              <td>
+                @for (answer of row.answers | keyvalue; track answer.key) {
+                  <div class="small"><span class="text-muted">{{ answer.key }}:</span> {{ answer.value }}</div>
+                }
+                @if (!(row.answers | keyvalue).length) {
+                  <span class="text-muted small">Waiting for the customer</span>
+                }
+              </td>
+              <td class="small">
+                @if (row.recordId) {
+                  <span class="badge text-bg-success">Record created</span>
+                } @else {
+                  <span class="text-muted">{{ row.note || '—' }}</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  <div modalFooter class="d-flex justify-content-end">
+    <button class="btn btn-outline-secondary" (click)="responsesOpen.set(false)">Close</button>
+  </div>
+</app-modal>

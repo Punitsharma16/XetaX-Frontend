@@ -392,7 +392,61 @@
     @if (tplCategory !== 'AUTHENTICATION') {
       <div class="col-12">
         <label class="form-label">Header <span class="text-muted fw-normal">(optional)</span></label>
-        <input class="form-control" [(ngModel)]="tplHeader" placeholder="Order update" maxlength="60" />
+        <div class="btn-group btn-group-sm w-100 mb-2" role="group">
+          <button type="button" class="btn"
+                  [class.btn-success]="tplHeaderType === 'NONE'"
+                  [class.btn-outline-secondary]="tplHeaderType !== 'NONE'"
+                  (click)="tplHeaderType = 'NONE'">None</button>
+          <button type="button" class="btn"
+                  [class.btn-success]="tplHeaderType === 'TEXT'"
+                  [class.btn-outline-secondary]="tplHeaderType !== 'TEXT'"
+                  (click)="tplHeaderType = 'TEXT'">Text</button>
+          <button type="button" class="btn"
+                  [class.btn-success]="tplHeaderType === 'IMAGE'"
+                  [class.btn-outline-secondary]="tplHeaderType !== 'IMAGE'"
+                  (click)="tplHeaderType = 'IMAGE'">Image</button>
+          <button type="button" class="btn"
+                  [class.btn-success]="tplHeaderType === 'VIDEO'"
+                  [class.btn-outline-secondary]="tplHeaderType !== 'VIDEO'"
+                  (click)="tplHeaderType = 'VIDEO'">Video</button>
+          <button type="button" class="btn"
+                  [class.btn-success]="tplHeaderType === 'DOCUMENT'"
+                  [class.btn-outline-secondary]="tplHeaderType !== 'DOCUMENT'"
+                  (click)="tplHeaderType = 'DOCUMENT'">Document</button>
+        </div>
+
+        @if (tplHeaderType === 'TEXT') {
+          <input class="form-control" [(ngModel)]="tplHeader" placeholder="Order update" maxlength="60" />
+        }
+
+        @if (tplHeaderIsMedia) {
+          <div class="wa-media-box">
+            <div class="d-flex align-items-center gap-2 flex-wrap">
+              <label class="btn btn-outline-secondary btn-sm mb-0">
+                <i class="bi bi-upload me-1"></i>
+                {{ tplSampleHandle() ? 'Replace sample' : 'Upload sample' }}
+                <input type="file" hidden
+                       [accept]="tplHeaderType === 'IMAGE' ? 'image/*' : tplHeaderType === 'VIDEO' ? 'video/*' : 'application/pdf'"
+                       (change)="uploadSample($event)" />
+              </label>
+              @if (tplUploading()) {
+                <span class="spinner-border spinner-border-sm"></span>
+              }
+              @if (tplSampleHandle()) {
+                <span class="wa-chip wa-chip--ok"><i class="bi bi-check2 me-1"></i>{{ tplSampleName() }}</span>
+              }
+            </div>
+            <div class="form-text">
+              Meta's reviewer sees this example. It is not what gets sent.
+            </div>
+            <label class="form-label mt-2">Link to send</label>
+            <input class="form-control" [(ngModel)]="tplMediaUrl"
+                   placeholder="https://xetacrm.pro/assets/promo.jpg" />
+            <div class="form-text">
+              The public link of the file every send of this template carries.
+            </div>
+          </div>
+        }
       </div>
       <div class="col-12">
         <label class="form-label">Body</label>
@@ -421,6 +475,129 @@
       </div>
     }
   </div>
+
+  @if (tplCategory !== 'AUTHENTICATION') {
+    <hr class="my-3" />
+
+    <div class="d-flex justify-content-between align-items-center mb-2">
+      <span class="fw-semibold"><i class="bi bi-ui-radios me-1"></i>Buttons</span>
+      <div class="btn-group btn-group-sm">
+        <button class="btn btn-outline-secondary" (click)="addButton('URL')">
+          <i class="bi bi-link-45deg me-1"></i>Link
+        </button>
+        <button class="btn btn-outline-secondary" (click)="addButton('PHONE_NUMBER')">
+          <i class="bi bi-telephone me-1"></i>Call
+        </button>
+        <button class="btn btn-outline-secondary" (click)="addButton('QUICK_REPLY')">
+          <i class="bi bi-reply me-1"></i>Quick reply
+        </button>
+      </div>
+    </div>
+
+    @if (!tplButtons.length) {
+      <div class="form-text mb-2">
+        Up to two links, one call button, and quick replies. Optional.
+      </div>
+    }
+
+    @for (button of tplButtons; track $index) {
+      <div class="row g-2 align-items-end mb-2">
+        <div class="col-12 col-md-3">
+          <label class="form-label small">
+            {{ button.type === 'URL' ? 'Link button' : button.type === 'PHONE_NUMBER' ? 'Call button' : 'Quick reply' }}
+          </label>
+          <input class="form-control form-control-sm" [(ngModel)]="button.text"
+                 [name]="'btnText' + $index" maxlength="25" placeholder="Visit website" />
+        </div>
+        @if (button.type === 'URL') {
+          <div class="col-12 col-md-5">
+            <label class="form-label small">URL</label>
+            <input class="form-control form-control-sm" [(ngModel)]="button.url"
+                   [name]="'btnUrl' + $index" placeholder="https://xetacrm.pro" />
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label small">Example <span class="text-muted">(if it ends in {{ '{{' }}1{{ '}}' }})</span></label>
+            <input class="form-control form-control-sm" [(ngModel)]="button.urlExample"
+                   [name]="'btnEx' + $index" placeholder="https://xetacrm.pro/t/ORD-1042" />
+          </div>
+        }
+        @if (button.type === 'PHONE_NUMBER') {
+          <div class="col-12 col-md-8">
+            <label class="form-label small">Phone number</label>
+            <input class="form-control form-control-sm" [(ngModel)]="button.phoneNumber"
+                   [name]="'btnPhone' + $index" placeholder="919876543210" />
+          </div>
+        }
+        @if (button.type === 'QUICK_REPLY') {
+          <div class="col-12 col-md-8">
+            <div class="form-text">The customer's tap comes back as a reply in your inbox.</div>
+          </div>
+        }
+        <div class="col-12 col-md-1 text-end">
+          <button class="btn btn-outline-danger btn-sm" (click)="removeButton($index)" title="Remove">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </div>
+    }
+
+    @if (tplCategory === 'MARKETING') {
+      <hr class="my-3" />
+      <div class="form-check form-switch mb-2">
+        <input class="form-check-input" type="checkbox" id="tplCarousel"
+               [checked]="tplCarousel()" (change)="toggleCarousel($any($event.target).checked)" />
+        <label class="form-check-label fw-semibold" for="tplCarousel">
+          <i class="bi bi-images me-1"></i>Carousel — a row of cards the customer swipes
+        </label>
+      </div>
+
+      @if (tplCarousel()) {
+        <div class="form-text mb-2">
+          Two to ten cards. Meta requires every card to look the same, so each
+          one needs a picture and body text.
+        </div>
+
+        @for (card of tplCards; track $index) {
+          <div class="wa-card-draft">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <span class="fw-semibold small">Card {{ $index + 1 }}</span>
+              <button class="btn btn-outline-danger btn-sm" (click)="removeCard($index)">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+            <div class="row g-2">
+              <div class="col-12 col-md-6">
+                <label class="btn btn-outline-secondary btn-sm mb-0">
+                  <i class="bi bi-upload me-1"></i>{{ card.handle ? 'Replace sample' : 'Upload sample' }}
+                  <input type="file" hidden accept="image/*" (change)="uploadSample($event, $index)" />
+                </label>
+                @if (card.handle) {
+                  <span class="wa-chip wa-chip--ok ms-2"><i class="bi bi-check2 me-1"></i>{{ card.sampleName }}</span>
+                }
+              </div>
+              <div class="col-12 col-md-6">
+                <input class="form-control form-control-sm" [(ngModel)]="card.mediaUrl"
+                       [name]="'cardUrl' + $index" placeholder="https://… link to send" />
+              </div>
+              <div class="col-12">
+                <textarea class="form-control form-control-sm" rows="2" [(ngModel)]="card.body"
+                          [name]="'cardBody' + $index"
+                          placeholder="Starter plan — everything a small team needs."></textarea>
+              </div>
+              <div class="col-12">
+                <input class="form-control form-control-sm" [(ngModel)]="card.examples"
+                       [name]="'cardEx' + $index" placeholder="Example values, comma-separated" />
+              </div>
+            </div>
+          </div>
+        }
+
+        <button class="btn btn-outline-secondary btn-sm" (click)="addCard()">
+          <i class="bi bi-plus-lg me-1"></i>Add card
+        </button>
+      }
+    }
+  }
 
   <div modalFooter class="d-flex justify-content-end gap-2">
     <button class="btn btn-outline-secondary" (click)="tplOpen.set(false)">Cancel</button>

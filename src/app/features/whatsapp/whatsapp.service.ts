@@ -36,6 +36,92 @@ export interface WhatsAppTemplate {
   status: string | null;
   componentsJson: string | null;
   rejectionReason: string | null;
+  headerFormat: string | null;
+  headerMediaUrl: string | null;
+}
+
+/** One button under a template. Meta allows 2 URL, 1 phone, the rest replies. */
+export interface TemplateButton {
+  type: 'URL' | 'PHONE_NUMBER' | 'QUICK_REPLY' | 'FLOW';
+  text: string;
+  url?: string;
+  urlExample?: string;
+  phoneNumber?: string;
+  flowId?: string;
+  flowAction?: string;
+}
+
+/** One card of a carousel. Every card must have the same shape. */
+export interface TemplateCard {
+  headerFormat?: string;
+  headerHandle?: string;
+  headerMediaUrl?: string;
+  bodyText?: string;
+  exampleParams?: string[];
+  buttons?: TemplateButton[];
+}
+
+export interface TemplateCreateRequest {
+  name: string;
+  category: 'MARKETING' | 'UTILITY' | 'AUTHENTICATION';
+  language: string;
+  headerFormat?: 'NONE' | 'TEXT' | 'IMAGE' | 'VIDEO' | 'DOCUMENT';
+  headerText?: string;
+  headerHandle?: string;
+  headerMediaUrl?: string;
+  bodyText?: string;
+  footerText?: string;
+  exampleParams?: string[];
+  buttons?: TemplateButton[];
+  cards?: TemplateCard[];
+}
+
+/** A Flow — the form a customer fills inside WhatsApp. */
+export interface WhatsAppFlow {
+  id: number;
+  metaFlowId: string | null;
+  name: string;
+  status: 'DRAFT' | 'PUBLISHED' | 'DEPRECATED' | 'BLOCKED' | 'THROTTLED' | string;
+  category: string | null;
+  flowJson: string | null;
+  formId: number | null;
+  fieldMap: Record<string, string>;
+  publishedAt: string | null;
+  lastError: string | null;
+  validationErrors: string[];
+}
+
+export interface FlowCreateRequest {
+  name: string;
+  categories?: string[];
+  flowJson?: string;
+  formId?: number | null;
+  fieldMap?: Record<string, string>;
+  publish?: boolean;
+}
+
+export interface FlowSendRequest {
+  flowId: number;
+  phone?: string;
+  conversationId?: number;
+  recordId?: string;
+  headerText?: string;
+  bodyText?: string;
+  footerText?: string;
+  ctaText?: string;
+}
+
+/** One customer's submitted Flow. */
+export interface FlowSubmission {
+  id: number;
+  flowId: number | null;
+  flowName: string | null;
+  customerPhone: string | null;
+  conversationId: number | null;
+  answers: Record<string, unknown>;
+  recordId: string | null;
+  note: string | null;
+  submittedAt: string | null;
 }
 
 export interface WhatsAppConversation {
@@ -193,16 +279,18 @@ export class WhatsAppService {
     return this.api.get<WhatsAppTemplate[]>(`${this.path}/templates`, undefined, { quiet: true });
   }
 
-  createTemplate(request: {
-    name: string;
-    category: 'MARKETING' | 'UTILITY' | 'AUTHENTICATION';
-    language: string;
-    headerText?: string;
-    bodyText?: string;
-    footerText?: string;
-    exampleParams?: string[];
-  }): Observable<WhatsAppTemplate> {
+  createTemplate(request: TemplateCreateRequest): Observable<WhatsAppTemplate> {
     return this.api.post<WhatsAppTemplate>(`${this.path}/templates`, request);
+  }
+
+  /**
+   * Uploads the sample image a Meta reviewer sees for a media header and
+   * returns the handle that goes into the template being created.
+   */
+  uploadTemplateSample(file: File): Observable<{ handle: string }> {
+    const form = new FormData();
+    form.append('file', file);
+    return this.api.post<{ handle: string }>(`${this.path}/templates/sample`, form);
   }
 
   deleteTemplate(name: string): Observable<string> {
@@ -243,6 +331,56 @@ export class WhatsAppService {
 
   conversationMessages(id: number, page = 0, size = 50): Observable<Page<WhatsAppMessage>> {
     return this.api.get<Page<WhatsAppMessage>>(`${this.path}/conversations/${id}/messages`, {
+      page,
+      size,
+    });
+  }
+
+  /* ------------------------------------------------------------- flows */
+
+  flows(): Observable<WhatsAppFlow[]> {
+    return this.api.get<WhatsAppFlow[]>(`${this.path}/flows`, undefined, { quiet: true });
+  }
+
+  flow(id: number): Observable<WhatsAppFlow> {
+    return this.api.get<WhatsAppFlow>(`${this.path}/flows/${id}`);
+  }
+
+  flowOptions(): Observable<{ categories: string[] }> {
+    return this.api.get<{ categories: string[] }>(`${this.path}/flows/options`, undefined, { quiet: true });
+  }
+
+  createFlow(request: FlowCreateRequest): Observable<WhatsAppFlow> {
+    return this.api.post<WhatsAppFlow>(`${this.path}/flows`, request);
+  }
+
+  updateFlow(id: number, request: FlowCreateRequest): Observable<WhatsAppFlow> {
+    return this.api.put<WhatsAppFlow>(`${this.path}/flows/${id}`, request);
+  }
+
+  publishFlow(id: number): Observable<WhatsAppFlow> {
+    return this.api.post<WhatsAppFlow>(`${this.path}/flows/${id}/publish`, {});
+  }
+
+  deprecateFlow(id: number): Observable<WhatsAppFlow> {
+    return this.api.post<WhatsAppFlow>(`${this.path}/flows/${id}/deprecate`, {});
+  }
+
+  deleteFlow(id: number): Observable<string> {
+    return this.api.delete(`${this.path}/flows/${id}`);
+  }
+
+  flowPreview(id: number): Observable<{ url?: string }> {
+    return this.api.get<{ url?: string }>(`${this.path}/flows/${id}/preview`);
+  }
+
+  sendFlow(request: FlowSendRequest): Observable<FlowSubmission> {
+    return this.api.post<FlowSubmission>(`${this.path}/flows/send`, request);
+  }
+
+  flowResponses(flowId: number | null, page = 0, size = 20): Observable<Page<FlowSubmission>> {
+    return this.api.get<Page<FlowSubmission>>(`${this.path}/flows/responses`, {
+      flowId: flowId ?? undefined,
       page,
       size,
     });

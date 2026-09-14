@@ -272,3 +272,22 @@
 .wa-check__chev { color: var(--bs-secondary-color); font-size: 0.8rem; }
 .wa-check__how { font-size: 0.8rem; color: var(--bs-secondary-color); padding: 0 4px 12px 42px; line-height: 1.5; }
 .wa-check__note { font-size: 0.75rem; color: var(--bs-secondary-color); padding: 10px 4px 4px; border-top: 1px dashed var(--bs-border-color); margin-top: 4px; }
+
+/* ---- new-template modal: media header, buttons, carousel cards ---- */
+.wa-media-box {
+  border: 1px dashed var(--bs-border-color);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+}
+
+.wa-card-draft {
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.wa-chip--ok {
+  background: rgba(25, 135, 84, 0.12);
+  color: var(--bs-success);
+}

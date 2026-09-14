@@ -14,11 +14,22 @@ import { WhatsAppNavComponent } from '../whatsapp-nav.component';
 import { TemplateDraft, TemplateService } from '../../forms/template.service';
 import {
   EmbeddedSignupMeta,
+  TemplateButton,
+  TemplateCard,
   WhatsAppConfig,
   WhatsAppService,
   WhatsAppTemplate,
   WhatsAppUsage,
 } from '../whatsapp.service';
+
+/** One carousel card while it is being edited, before it becomes a TemplateCard. */
+interface CardDraft {
+  body: string;
+  examples: string;
+  mediaUrl: string;
+  handle: string | null;
+  sampleName: string;
+}
 
 declare global {
   interface Window {
@@ -184,10 +195,24 @@ export class WhatsAppSettingsComponent implements OnDestroy {
   tplName = '';
   tplCategory: 'MARKETING' | 'UTILITY' | 'AUTHENTICATION' = 'MARKETING';
   tplLanguage = 'en';
+  tplHeaderType: 'NONE' | 'TEXT' | 'IMAGE' | 'VIDEO' | 'DOCUMENT' = 'NONE';
   tplHeader = '';
   tplBody = '';
   tplFooter = '';
   tplExamples = '';
+
+  /** Media header: Meta's sample handle, plus the file every send will carry. */
+  readonly tplSampleHandle = signal<string | null>(null);
+  readonly tplSampleName = signal<string>('');
+  readonly tplUploading = signal(false);
+  tplMediaUrl = '';
+
+  /** Buttons under the message. */
+  tplButtons: TemplateButton[] = [];
+
+  /** Carousel cards, empty unless the user turns a carousel on. */
+  readonly tplCarousel = signal(false);
+  tplCards: CardDraft[] = [];
 
   readonly showManual = signal(false);
   manualToken = '';
@@ -445,7 +470,108 @@ export class WhatsAppSettingsComponent implements OnDestroy {
   }
 
   openTemplateModal(): void {
+    this.resetTemplateDraft();
     this.tplOpen.set(true);
+  }
+
+  private resetTemplateDraft(): void {
+    this.tplName = this.tplHeader = this.tplBody = this.tplFooter = this.tplExamples = '';
+    this.tplHeaderType = 'NONE';
+    this.tplMediaUrl = '';
+    this.tplSampleHandle.set(null);
+    this.tplSampleName.set('');
+    this.tplButtons = [];
+    this.tplCarousel.set(false);
+    this.tplCards = [];
+  }
+
+  /* ------------------------------------------------- media header */
+
+  get tplHeaderIsMedia(): boolean {
+    return this.tplHeaderType === 'IMAGE'
+      || this.tplHeaderType === 'VIDEO'
+      || this.tplHeaderType === 'DOCUMENT';
+  }
+
+  /**
+   * Meta reviews a media header against a real example, so the file goes up
+   * before the template is submitted and only its handle travels with it.
+   */
+  uploadSample(event: Event, cardIndex: number | null = null): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      this.toast.warning('File too large', 'Meta accepts samples up to 5MB.');
+      return;
+    }
+    this.tplUploading.set(true);
+    this.whatsapp.uploadTemplateSample(file).subscribe({
+      next: ({ handle }) => {
+        this.tplUploading.set(false);
+        if (cardIndex === null) {
+          this.tplSampleHandle.set(handle);
+          this.tplSampleName.set(file.name);
+        } else {
+          this.tplCards[cardIndex].handle = handle;
+          this.tplCards[cardIndex].sampleName = file.name;
+        }
+        this.toast.success('Sample uploaded', file.name);
+      },
+      error: () => this.tplUploading.set(false),
+    });
+  }
+
+  /* ------------------------------------------------------- buttons */
+
+  addButton(type: TemplateButton['type']): void {
+    if (this.tplButtons.length >= 10) {
+      this.toast.warning('Too many buttons', 'Meta allows at most 10.');
+      return;
+    }
+    if (type === 'URL' && this.tplButtons.filter((b) => b.type === 'URL').length >= 2) {
+      this.toast.warning('Two URL buttons is the limit', 'Meta allows no more than two links.');
+      return;
+    }
+    if (type === 'PHONE_NUMBER' && this.tplButtons.some((b) => b.type === 'PHONE_NUMBER')) {
+      this.toast.warning('One phone button only', 'Meta allows a single call button.');
+      return;
+    }
+    this.tplButtons = [...this.tplButtons, { type, text: '' }];
+  }
+
+  removeButton(index: number): void {
+    this.tplButtons = this.tplButtons.filter((_, i) => i !== index);
+  }
+
+  /* ------------------------------------------------------ carousel */
+
+  toggleCarousel(on: boolean): void {
+    this.tplCarousel.set(on);
+    this.tplCards = on
+      ? [this.emptyCard(), this.emptyCard()]   // Meta's minimum is two
+      : [];
+  }
+
+  addCard(): void {
+    if (this.tplCards.length >= 10) {
+      this.toast.warning('Ten cards is the limit', 'Meta allows at most 10 carousel cards.');
+      return;
+    }
+    this.tplCards = [...this.tplCards, this.emptyCard()];
+  }
+
+  removeCard(index: number): void {
+    if (this.tplCards.length <= 2) {
+      this.toast.warning('Two cards minimum', 'A carousel needs at least two cards.');
+      return;
+    }
+    this.tplCards = this.tplCards.filter((_, i) => i !== index);
+  }
+
+  private emptyCard(): CardDraft {
+    return { body: '', examples: '', mediaUrl: '', handle: null, sampleName: '' };
   }
 
   submitTemplate(): void {
@@ -469,22 +595,65 @@ export class WhatsAppSettingsComponent implements OnDestroy {
       );
       return;
     }
+    if (this.tplHeaderIsMedia && !this.tplSampleHandle()) {
+      this.toast.warning('Sample needed', 'Upload the image Meta should review.');
+      return;
+    }
+    if (this.tplHeaderIsMedia && !this.tplMediaUrl.trim()) {
+      this.toast.warning(
+        'Link needed',
+        'Give the public link of the file every send should carry.',
+      );
+      return;
+    }
+    const buttons = this.tplButtons
+      .map((b) => ({ ...b, text: b.text.trim() }))
+      .filter((b) => b.text);
+    if (buttons.length !== this.tplButtons.length) {
+      this.toast.warning('Button label missing', 'Every button needs a label.');
+      return;
+    }
+
+    let cards: TemplateCard[] | undefined;
+    if (this.tplCarousel()) {
+      const missing = this.tplCards.findIndex((c) => !c.body.trim() || !c.handle || !c.mediaUrl.trim());
+      if (missing >= 0) {
+        this.toast.warning(
+          `Card ${missing + 1} is incomplete`,
+          'Every card needs body text, an uploaded sample and a media link.',
+        );
+        return;
+      }
+      cards = this.tplCards.map((c) => ({
+        headerFormat: 'IMAGE',
+        headerHandle: c.handle ?? undefined,
+        headerMediaUrl: c.mediaUrl.trim(),
+        bodyText: c.body.trim(),
+        exampleParams: c.examples.split(',').map((v) => v.trim()).filter(Boolean),
+      }));
+    }
+
     this.tplSaving.set(true);
     this.whatsapp
       .createTemplate({
         name: this.tplName.trim(),
         category: this.tplCategory,
         language: this.tplLanguage.trim() || 'en',
-        headerText: this.tplHeader.trim() || undefined,
+        headerFormat: this.tplCategory === 'AUTHENTICATION' ? undefined : this.tplHeaderType,
+        headerText: this.tplHeaderType === 'TEXT' ? this.tplHeader.trim() || undefined : undefined,
+        headerHandle: this.tplHeaderIsMedia ? this.tplSampleHandle() ?? undefined : undefined,
+        headerMediaUrl: this.tplHeaderIsMedia ? this.tplMediaUrl.trim() : undefined,
         bodyText: this.tplBody.trim() || undefined,
         footerText: this.tplFooter.trim() || undefined,
         exampleParams: examples.length ? examples : undefined,
+        buttons: buttons.length ? buttons : undefined,
+        cards,
       })
       .subscribe({
         next: (template) => {
           this.tplSaving.set(false);
           this.tplOpen.set(false);
-          this.tplName = this.tplHeader = this.tplBody = this.tplFooter = this.tplExamples = '';
+          this.resetTemplateDraft();
           this.toast.success(
             'Submitted to Meta',
             `'${template.name}' is ${template.status} — approval usually takes minutes to 24h.`,
