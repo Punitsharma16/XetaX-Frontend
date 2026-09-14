@@ -229,8 +229,16 @@ export class WhatsAppService {
     return this.api.get<WhatsAppMessage[]>(`${this.path}/messages/record/${recordId}`);
   }
 
-  conversations(page = 0, size = 50): Observable<Page<WhatsAppConversation>> {
-    return this.api.get<Page<WhatsAppConversation>>(`${this.path}/conversations`, { page, size });
+  /**
+   * `quiet` keeps a failed background refresh silent — the inbox polls this
+   * every few seconds and a flaky minute must not stack up error toasts.
+   */
+  conversations(page = 0, size = 50, quiet = false): Observable<Page<WhatsAppConversation>> {
+    return this.api.get<Page<WhatsAppConversation>>(
+      `${this.path}/conversations`,
+      { page, size },
+      { quiet },
+    );
   }
 
   conversationMessages(id: number, page = 0, size = 50): Observable<Page<WhatsAppMessage>> {

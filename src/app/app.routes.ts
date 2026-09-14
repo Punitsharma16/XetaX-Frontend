@@ -259,6 +259,9 @@ export const routes: Routes = [
             (m) => m.WhatsAppConversationsComponent,
           ),
       },
+      // Older WhatsApp bell notifications were stored with this path and used
+      // to land on the 404 page. Keep it pointing at the inbox so they open.
+      { path: 'whatsapp/inbox', pathMatch: 'full', redirectTo: 'whatsapp/conversations' },
       {
         path: 'whatsapp/campaigns',
         title: 'WhatsApp campaigns · XetaX CRM',

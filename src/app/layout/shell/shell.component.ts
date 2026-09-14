@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnDestroy,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map, startWith } from 'rxjs';
@@ -6,6 +14,7 @@ import { filter, map, startWith } from 'rxjs';
 import { AuthService } from '../../core/authentication/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { PermissionService } from '../../core/services/permission.service';
+import { RealtimeService } from '../../core/services/realtime.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { FormResponse } from '../../core/models/crm.model';
 import { FormService } from '../../features/forms/form.service';
@@ -29,13 +38,14 @@ const SIDEBAR_KEY = 'xetax.sidebar.collapsed';
   templateUrl: './shell.component.html',
   styleUrl: './shell.component.css',
 })
-export class ShellComponent {
+export class ShellComponent implements OnDestroy {
   private readonly auth = inject(AuthService);
   readonly perms = inject(PermissionService);
   private readonly themeService = inject(ThemeService);
   private readonly router = inject(Router);
   private readonly formService = inject(FormService);
   readonly notifications = inject(NotificationService);
+  private readonly realtime = inject(RealtimeService);
 
   readonly user = this.auth.user;
   readonly initials = this.auth.initials;
@@ -96,6 +106,8 @@ export class ShellComponent {
   );
 
   constructor() {
+    // The socket lives exactly as long as the signed-in shell does.
+    this.realtime.start();
     this.notifications.start();
     this.perms.load();
     // Auto-expand the Records submenu whenever a records page is open.
@@ -135,6 +147,10 @@ export class ShellComponent {
         if (/^[0-9a-f]{24}$/i.test(raw) || /^[0-9a-f-]{36}$/i.test(raw)) return 'Details';
         return raw.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
       });
+  }
+
+  ngOnDestroy(): void {
+    this.realtime.stop();
   }
 
   toggleSidebar(): void {
