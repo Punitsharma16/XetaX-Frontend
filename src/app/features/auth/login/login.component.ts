@@ -18,6 +18,14 @@ export class LoginComponent {
   private readonly fb = inject(FormBuilder);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
+
+  /** Pages that can never be where a successful sign-in should land. */
+  private static readonly AUTH_PAGES = [
+    '/login',
+    '/register',
+    '/verify-email',
+    '/forgot-password',
+  ];
   private readonly route = inject(ActivatedRoute);
   private readonly toast = inject(ToastService);
   private readonly themeService = inject(ThemeService);
@@ -80,8 +88,7 @@ export class LoginComponent {
         this.submitting.set(false);
         this.toast.success(`Welcome back, ${user.name.split(' ')[0]}`);
 
-        const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
-        this.router.navigateByUrl(returnUrl || '/app/dashboard');
+        this.router.navigateByUrl(this.destinationAfterLogin());
       },
       error: (err) => {
         this.submitting.set(false);
@@ -100,4 +107,27 @@ export class LoginComponent {
       },
     });
   }
+
+  /**
+   * Where to go once the password checks out.
+   *
+   * <p>`returnUrl` normally carries the page the visitor was trying to open.
+   * It can also point straight back at /login: the auth interceptor writes
+   * the current URL when a session dies, and that URL is /login itself if the
+   * session expired while the form was already open. Navigating to the page
+   * you are already on is a no-op in the router, so the sign-in appeared to
+   * do nothing until the tab was reloaded. An auth page is never a
+   * destination, so those fall back to the dashboard.
+   */
+  private destinationAfterLogin(): string {
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    if (!returnUrl || !returnUrl.startsWith('/')) return '/app/dashboard';
+
+    const path = returnUrl.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
+    const isAuthPage = LoginComponent.AUTH_PAGES.some(
+      (page) => path === page || path.startsWith(page + '/'),
+    );
+    return isAuthPage ? '/app/dashboard' : returnUrl;
+  }
+
 }

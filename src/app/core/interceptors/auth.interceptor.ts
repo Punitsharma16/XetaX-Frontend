@@ -82,5 +82,15 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 function endSession(auth: AuthService, router: Router, toast: ToastService): void {
   auth.clearSession();
   toast.warning('Session expired', 'Please sign in again to continue.');
-  router.navigate(['/login'], { queryParams: { returnUrl: router.url } });
+
+  // Only remember a real destination. A session that dies while the visitor
+  // is already on an auth page would otherwise send them back to /login after
+  // they sign in, which the router treats as going nowhere.
+  const current = router.url.split('?')[0];
+  const isAuthPage = ['/login', '/register', '/verify-email', '/forgot-password'].some(
+    (page) => current === page || current.startsWith(page + '/'),
+  );
+  router.navigate(['/login'], {
+    queryParams: isAuthPage ? {} : { returnUrl: router.url },
+  });
 }
