@@ -3,6 +3,7 @@ import { AbstractControl, FormGroup, ReactiveFormsModule } from '@angular/forms'
 
 import { FieldResponse, FieldType } from '../../core/models/crm.model';
 import { optionsFor } from './dynamic-form.util';
+import { MultiSelectDropdownComponent } from './multi-select-dropdown.component';
 
 /**
  * Renders a single metadata-defined control.
@@ -13,7 +14,7 @@ import { optionsFor } from './dynamic-form.util';
 @Component({
   selector: 'app-dynamic-field',
   standalone: true,
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, MultiSelectDropdownComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dynamic-field.component.html',
   styles: [
@@ -108,6 +109,23 @@ export class DynamicFieldComponent {
 
     control.setValue(next);
     control.markAsDirty();
+  }
+
+  /** Current multi-choice value as an array, for the dropdown. */
+  selectedValues(): string[] {
+    const value = this.control()?.value;
+    return Array.isArray(value) ? (value as string[]) : [];
+  }
+
+  setChoices(values: string[]): void {
+    const control = this.control();
+    if (!control) return;
+    control.setValue(values);
+    control.markAsDirty();
+  }
+
+  markTouched(): void {
+    this.control()?.markAsTouched();
   }
 
   isChecked(option: string): boolean {
