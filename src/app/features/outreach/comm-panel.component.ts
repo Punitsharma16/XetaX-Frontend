@@ -1,3 +1,5 @@
+import { TemplateVariablesComponent, emptyVariables, templateSlots, variablesComplete } from '../whatsapp/template-variables.component';
+import type { TemplateVariables } from '../whatsapp/whatsapp.service';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -25,7 +27,7 @@ import { DocumentFile, DocumentService } from '../documents/document.service';
 @Component({
   selector: 'app-comm-panel',
   standalone: true,
-  imports: [DatePipe, FormsModule],
+  imports: [DatePipe, FormsModule, TemplateVariablesComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './comm-panel.component.html',
   styleUrl: './comm-panel.component.css',
@@ -51,6 +53,12 @@ export class CommPanelComponent {
   );
   waMessage = '';
   waTemplate = '';
+  /** Values for the chosen template's variables, from the variables form. */
+  waVars: TemplateVariables | null = null;
+
+  get waTemplateObj() {
+    return this.approvedTemplates().find((t) => t.name === this.waTemplate) ?? null;
+  }
   waButtons: string[] = ['', '', ''];
   waDocumentId = '';
 
@@ -136,6 +144,13 @@ export class CommPanelComponent {
       return;
     }
     const template = this.approvedTemplates().find((t) => t.name === this.waTemplate);
+    if (usingTemplate) {
+      const slots = templateSlots(template);
+      if (!variablesComplete(slots, template, this.waVars ?? emptyVariables(slots))) {
+        this.toast.warning('Fill every template variable', 'Type a value, or use {fieldKey} to take it from this record.');
+        return;
+      }
+    }
     this.waSending.set(true);
 
     // A picked document rides its own endpoint (message becomes the caption).
@@ -169,6 +184,7 @@ export class CommPanelComponent {
         message: usingTemplate ? undefined : this.waMessage.trim(),
         templateName: usingTemplate ? template?.name : undefined,
         templateLanguage: usingTemplate ? template?.language : undefined,
+        templateVariables: usingTemplate ? this.waVars ?? undefined : undefined,
         recordId: this.recordId(),
         buttonsJson: !usingTemplate && buttons.length ? JSON.stringify(buttons) : undefined,
       })
@@ -177,6 +193,7 @@ export class CommPanelComponent {
           this.waSending.set(false);
           this.waMessage = '';
           this.waTemplate = '';
+          this.waVars = null;
           this.waButtons = ['', '', ''];
           this.toast.success('WhatsApp queued', usingTemplate ? `Template: ${template?.name}` : undefined);
           // Dispatch is async — a short delay lets the new message appear in the chat.

@@ -11,6 +11,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { UserService } from '../user.service';
 import { WhatsAppConnectCardComponent } from '../../whatsapp/whatsapp-connect-card.component';
 import { SmtpSettingsCardComponent } from '../smtp-settings-card.component';
+import { DigestSettingsCardComponent } from '../digest-settings-card.component';
 import { BillingService, BillingSummary } from '../../billing/billing.service';
 
 /** The slice of /api/dashboard/summary the services card needs. */
@@ -32,6 +33,7 @@ interface ServiceStatus {
     PageHeaderComponent,
     WhatsAppConnectCardComponent,
     SmtpSettingsCardComponent,
+    DigestSettingsCardComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './profile.component.html',

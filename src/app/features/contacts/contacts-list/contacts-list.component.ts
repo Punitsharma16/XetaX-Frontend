@@ -1,3 +1,5 @@
+import { TemplateVariablesComponent, emptyVariables, templateSlots, variablesComplete } from '../../whatsapp/template-variables.component';
+import type { TemplateVariables } from '../../whatsapp/whatsapp.service';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -25,6 +27,7 @@ type ComposeChannel = 'whatsapp' | 'email';
   standalone: true,
   imports: [
     FormsModule,
+    TemplateVariablesComponent,
     RouterLink,
     ModalComponent,
     PageHeaderComponent,
@@ -73,6 +76,12 @@ export class ContactsListComponent {
   composeSubject = '';
   composeBody = '';
   composeTemplate = '';
+  /** Values for the chosen template's variables — {name} etc. are filled per contact. */
+  composeVars: TemplateVariables | null = null;
+
+  get composeTemplateObj() {
+    return this.approvedTemplates().find((t) => t.name === this.composeTemplate) ?? null;
+  }
 
   constructor() {
     this.load();
@@ -125,6 +134,7 @@ export class ContactsListComponent {
     this.composeSubject = '';
     this.composeBody = '';
     this.composeTemplate = '';
+    this.composeVars = null;
     this.composeOpen.set(true);
   }
 
@@ -141,6 +151,13 @@ export class ContactsListComponent {
     }
     const ids = [...this.selected()];
     const template = this.approvedTemplates().find((t) => t.name === this.composeTemplate);
+    if (usingTemplate) {
+      const slots = templateSlots(template);
+      if (!variablesComplete(slots, template, this.composeVars ?? emptyVariables(slots))) {
+        this.toast.warning('Fill every template variable', 'Type a value, or use {name}, {email}, {phone}, {company}.');
+        return;
+      }
+    }
     this.sending.set(true);
     const request = channel === 'whatsapp'
       ? this.contactsService.bulkWhatsApp(
@@ -148,6 +165,7 @@ export class ContactsListComponent {
           this.composeBody,
           usingTemplate ? template?.name : undefined,
           usingTemplate ? template?.language : undefined,
+          usingTemplate ? this.composeVars ?? undefined : undefined,
         )
       : this.contactsService.bulkEmail(ids, this.composeSubject, this.composeBody);
     request.subscribe({

@@ -1,3 +1,5 @@
+import { TemplateVariablesComponent, emptyVariables, templateSlots, variablesComplete } from '../template-variables.component';
+import type { TemplateVariables } from '../whatsapp.service';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -26,7 +28,7 @@ type Step = 1 | 2 | 3;
 @Component({
   selector: 'app-whatsapp-campaign-create',
   standalone: true,
-  imports: [FormsModule, RouterLink, PageHeaderComponent, WhatsAppNavComponent],
+  imports: [FormsModule, RouterLink, PageHeaderComponent, WhatsAppNavComponent, TemplateVariablesComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './campaign-create.component.html',
   styleUrl: './campaign-create.component.css',
@@ -59,6 +61,13 @@ export class WhatsAppCampaignCreateComponent {
   templateLanguage = '';
   /** Payload key mapped to each {{n}} variable of the chosen template. */
   templateParams: string[] = [];
+  /** Field keys / CSV columns for every variable of the chosen template. */
+  templateVars: TemplateVariables | null = null;
+
+  /** A getter, not computed(): templateName is a plain field, so a computed never re-ran. */
+  get selectedTemplate() {
+    return this.templates().find((t) => t.name === this.templateName) ?? null;
+  }
   scheduleAt = '';
 
   readonly selectedForm = computed(() =>
@@ -90,7 +99,8 @@ export class WhatsAppCampaignCreateComponent {
   });
 
   onTemplatePicked(): void {
-    this.templateParams = Array(this.templateVarCount()).fill('');
+    this.templateParams = [];
+    this.templateVars = null;
   }
 
   constructor() {
@@ -153,13 +163,16 @@ export class WhatsAppCampaignCreateComponent {
         this.toast.warning('Template missing', 'Pick an approved template.');
         return;
       }
-      if (this.messageMode === 'template' && this.templateVarCount() > 0
-          && this.templateParams.some((key) => !key.trim())) {
-        this.toast.warning(
-          'Variables unmapped',
-          'Map every template variable to a field/column so each customer gets their own values.',
-        );
-        return;
+      if (this.messageMode === 'template') {
+        const template = this.selectedTemplate;
+        const slots = templateSlots(template);
+        if (!variablesComplete(slots, template, this.templateVars ?? emptyVariables(slots))) {
+          this.toast.warning(
+            'Variables unmapped',
+            'Map every template variable — header, body, buttons and cards — so each customer gets their own values.',
+          );
+          return;
+        }
       }
       this.step.set(3);
     }
@@ -186,10 +199,7 @@ export class WhatsAppCampaignCreateComponent {
         templateLanguage: this.messageMode === 'template' ? template?.language : undefined,
         formSlug: this.sourceType === 'RECORDS' ? this.selectedForm()?.slug : undefined,
         phoneFieldKey: this.sourceType === 'RECORDS' ? this.phoneFieldKey : undefined,
-        templateParams:
-          this.messageMode === 'template' && this.templateParams.length
-            ? this.templateParams.map((key) => key.trim())
-            : undefined,
+        templateVariables: this.messageMode === 'template' ? this.templateVars ?? undefined : undefined,
       })
       .subscribe({
         next: (campaign) => {

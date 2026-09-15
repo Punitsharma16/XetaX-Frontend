@@ -163,6 +163,10 @@
                 <i class="bi bi-send"></i>
               </button>
             </div>
+            @if (replyTemplate) {
+              <app-template-variables class="w-100" [template]="replyTemplateObj"
+                                      (valueChange)="replyVars = $event" />
+            }
           </div>
         }
       }

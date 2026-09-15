@@ -621,8 +621,25 @@
               @if (r.action === 'SEND_MESSAGE') {
                 <div class="col-12 col-md-6">
                   <label class="form-label">Approved WhatsApp template for cold sends <span class="text-muted">(optional)</span></label>
-                  <input class="form-control" [(ngModel)]="r.templateName" placeholder="followup_no_reply" />
-                  <div class="form-text">Used when the 24h window is closed; {{ '{{1}}' }} gets the lead's name.</div>
+                  <select class="form-select" [(ngModel)]="r.templateName">
+                    <option [ngValue]="null">No template</option>
+                    @for (t of waTemplates(); track t.id) {
+                      <option [ngValue]="t.name">{{ t.name }} ({{ t.language }})</option>
+                    }
+                  </select>
+                  @if (r.templateName && ruleTemplate(r.templateName)) {
+                    <app-template-variables [template]="ruleTemplate(r.templateName)" mode="fields"
+                                            [fields]="pbFieldKeys()" [initial]="ruleVarsInitial(r)"
+                                            hint="each value comes from the lead's field"
+                                            (valueChange)="r.templateParams = ruleParamsFrom($event)" />
+                    @if (!ruleTemplateFitsAutoSend(r.templateName)) {
+                      <div class="form-text text-warning-emphasis">
+                        This template has header, button or card variables. Automatic sends fill only the body,
+                        so it will be skipped — pick a template whose variables are all in the body.
+                      </div>
+                    }
+                  }
+                  <div class="form-text">Used when the 24h window is closed. If the body variables are not all mapped, a one-variable body gets the lead's name.</div>
                 </div>
               }
             }

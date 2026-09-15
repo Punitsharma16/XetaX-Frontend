@@ -1,3 +1,4 @@
+import type { TemplateVariables } from '../whatsapp/whatsapp.service';
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, map } from 'rxjs';
@@ -90,12 +91,14 @@ export class ContactsService {
     message: string,
     templateName?: string,
     templateLanguage?: string,
+    templateVariables?: TemplateVariables,
   ): Observable<BulkResult> {
     return this.api.post<BulkResult>('/api/contacts/bulk-whatsapp', {
       ids,
       message,
       templateName,
       templateLanguage,
+      templateVariables,
     });
   }
 

@@ -1,3 +1,4 @@
+import { templateVariableProblem } from '../template-variables.component';
 import { ChangeDetectionStrategy, Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -197,6 +198,12 @@ export class WhatsAppSettingsComponent implements OnDestroy {
   tplLanguage = 'en';
   tplHeaderType: 'NONE' | 'TEXT' | 'IMAGE' | 'VIDEO' | 'DOCUMENT' = 'NONE';
   tplHeader = '';
+  /** Sample for a {{1}} in the text header — Meta requires one. */
+  tplHeaderExample = '';
+
+  get tplHeaderHasVariable(): boolean {
+    return this.tplHeaderType === 'TEXT' && /\{\{\d+}}/.test(this.tplHeader);
+  }
   tplBody = '';
   tplFooter = '';
   tplExamples = '';
@@ -477,6 +484,7 @@ export class WhatsAppSettingsComponent implements OnDestroy {
   private resetTemplateDraft(): void {
     this.tplName = this.tplHeader = this.tplBody = this.tplFooter = this.tplExamples = '';
     this.tplHeaderType = 'NONE';
+    this.tplHeaderExample = '';
     this.tplMediaUrl = '';
     this.tplSampleHandle.set(null);
     this.tplSampleName.set('');
@@ -595,6 +603,28 @@ export class WhatsAppSettingsComponent implements OnDestroy {
       );
       return;
     }
+    // Meta's variable rules, caught here instead of as a rejection hours later.
+    const problem =
+      templateVariableProblem('The body', this.tplBody, true)
+      || (this.tplHeaderType === 'TEXT' ? templateVariableProblem('The header', this.tplHeader, false) : null)
+      || (this.tplFooter.includes('{{') ? "The footer can't contain variables" : null)
+      || (this.tplCarousel()
+        ? this.tplCards.map((c, i) => templateVariableProblem(`Carousel card ${i + 1} body`, c.body, true)).find(Boolean) ?? null
+        : null);
+    if (problem) {
+      this.toast.warning('Fix the variables', problem);
+      return;
+    }
+    if (this.tplHeaderHasVariable) {
+      if ((this.tplHeader.match(/\{\{\d+}}/g) || []).length > 1) {
+        this.toast.warning('One header variable only', 'A text header can have only {{1}}.');
+        return;
+      }
+      if (!this.tplHeaderExample.trim()) {
+        this.toast.warning('Header example needed', 'Give an example value for {{1}} in the header.');
+        return;
+      }
+    }
     if (this.tplHeaderIsMedia && !this.tplSampleHandle()) {
       this.toast.warning('Sample needed', 'Upload the image Meta should review.');
       return;
@@ -641,6 +671,7 @@ export class WhatsAppSettingsComponent implements OnDestroy {
         language: this.tplLanguage.trim() || 'en',
         headerFormat: this.tplCategory === 'AUTHENTICATION' ? undefined : this.tplHeaderType,
         headerText: this.tplHeaderType === 'TEXT' ? this.tplHeader.trim() || undefined : undefined,
+        headerExample: this.tplHeaderHasVariable ? this.tplHeaderExample.trim() : undefined,
         headerHandle: this.tplHeaderIsMedia ? this.tplSampleHandle() ?? undefined : undefined,
         headerMediaUrl: this.tplHeaderIsMedia ? this.tplMediaUrl.trim() : undefined,
         bodyText: this.tplBody.trim() || undefined,

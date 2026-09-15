@@ -5,6 +5,7 @@ import {
   inject,
   input,
   signal,
+  computed,
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -21,6 +22,8 @@ import { StageService } from '../../stages/stage.service';
 import { FieldService } from '../../fields/field.service';
 import { DocumentFile, DocumentService } from '../../documents/document.service';
 import { Playbook, PlaybookRule, PlaybookRun, PlaybookService, RuleStat } from '../../playbook/playbook.service';
+import { TemplateVariables, WhatsAppService, WhatsAppTemplate } from '../../whatsapp/whatsapp.service';
+import { TemplateVariablesComponent, templateSlots } from '../../whatsapp/template-variables.component';
 
 interface ChatMessage {
   who: 'me' | 'bot';
@@ -31,7 +34,7 @@ interface ChatMessage {
 @Component({
   selector: 'app-agent-detail',
   standalone: true,
-  imports: [DatePipe, FormsModule, RouterLink, PageHeaderComponent, ErrorStateComponent],
+  imports: [DatePipe, FormsModule, RouterLink, PageHeaderComponent, ErrorStateComponent, TemplateVariablesComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './agent-detail.component.html',
   styleUrl: './agent-detail.component.css',
@@ -90,6 +93,37 @@ export class AgentDetailComponent {
   readonly playbookLoading = signal(false);
   readonly savingPlaybook = signal(false);
   readonly pbFields = signal<FieldResponse[]>([]);
+  readonly pbFieldKeys = computed(() => this.pbFields().map((f) => f.fieldKey));
+
+  private readonly waService = inject(WhatsAppService);
+  /** Approved WhatsApp templates, offered for a rule's cold-send template. */
+  readonly waTemplates = signal<WhatsAppTemplate[]>([]);
+  private readonly waTemplatesLoad = this.waService.getTemplates().subscribe({
+    next: (list) => this.waTemplates.set((list || []).filter((t) => t.status === 'APPROVED')),
+    error: () => this.waTemplates.set([]),
+  });
+
+  ruleTemplate(name: string | null | undefined): WhatsAppTemplate | null {
+    return this.waTemplates().find((t) => t.name === name) ?? null;
+  }
+
+  ruleVarsInitial(rule: PlaybookRule): TemplateVariables {
+    return { header: [], body: [...(rule.templateParams || [])], buttons: {}, cards: [] };
+  }
+
+  /** Only a complete body mapping is kept; otherwise the lead's name fills a one-variable body. */
+  ruleParamsFrom(values: TemplateVariables): string[] {
+    return values.body.length && values.body.every((key) => !!key && !!key.trim()) ? values.body : [];
+  }
+
+  /** Automatic sends can fill body variables only. */
+  ruleTemplateFitsAutoSend(name: string | null | undefined): boolean {
+    const template = this.ruleTemplate(name);
+    const s = templateSlots(template);
+    if (!s) return true;
+    const mediaWithoutLink = !!s.headerFormat && ['IMAGE', 'VIDEO', 'DOCUMENT'].includes(s.headerFormat) && !template?.headerMediaUrl;
+    return s.headerVars === 0 && s.cards.length === 0 && !s.buttons.some((b) => b.needsValue) && !mediaWithoutLink;
+  }
   readonly pbStages = signal<StageResponse[]>([]);
   readonly documents = signal<DocumentFile[]>([]);
   readonly pbRuns = signal<PlaybookRun[]>([]);

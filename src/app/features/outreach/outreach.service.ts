@@ -1,3 +1,4 @@
+import type { TemplateVariables } from '../whatsapp/whatsapp.service';
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
@@ -36,6 +37,7 @@ export class OutreachService {
     message?: string;
     templateName?: string;
     templateLanguage?: string;
+    templateVariables?: TemplateVariables;
     recordId?: string;
     buttonsJson?: string;
   }): Observable<unknown> {

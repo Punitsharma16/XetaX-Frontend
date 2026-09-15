@@ -74,6 +74,9 @@
               }
             </div>
           } @else {
+            <app-template-variables [template]="waTemplateObj"
+                                    hint="type a value, or {fieldKey} to use this record's data"
+                                    (valueChange)="waVars = $event" />
             <div class="text-muted" style="font-size: 0.72rem">
               <i class="bi bi-info-circle me-1"></i>Approved templates can be sent any time — no 24h window needed.
             </div>

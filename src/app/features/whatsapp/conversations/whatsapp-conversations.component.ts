@@ -21,6 +21,8 @@ import {
   WhatsAppTemplate,
 } from '../whatsapp.service';
 import { WhatsAppNavComponent } from '../whatsapp-nav.component';
+import { TemplateVariablesComponent, emptyVariables, templateSlots, variablesComplete } from '../template-variables.component';
+import type { TemplateVariables } from '../whatsapp.service';
 
 /**
  * Two-pane WhatsApp inbox: conversation list + selected thread.
@@ -41,6 +43,7 @@ import { WhatsAppNavComponent } from '../whatsapp-nav.component';
     EmptyStateComponent,
     ErrorStateComponent,
     WhatsAppNavComponent,
+    TemplateVariablesComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './whatsapp-conversations.component.html',
@@ -66,6 +69,12 @@ export class WhatsAppConversationsComponent implements OnDestroy {
   /** Approved templates — the only way to reply once the 24h window closes. */
   readonly templates = signal<WhatsAppTemplate[]>([]);
   replyTemplate = '';
+  /** Values for the reply template's variables. */
+  replyVars: TemplateVariables | null = null;
+
+  get replyTemplateObj() {
+    return this.templates().find((t) => t.name === this.replyTemplate) ?? null;
+  }
 
   /** Open thread → messages. */
   private pollTimer: ReturnType<typeof setInterval> | null = null;
@@ -253,12 +262,18 @@ export class WhatsAppConversationsComponent implements OnDestroy {
     const conversation = this.selected();
     if (!conversation || !this.replyTemplate) return;
     const template = this.templates().find((t) => t.name === this.replyTemplate);
+    const slots = templateSlots(template);
+    if (!variablesComplete(slots, template, this.replyVars ?? emptyVariables(slots))) {
+      this.toast.warning('Fill every template variable', 'Each variable of this template needs a value.');
+      return;
+    }
     this.sending.set(true);
     this.whatsapp
       .send({
         conversationId: conversation.id,
         templateName: this.replyTemplate,
         templateLanguage: template?.language,
+        templateVariables: this.replyVars ?? undefined,
       })
       .subscribe({
         next: () => {

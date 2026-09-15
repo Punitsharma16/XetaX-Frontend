@@ -123,6 +123,11 @@
         <option [value]="template.name">Template: {{ template.name }} ({{ template.language }})</option>
       }
     </select>
+    @if (composeTemplate) {
+      <app-template-variables [template]="composeTemplateObj"
+                              hint="type a value, or {name}, {email}, {phone}, {company} per contact"
+                              (valueChange)="composeVars = $event" />
+    }
   }
   @if (composeChannel() === 'email') {
     <label class="form-label">Subject</label>

@@ -149,36 +149,12 @@
                 No approved templates synced yet — sync them on the Settings page.
               </div>
             }
-            @if (templateVarCount() > 0) {
-              <div class="mt-3">
-                <label class="form-label">
-                  Template variables — map each to a
-                  {{ sourceType === 'RECORDS' ? 'field' : 'CSV column' }}
-                </label>
-                <div class="row g-2">
-                  @for (param of templateParams; track $index; let i = $index) {
-                    <div class="col-12 col-md-4">
-                      <div class="input-group input-group-sm">
-                        <span class="input-group-text">{{ '{' }}{{ '{' }}{{ i + 1 }}{{ '}' }}{{ '}' }}</span>
-                        @if (sourceType === 'RECORDS') {
-                          <select class="form-select" [(ngModel)]="templateParams[i]">
-                            <option value="">Choose field…</option>
-                            @for (key of placeholderKeys(); track key) {
-                              <option [value]="key">{{ key }}</option>
-                            }
-                          </select>
-                        } @else {
-                          <input
-                            class="form-control"
-                            [(ngModel)]="templateParams[i]"
-                            placeholder="CSV column name"
-                          />
-                        }
-                      </div>
-                    </div>
-                  }
-                </div>
-              </div>
+            @if (selectedTemplate) {
+              <app-template-variables [template]="selectedTemplate"
+                [mode]="sourceType === 'RECORDS' ? 'fields' : 'values'"
+                [fields]="placeholderKeys()"
+                [hint]="sourceType === 'RECORDS' ? 'pick the field each value comes from' : 'type the CSV column name for each value'"
+                (valueChange)="templateVars = $event" />
             }
           }
         </div>

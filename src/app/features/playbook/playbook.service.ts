@@ -22,6 +22,8 @@ export interface PlaybookRule {
   message?: string | null;
   aiCompose: boolean;
   templateName?: string | null;
+  /** Field keys for the template's body {{1}}, {{2}}… (automatic sends fill the body only). */
+  templateParams?: string[];
   documentId?: number | null;
   targetStageId?: number | null;
   taskTitle?: string | null;

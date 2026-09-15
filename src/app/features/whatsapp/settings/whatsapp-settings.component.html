@@ -417,6 +417,10 @@
 
         @if (tplHeaderType === 'TEXT') {
           <input class="form-control" [(ngModel)]="tplHeader" placeholder="Order update" maxlength="60" />
+          @if (tplHeaderHasVariable) {
+            <input class="form-control mt-2" [(ngModel)]="tplHeaderExample"
+                   placeholder="Example value for the header variable, e.g. Diwali" />
+          }
         }
 
         @if (tplHeaderIsMedia) {

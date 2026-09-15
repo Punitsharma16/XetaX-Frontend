@@ -40,6 +40,19 @@ export interface WhatsAppTemplate {
   headerMediaUrl: string | null;
 }
 
+/**
+ * Values for a template's variables, in the template's own shape.
+ * buttons / card buttons are keyed by button position (as a string).
+ * A value may be a literal or a {fieldKey} placeholder on record and contact sends.
+ */
+export interface TemplateVariables {
+  header: string[];
+  headerMediaUrl?: string;
+  body: string[];
+  buttons: Record<string, string>;
+  cards: { headerMediaUrl?: string; body: string[]; buttons: Record<string, string> }[];
+}
+
 /** One button under a template. Meta allows 2 URL, 1 phone, the rest replies. */
 export interface TemplateButton {
   type: 'URL' | 'PHONE_NUMBER' | 'QUICK_REPLY' | 'FLOW';
@@ -67,6 +80,7 @@ export interface TemplateCreateRequest {
   language: string;
   headerFormat?: 'NONE' | 'TEXT' | 'IMAGE' | 'VIDEO' | 'DOCUMENT';
   headerText?: string;
+  headerExample?: string;
   headerHandle?: string;
   headerMediaUrl?: string;
   bodyText?: string;
@@ -166,6 +180,7 @@ export interface SendMessageRequest {
   templateName?: string;
   templateLanguage?: string;
   componentsJson?: string;
+  templateVariables?: TemplateVariables;
 }
 
 export interface Campaign {
@@ -200,6 +215,7 @@ export interface CampaignCreateRequest {
   search?: string;
   filters?: Record<string, unknown>;
   templateParams?: string[];
+  templateVariables?: TemplateVariables;
 }
 
 export interface CampaignRecipient {
