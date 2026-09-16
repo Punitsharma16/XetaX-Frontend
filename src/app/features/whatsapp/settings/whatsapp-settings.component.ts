@@ -7,6 +7,7 @@ import { ModalComponent } from '../../../shared/components/modal/modal.component
 import { ToastService } from '../../../core/services/toast.service';
 import { ConfirmService } from '../../../core/services/confirm.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { WhatsAppPreviewComponent } from '../whatsapp-preview.component';
 import {
   EmptyStateComponent,
   ErrorStateComponent,
@@ -48,7 +49,8 @@ declare global {
 @Component({
   selector: 'app-whatsapp-settings',
   standalone: true,
-  imports: [DatePipe, FormsModule, PageHeaderComponent, EmptyStateComponent, ErrorStateComponent, ModalComponent, WhatsAppNavComponent],
+  imports: [
+    WhatsAppPreviewComponent,DatePipe, FormsModule, PageHeaderComponent, EmptyStateComponent, ErrorStateComponent, ModalComponent, WhatsAppNavComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './whatsapp-settings.component.html',
   styleUrl: './whatsapp-settings.component.css',

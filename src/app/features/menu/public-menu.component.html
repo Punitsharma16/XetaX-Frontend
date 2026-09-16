@@ -1,0 +1,169 @@
+@if (notFound()) {
+  <div class="pm-empty">
+    <i class="bi bi-shop"></i>
+    <h1>This menu isn't available</h1>
+    <p>The link may be old, or the restaurant has paused online orders.</p>
+  </div>
+} @else if (!menu()) {
+  <div class="pm-empty"><div class="spinner-border text-secondary" role="status"></div></div>
+} @else if (placed(); as result) {
+  <div class="pm-done">
+    <div class="pm-done__icon"><i class="bi bi-check-lg"></i></div>
+    <h1>Order placed</h1>
+    <p>{{ result.message }}</p>
+    <div class="pm-done__ref">Order <b>#{{ result.reference }}</b> · {{ symbol() }}{{ result.total | number: '1.0-2' }}</div>
+    <button class="pm-btn pm-btn--ghost" (click)="orderAgain()">Order something else</button>
+  </div>
+} @else {
+  @if (menu(); as m) {
+    <header class="pm-head">
+      <h1>{{ m.title || 'Menu' }}</h1>
+      @if (m.tagline) { <p>{{ m.tagline }}</p> }
+      @if (table()) { <div class="pm-table"><i class="bi bi-geo-alt"></i> Table {{ table() }}</div> }
+    </header>
+
+    <nav class="pm-cats" aria-label="Categories">
+      @if (hasVeg()) {
+        <button class="pm-chip pm-chip--veg" [class.pm-chip--on]="vegOnly()" (click)="vegOnly.set(!vegOnly())">
+          <span class="pm-veg"></span> Veg only
+        </button>
+      }
+      @for (category of sections(); track category.id) {
+        <button class="pm-chip" [class.pm-chip--on]="activeCategory() === category.id" (click)="jumpTo(category.id)">
+          {{ category.name }}
+        </button>
+      }
+    </nav>
+
+    <main class="pm-main">
+      @if (!sections().length) {
+        <div class="pm-empty pm-empty--inline">Nothing to show here right now.</div>
+      }
+      @for (category of sections(); track category.id) {
+        <section class="pm-section" [id]="'menu-cat-' + category.id">
+          <h2>{{ category.name }}</h2>
+          @if (category.description) { <p class="pm-section__desc">{{ category.description }}</p> }
+
+          @for (item of category.items; track item.id) {
+            <article class="pm-item" [class.pm-item--off]="!item.available">
+              <div class="pm-item__body">
+                <div class="pm-item__title">
+                  @if (item.veg !== null) {
+                    <span class="pm-veg" [class.pm-veg--non]="item.veg === false"
+                          [attr.aria-label]="item.veg ? 'Veg' : 'Non-veg'"></span>
+                  }
+                  <span>{{ item.name }}</span>
+                </div>
+                <div class="pm-item__price">
+                  @if (item.offerPrice !== null) {
+                    <span class="pm-was">{{ symbol() }}{{ item.price | number: '1.0-2' }}</span>
+                    <span>{{ symbol() }}{{ item.offerPrice | number: '1.0-2' }}</span>
+                  } @else {
+                    <span>{{ symbol() }}{{ item.price | number: '1.0-2' }}</span>
+                  }
+                  @if (item.offerLabel && item.offerPrice !== null) {
+                    <span class="pm-offer">{{ item.offerLabel }}</span>
+                  }
+                </div>
+                @if (item.description) { <p class="pm-item__desc">{{ item.description }}</p> }
+              </div>
+
+              <div class="pm-item__side">
+                @if (item.imageUrl) {
+                  <img [src]="item.imageUrl" [alt]="item.name" loading="lazy" />
+                }
+                @if (!item.available) {
+                  <span class="pm-soldout">Sold out</span>
+                } @else if (quantity(item) === 0) {
+                  <button class="pm-add" (click)="add(item)">ADD</button>
+                } @else {
+                  <div class="pm-stepper">
+                    <button (click)="remove(item)" aria-label="One less">−</button>
+                    <span>{{ quantity(item) }}</span>
+                    <button (click)="add(item)" aria-label="One more">+</button>
+                  </div>
+                }
+              </div>
+            </article>
+          }
+        </section>
+      }
+    </main>
+
+    @if (count() > 0 && !checkoutOpen()) {
+      <div class="pm-bar">
+        <div>
+          <b>{{ count() }} item{{ count() === 1 ? '' : 's' }}</b>
+          <span> · {{ symbol() }}{{ total() | number: '1.0-2' }}</span>
+        </div>
+        <button class="pm-btn" (click)="openCheckout()">View order <i class="bi bi-chevron-right"></i></button>
+      </div>
+    }
+
+    @if (checkoutOpen()) {
+      <div class="pm-sheet-backdrop" (click)="checkoutOpen.set(false)"></div>
+      <!-- an old error goes away as soon as the customer starts fixing it -->
+      <div class="pm-sheet" role="dialog" aria-label="Your order" (input)="error.set('')">
+        <div class="pm-sheet__head">
+          <h2>Your order</h2>
+          <button class="pm-close" (click)="checkoutOpen.set(false)" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+        </div>
+
+        <ul class="pm-lines">
+          @for (line of lines(); track line.item.id) {
+            <li>
+              <span class="pm-lines__name">{{ line.item.name }}</span>
+              <div class="pm-stepper pm-stepper--small">
+                <button (click)="remove(line.item)" aria-label="One less">−</button>
+                <span>{{ line.quantity }}</span>
+                <button (click)="add(line.item)" aria-label="One more">+</button>
+              </div>
+              <span class="pm-lines__amt">{{ symbol() }}{{ unitPrice(line.item) * line.quantity | number: '1.0-2' }}</span>
+            </li>
+          }
+        </ul>
+        <div class="pm-total"><span>Total</span><b>{{ symbol() }}{{ total() | number: '1.0-2' }}</b></div>
+
+        @if (m.orderTypes.length > 1) {
+          <div class="pm-types">
+            @for (type of m.orderTypes; track type) {
+              <button [class.pm-types__on]="orderType === type" (click)="orderType = type">{{ labels[type] }}</button>
+            }
+          </div>
+        }
+
+        <label class="pm-field">
+          <span>Your name</span>
+          <input [(ngModel)]="name" autocomplete="name" maxlength="80" />
+        </label>
+        <label class="pm-field">
+          <span>Mobile number</span>
+          <input [(ngModel)]="phone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" />
+        </label>
+        @if (orderType === 'DINE_IN') {
+          <label class="pm-field">
+            <span>Table number</span>
+            <input [(ngModel)]="tableNo" maxlength="20" />
+          </label>
+        }
+        @if (orderType === 'DELIVERY') {
+          <label class="pm-field">
+            <span>Delivery address</span>
+            <textarea [(ngModel)]="address" rows="2" autocomplete="street-address" maxlength="400"></textarea>
+          </label>
+        }
+        <label class="pm-field">
+          <span>Anything we should know? <small>(optional)</small></span>
+          <input [(ngModel)]="note" maxlength="300" placeholder="Less spicy, no onion…" />
+        </label>
+
+        @if (error()) { <div class="pm-error">{{ error() }}</div> }
+
+        <button class="pm-btn pm-btn--wide" [disabled]="placing() || !count()" (click)="placeOrder()">
+          @if (placing()) { Placing order… } @else { Place order · {{ symbol() }}{{ total() | number: '1.0-2' }} }
+        </button>
+        <p class="pm-fine">Pay at the counter or on delivery. The restaurant confirms your order.</p>
+      </div>
+    }
+  }
+}

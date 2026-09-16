@@ -196,6 +196,14 @@ export const routes: Routes = [
           import('./features/documents/documents-page.component').then((m) => m.DocumentsPageComponent),
       },
 
+      // ---- Online menu (Restaurant pack) — catalogue only; orders land in Records ----
+      {
+        path: 'menu',
+        title: 'Online Menu · XetaX CRM',
+        loadComponent: () =>
+          import('./features/menu/menu-admin.component').then((m) => m.MenuAdminComponent),
+      },
+
       // ---- Invoices ----
       {
         path: 'invoices',
@@ -472,6 +480,14 @@ export const routes: Routes = [
     title: 'Chat · XetaX',
     loadComponent: () =>
       import('./features/agents/public-chat/public-chat.component').then((m) => m.PublicChatComponent),
+  },
+
+  // Public restaurant menu — customers order from here, no login. ?table= comes from a table QR.
+  {
+    path: 'menu/:key',
+    title: 'Menu',
+    loadComponent: () =>
+      import('./features/menu/public-menu.component').then((m) => m.PublicMenuComponent),
   },
 
   {

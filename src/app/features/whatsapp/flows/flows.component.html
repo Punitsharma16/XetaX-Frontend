@@ -99,7 +99,7 @@
   [open]="createOpen()"
   title="New Flow"
   icon="bi-ui-checks-grid"
-  size="lg"
+  size="xl"
   (closed)="createOpen.set(false)"
 >
   <div class="row g-3">
@@ -119,7 +119,8 @@
     @if (!advanced()) {
       <div class="col-12">
         <label class="form-label">Build it from this form</label>
-        <select class="form-select" [(ngModel)]="draftFormId" name="flowForm">
+        <select class="form-select" [(ngModel)]="draftFormId" name="flowForm"
+                (ngModelChange)="loadPreviewFields()">
           @for (form of crmForms(); track form.id) {
             <option [ngValue]="form.id">{{ form.name }}</option>
           }
@@ -129,6 +130,12 @@
           new record of this form. Files and multi-select are skipped — WhatsApp
           has no control for them.
         </div>
+      </div>
+
+      <!-- the screens the customer will actually step through -->
+      <div class="col-12">
+        <label class="form-label">Preview</label>
+        <app-flow-preview [fields]="previewFields()" [formName]="previewFormName()" />
       </div>
     } @else {
       <div class="col-12">

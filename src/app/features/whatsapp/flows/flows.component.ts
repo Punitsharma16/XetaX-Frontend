@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { DatePipe, KeyValuePipe, TitleCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
+import { FieldResponse } from '../../../core/models/crm.model';
+
 import { ConfirmService } from '../../../core/services/confirm.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
@@ -11,7 +13,9 @@ import {
   ErrorStateComponent,
 } from '../../../shared/components/state/state-views.component';
 import { FormResponse } from '../../../core/models/crm.model';
+import { FieldService } from '../../fields/field.service';
 import { FormService } from '../../forms/form.service';
+import { FlowPreviewComponent } from '../flow-preview.component';
 import { WhatsAppNavComponent } from '../whatsapp-nav.component';
 import { FlowSubmission, WhatsAppFlow, WhatsAppService } from '../whatsapp.service';
 
@@ -27,6 +31,7 @@ import { FlowSubmission, WhatsAppFlow, WhatsAppService } from '../whatsapp.servi
   selector: 'app-whatsapp-flows',
   standalone: true,
   imports: [
+    FlowPreviewComponent,
     DatePipe,
     KeyValuePipe,
     TitleCasePipe,
@@ -44,6 +49,7 @@ import { FlowSubmission, WhatsAppFlow, WhatsAppService } from '../whatsapp.servi
 export class WhatsAppFlowsComponent {
   private readonly whatsapp = inject(WhatsAppService);
   private readonly forms = inject(FormService);
+  private readonly fields = inject(FieldService);
   private readonly toast = inject(ToastService);
   private readonly confirm = inject(ConfirmService);
 
@@ -65,6 +71,25 @@ export class WhatsAppFlowsComponent {
   draftJson = '';
   /** Paste your own screens instead of generating them from a form. */
   readonly advanced = signal(false);
+
+  /** The chosen form's fields, so the screens can be drawn before anything is created. */
+  readonly previewFields = signal<FieldResponse[]>([]);
+  readonly previewFormName = signal('');
+
+  /** Reloads the preview whenever the form behind the Flow changes. */
+  loadPreviewFields(): void {
+    const formId = this.draftFormId;
+    if (formId == null) {
+      this.previewFields.set([]);
+      this.previewFormName.set('');
+      return;
+    }
+    this.previewFormName.set(this.crmForms().find((form) => form.id === formId)?.name ?? '');
+    this.fields.getByForm(formId).subscribe({
+      next: (fields) => this.previewFields.set(fields),
+      error: () => this.previewFields.set([]),
+    });
+  }
   draftPublish = true;
 
   /* --------------------------------------------------------- send modal */
@@ -135,6 +160,7 @@ export class WhatsAppFlowsComponent {
     this.draftFormId = this.crmForms()[0]?.id ?? null;
     this.draftJson = '';
     this.advanced.set(false);
+    this.loadPreviewFields();
     this.draftPublish = true;
     this.createOpen.set(true);
   }

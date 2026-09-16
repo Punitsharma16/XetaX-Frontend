@@ -49,6 +49,7 @@ export const NAVIGATION: NavSection[] = [
       { label: 'Records', icon: 'bi-collection', route: '/app/records', perm: 'records.view|records.view.own' },
       { label: 'Documents', icon: 'bi-folder2-open', route: '/app/documents', perm: 'documents.view' },
       { label: 'Invoices', icon: 'bi-receipt', route: '/app/invoices', perm: 'invoices.view' },
+      { label: 'Online Menu', icon: 'bi-shop-window', route: '/app/menu', perm: 'forms.view' },
     ],
   },
   {

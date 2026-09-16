@@ -122,6 +122,9 @@ export class LoginComponent {
   private destinationAfterLogin(): string {
     const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
     if (!returnUrl || !returnUrl.startsWith('/')) return '/app/dashboard';
+    // "//host" and "/\host" start with a slash but name another site, not a
+    // page of ours — treat them as no returnUrl at all.
+    if (/^\/[/\\]/.test(returnUrl)) return '/app/dashboard';
 
     const path = returnUrl.split('?')[0].split('#')[0].replace(/\/+$/, '') || '/';
     const isAuthPage = LoginComponent.AUTH_PAGES.some(

@@ -343,9 +343,11 @@
   [open]="tplOpen()"
   title="New message template"
   icon="bi-file-earmark-plus"
-  size="lg"
+  size="xl"
   (closed)="tplOpen.set(false)"
 >
+  <div class="row g-4">
+    <div class="col-12 col-lg-7">
   <div class="row g-3">
     <div class="col-12 col-md-6">
       <label class="form-label">Template name</label>
@@ -602,6 +604,26 @@
       }
     }
   }
+
+    </div>
+
+    <!-- what the customer will actually receive, drawn as it is typed -->
+    <div class="col-12 col-lg-5">
+      <app-whatsapp-preview
+        [category]="tplCategory"
+        [headerType]="tplHeaderType"
+        [headerText]="tplHeader"
+        [headerExample]="tplHeaderExample"
+        [mediaUrl]="tplMediaUrl"
+        [sampleName]="tplSampleName()"
+        [body]="tplBody"
+        [examples]="tplExamples"
+        [footer]="tplFooter"
+        [buttons]="tplButtons"
+        [carousel]="tplCarousel()"
+        [cards]="tplCards" />
+    </div>
+  </div>
 
   <div modalFooter class="d-flex justify-content-end gap-2">
     <button class="btn btn-outline-secondary" (click)="tplOpen.set(false)">Cancel</button>
