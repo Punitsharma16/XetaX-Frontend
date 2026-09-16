@@ -21,6 +21,7 @@ import {
   WhatsAppTemplate,
 } from '../whatsapp.service';
 import { WhatsAppNavComponent } from '../whatsapp-nav.component';
+import { ChatMediaComponent } from '../chat-media.component';
 import { TemplateVariablesComponent, emptyVariables, templateSlots, variablesComplete } from '../template-variables.component';
 import type { TemplateVariables } from '../whatsapp.service';
 
@@ -37,6 +38,7 @@ import type { TemplateVariables } from '../whatsapp.service';
   selector: 'app-whatsapp-conversations',
   standalone: true,
   imports: [
+    ChatMediaComponent,
     DatePipe,
     FormsModule,
     PageHeaderComponent,

@@ -10,6 +10,10 @@ export interface WaChatMessage {
   direction: 'INBOUND' | 'OUTBOUND';
   type: string;
   body: string | null;
+  mediaUrl: string | null;
+  mediaMimeType: string | null;
+  mediaFilename: string | null;
+  mediaSize: number | null;
   templateName: string | null;
   status: string | null;
   createdAt: string | null;

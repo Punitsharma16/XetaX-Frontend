@@ -108,6 +108,9 @@
         <div class="wa-thread__scroll">
           @for (message of messages(); track message.id) {
             <div class="wa-bubble" [class.wa-bubble--out]="message.direction === 'OUTBOUND'">
+              <app-chat-media [url]="message.mediaUrl" [messageType]="message.messageType"
+                              [mime]="message.mediaMimeType" [filename]="message.mediaFilename"
+                              [size]="message.mediaSize" />
               <div class="wa-bubble__body">
                 @if (message.messageType === 'TEMPLATE') {
                   <span class="badge text-bg-light border me-1">template</span>{{ message.templateName }}

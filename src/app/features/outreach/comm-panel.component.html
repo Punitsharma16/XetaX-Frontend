@@ -30,6 +30,9 @@
                 @if (message.templateName) {
                   <span class="comm-bubble__tpl"><i class="bi bi-file-text me-1"></i>{{ message.templateName }}</span>
                 }
+                <app-chat-media [url]="message.mediaUrl" [messageType]="message.type"
+                                [mime]="message.mediaMimeType" [filename]="message.mediaFilename"
+                                [size]="message.mediaSize" />
                 @if (message.body) { <div>{{ message.body }}</div> }
                 <small>
                   {{ message.createdAt | date: 'd MMM, h:mm a' }}

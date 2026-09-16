@@ -1,3 +1,4 @@
+import { ChatMediaComponent } from '../whatsapp/chat-media.component';
 import { TemplateVariablesComponent, emptyVariables, templateSlots, variablesComplete } from '../whatsapp/template-variables.component';
 import type { TemplateVariables } from '../whatsapp/whatsapp.service';
 import {
@@ -27,7 +28,7 @@ import { DocumentFile, DocumentService } from '../documents/document.service';
 @Component({
   selector: 'app-comm-panel',
   standalone: true,
-  imports: [DatePipe, FormsModule, TemplateVariablesComponent],
+  imports: [DatePipe, FormsModule, TemplateVariablesComponent, ChatMediaComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './comm-panel.component.html',
   styleUrl: './comm-panel.component.css',

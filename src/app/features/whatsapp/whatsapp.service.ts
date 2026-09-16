@@ -159,6 +159,11 @@ export interface WhatsAppMessage {
   direction: 'INBOUND' | 'OUTBOUND';
   messageType: string;
   body: string | null;
+  /** Public link to the file on this message — null when it has none. */
+  mediaUrl: string | null;
+  mediaMimeType: string | null;
+  mediaFilename: string | null;
+  mediaSize: number | null;
   templateName: string | null;
   toPhone: string | null;
   status: 'QUEUED' | 'SENT' | 'DELIVERED' | 'READ' | 'FAILED';
