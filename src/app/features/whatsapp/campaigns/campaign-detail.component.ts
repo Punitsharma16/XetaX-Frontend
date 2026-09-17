@@ -17,8 +17,14 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { ErrorStateComponent } from '../../../shared/components/state/state-views.component';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { Page, emptyPage } from '../../../core/models/api.model';
-import { Campaign, CampaignRecipient, WhatsAppService } from '../whatsapp.service';
+import {
+  Campaign,
+  CampaignRecipient,
+  WhatsAppService,
+  CampaignEstimate,
+} from '../whatsapp.service';
 import { WhatsAppNavComponent } from '../whatsapp-nav.component';
+import { CampaignCostComponent } from '../campaign-cost.component';
 
 /** Live campaign view: counters poll every 5s while the campaign runs. */
 @Component({
@@ -31,6 +37,7 @@ import { WhatsAppNavComponent } from '../whatsapp-nav.component';
     ErrorStateComponent,
     PaginationComponent,
     WhatsAppNavComponent,
+    CampaignCostComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './campaign-detail.component.html',
@@ -49,6 +56,8 @@ export class WhatsAppCampaignDetailComponent implements OnDestroy {
   readonly recipients = signal<Page<CampaignRecipient>>(emptyPage<CampaignRecipient>());
   readonly statusFilter = signal('');
   readonly working = signal(false);
+  /** What the campaign can still cost — shown until it has sent everything. */
+  readonly estimate = signal<CampaignEstimate | null>(null);
 
   private pollTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -82,10 +91,23 @@ export class WhatsAppCampaignDetailComponent implements OnDestroy {
         this.campaign.set(campaign);
         this.error.set(false);
         this.loadRecipients(this.recipients().number);
+        if (!silent) this.loadEstimate(campaign);
       },
       error: () => {
         if (!silent) this.error.set(true);
       },
+    });
+  }
+
+  /** Only while something is still to be sent; a finished campaign shows its real counts instead. */
+  private loadEstimate(campaign: Campaign): void {
+    if (!['DRAFT', 'SCHEDULED', 'QUEUED', 'PAUSED'].includes(campaign.status)) {
+      this.estimate.set(null);
+      return;
+    }
+    this.whatsapp.campaignEstimate(campaign.id).subscribe({
+      next: (estimate) => this.estimate.set(estimate),
+      error: () => this.estimate.set(null),
     });
   }
 

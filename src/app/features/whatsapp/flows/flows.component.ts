@@ -287,6 +287,32 @@ export class WhatsAppFlowsComponent {
 
   /* --------------------------------------------------------- responses */
 
+  /** The submission whose record is being retried. */
+  readonly retrying = signal<number | null>(null);
+
+  /** A submission with answers whose record failed — worth another try. */
+  canRetry(row: FlowSubmission): boolean {
+    return !row.recordId && row.flowId != null
+      && Object.keys(row.answers ?? {}).length > 0
+      && this.flows().some((flow) => flow.id === row.flowId && flow.formId != null);
+  }
+
+  retryRecord(row: FlowSubmission): void {
+    this.retrying.set(row.id);
+    this.whatsapp.retryFlowRecord(row.id).subscribe({
+      next: (saved) => {
+        this.retrying.set(null);
+        this.responses.update((rows) => rows.map((r) => (r.id === saved.id ? saved : r)));
+        if (saved.recordId) {
+          this.toast.success('Record created', 'The submission is now a record in the form.');
+        } else {
+          this.toast.warning('Still no record', saved.note ?? 'The record could not be created.');
+        }
+      },
+      error: () => this.retrying.set(null),
+    });
+  }
+
   openResponses(flow: WhatsAppFlow | null): void {
     this.responsesFor.set(flow);
     this.responsesOpen.set(true);

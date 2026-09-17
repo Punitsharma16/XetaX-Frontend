@@ -137,7 +137,7 @@
         <div class="wa-check__note">
           <i class="bi bi-info-circle me-1"></i>
           Message charges are billed by Meta at their actual rate — XetaX adds <b>zero markup</b>.
-          Service replies inside the 24-hour window are free.
+          From 1 October 2026, Meta also charges for replies inside the 24-hour window (at the utility rate). Messages your customers send you stay free.
         </div>
       </div>
     </div>
@@ -164,23 +164,32 @@
           }
         </div>
 
+        @if (u.estimate) {
+          <div class="mt-3">
+            <app-charge-estimate [estimate]="u.estimate"
+                                 [metaTotal]="u.spend.available ? u.spend.total : null" />
+          </div>
+        }
+
         @if (spendCategories().length || u.categories.length) {
-          <div class="wa-usage-cats mt-3">
+          <div class="small text-muted mt-3">Everything sent this month, including messages not delivered:</div>
+          <div class="wa-usage-cats mt-1">
             @for (entry of spendCategories(); track entry.category) {
               <span class="wa-chip">{{ entry.category }} · ₹{{ entry.cost }}</span>
             }
             @for (entry of u.categories; track entry.category) {
               <span class="wa-chip">{{ entry.category }} templates · {{ entry.messages }} sent</span>
             }
-            <span class="wa-chip wa-chip--on">Free-text · {{ u.counts.freeText }} (24h window, free)</span>
+            <span class="wa-chip wa-chip--on">Text replies · {{ u.counts.freeText }} sent</span>
           </div>
         }
       </div>
       <div class="wa-hint">
         <i class="bi bi-info-circle me-1"></i>
-        Service replies (24h window) free hote hain; template messages category rate se charge
-        conversations. The spend figure comes from Meta's analytics API (cached for 1 hour) —
-        on a postpaid account it is this month's running bill, not a balance.
+        Messages your customers send are free. Templates are charged by category (marketing,
+        utility, authentication). From 1 October 2026, Meta also charges for replies inside the 24-hour window (at the utility rate).
+        The spend figure comes from Meta's analytics API (cached for 1 hour) — on a postpaid
+        account it is this month's running bill, not a balance.
       </div>
     </div>
   }
@@ -443,13 +452,16 @@
               }
             </div>
             <div class="form-text">
-              Meta's reviewer sees this example. It is not what gets sent.
+              Meta's reviewer sees this file, and we keep a copy that every send links to.
             </div>
             <label class="form-label mt-2">Link to send</label>
             <input class="form-control" [(ngModel)]="tplMediaUrl"
-                   placeholder="https://xetacrm.pro/assets/promo.jpg" />
+                   placeholder="Filled in when you upload — or paste your own https:// link" />
             <div class="form-text">
-              The public link of the file every send of this template carries.
+              Uploading fills this in. Paste your own link only to send a different file than the sample.
+              @if (tplMediaUrl) {
+                <a [href]="tplMediaUrl" target="_blank" rel="noopener" class="ms-1">Open</a>
+              }
             </div>
           </div>
         }
@@ -583,7 +595,7 @@
               </div>
               <div class="col-12 col-md-6">
                 <input class="form-control form-control-sm" [(ngModel)]="card.mediaUrl"
-                       [name]="'cardUrl' + $index" placeholder="https://… link to send" />
+                       [name]="'cardUrl' + $index" placeholder="Filled in when you upload" />
               </div>
               <div class="col-12">
                 <textarea class="form-control form-control-sm" rows="2" [(ngModel)]="card.body"

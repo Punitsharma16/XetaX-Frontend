@@ -102,3 +102,9 @@
   cursor: pointer;
   margin: 0;
 }
+
+/* Keep the customer's line breaks — a submitted form arrives one answer per line. */
+.comm-bubble > div {
+  white-space: pre-line;
+  word-break: break-word;
+}

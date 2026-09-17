@@ -31,3 +31,8 @@
 .pf-team li { display: flex; gap: 0.5rem; align-items: baseline; font-size: 0.82rem; }
 .pf-team li span { color: var(--text-muted, #94a3b8); }
 .pf-team li em { color: #dc2626; font-style: normal; font-size: 0.72rem; }
+
+/* Rate figures line up by digit. */
+.pf-num {
+  font-variant-numeric: tabular-nums;
+}

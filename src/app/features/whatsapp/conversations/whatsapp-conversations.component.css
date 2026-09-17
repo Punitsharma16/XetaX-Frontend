@@ -191,3 +191,9 @@
   cursor: pointer;
   color: var(--wa-600);
 }
+
+/* Keep the customer's line breaks — a submitted form arrives one answer per line. */
+.wa-bubble__body {
+  white-space: pre-line;
+  word-break: break-word;
+}

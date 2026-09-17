@@ -42,6 +42,8 @@ export class DocumentsPageComponent {
   readonly loading = signal(true);
   readonly failed = signal(false);
   readonly uploading = signal(false);
+  /** The document being fetched, so its button can show a spinner. */
+  readonly downloading = signal<number | null>(null);
 
   uploadName = '';
   pendingFile: File | null = null;
@@ -99,7 +101,18 @@ export class DocumentsPageComponent {
   }
 
   download(document: DocumentFile): void {
-    window.open(this.documentService.downloadUrl(document.id), '_blank');
+    if (this.downloading() !== null) return;
+    this.downloading.set(document.id);
+    this.documentService.downloadFile(document.id).subscribe({
+      next: (blob) => {
+        this.downloading.set(null);
+        saveBlob(blob, document.originalFilename || document.name);
+      },
+      error: () => {
+        this.downloading.set(null);
+        this.toast.error('Download failed', 'The file could not be fetched. Please try again.');
+      },
+    });
   }
 
   remove(document: DocumentFile): void {
@@ -121,4 +134,18 @@ export class DocumentsPageComponent {
     if (document.supportsVariables) return 'bi-file-earmark-word text-info';
     return 'bi-file-earmark';
   }
+}
+
+/** Hands a fetched file to the browser's own save flow. */
+export function saveBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.rel = 'noopener';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  // Give the browser a moment to start the save before the address goes away.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

@@ -210,6 +210,11 @@
           Let this agent answer customers on your WhatsApp number — the same knowledge and persona it uses on the website.
           Only one agent per workspace can be on WhatsApp.
         </p>
+        <div class="alert alert-warning py-2 small mb-3">
+          <i class="bi bi-currency-rupee me-1"></i>
+          From 1 October 2026, every reply the agent sends on WhatsApp is a paid message (billed by Meta at the
+          utility rate@if (replyRate(); as rate) {, about ₹{{ rate | number: '1.2-4' }} per reply}). Use <b>Max AI turns per chat</b> below to cap how many replies it sends before your team takes over.
+        </div>
         <div class="row g-3 align-items-end">
           <div class="col-12 col-md-4">
             <div class="form-check form-switch">
@@ -313,6 +318,7 @@
           <div class="col-6 col-md-3">
             <label class="form-label">Max AI turns per chat</label>
             <input type="number" min="5" max="200" class="form-control" [(ngModel)]="cMaxTurns" />
+            <div class="form-text">After this many AI replies the chat goes to your team.</div>
           </div>
           <div class="col-6 col-md-3">
             <label class="form-label">Website wait (minutes)</label>

@@ -8,6 +8,7 @@ import { ToastService } from '../../../core/services/toast.service';
 import { ConfirmService } from '../../../core/services/confirm.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { WhatsAppPreviewComponent } from '../whatsapp-preview.component';
+import { ChargeEstimateComponent } from '../charge-estimate.component';
 import {
   EmptyStateComponent,
   ErrorStateComponent,
@@ -50,7 +51,7 @@ declare global {
   selector: 'app-whatsapp-settings',
   standalone: true,
   imports: [
-    WhatsAppPreviewComponent,DatePipe, FormsModule, PageHeaderComponent, EmptyStateComponent, ErrorStateComponent, ModalComponent, WhatsAppNavComponent],
+    WhatsAppPreviewComponent, ChargeEstimateComponent, DatePipe, FormsModule, PageHeaderComponent, EmptyStateComponent, ErrorStateComponent, ModalComponent, WhatsAppNavComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './whatsapp-settings.component.html',
   styleUrl: './whatsapp-settings.component.css',
@@ -112,7 +113,7 @@ export class WhatsAppSettingsComponent implements OnDestroy {
       { label: 'Delivered', value: usage.counts.delivered, icon: 'bi-check2-all' },
       { label: 'Read', value: usage.counts.read, icon: 'bi-eye' },
       { label: 'Failed', value: usage.counts.failed, icon: 'bi-x-circle' },
-      { label: 'Replies in (free)', value: usage.counts.inbound, icon: 'bi-chat-left-text' },
+      { label: 'Messages received (free)', value: usage.counts.inbound, icon: 'bi-chat-left-text' },
     ];
   });
 
@@ -518,16 +519,20 @@ export class WhatsAppSettingsComponent implements OnDestroy {
     }
     this.tplUploading.set(true);
     this.whatsapp.uploadTemplateSample(file).subscribe({
-      next: ({ handle }) => {
+      next: ({ handle, url }) => {
         this.tplUploading.set(false);
         if (cardIndex === null) {
           this.tplSampleHandle.set(handle);
           this.tplSampleName.set(file.name);
+          // The same file is now hosted by us; that link is what sends carry.
+          if (url) this.tplMediaUrl = url;
         } else {
           this.tplCards[cardIndex].handle = handle;
           this.tplCards[cardIndex].sampleName = file.name;
+          if (url) this.tplCards[cardIndex].mediaUrl = url;
         }
-        this.toast.success('Sample uploaded', file.name);
+        this.toast.success('Sample uploaded',
+          url ? `${file.name} — the link to send is filled in for you.` : file.name);
       },
       error: () => this.tplUploading.set(false),
     });

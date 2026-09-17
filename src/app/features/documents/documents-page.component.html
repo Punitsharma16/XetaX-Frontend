@@ -82,8 +82,13 @@
               </td>
               <td class="text-muted">{{ document.createdAt | date: 'd MMM y' }}</td>
               <td class="text-end text-nowrap">
-                <button class="btn btn-light btn-sm" title="Download" (click)="download(document)">
-                  <i class="bi bi-download"></i>
+                <button class="btn btn-light btn-sm" title="Download" (click)="download(document)"
+                        [disabled]="downloading() !== null">
+                  @if (downloading() === document.id) {
+                    <span class="spinner-border spinner-border-sm"></span>
+                  } @else {
+                    <i class="bi bi-download"></i>
+                  }
                 </button>
                 <button class="btn btn-light btn-sm text-danger" title="Delete" (click)="remove(document)">
                   <i class="bi bi-trash"></i>

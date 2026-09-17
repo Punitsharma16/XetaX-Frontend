@@ -60,6 +60,15 @@ export interface PlanOption {
   maxRecords: number;
 }
 
+/** One dated price on the India WhatsApp rate card. Replies are billed at the UTILITY price. */
+export interface WhatsAppRateRow {
+  id: number;
+  category: 'MARKETING' | 'UTILITY' | 'AUTHENTICATION';
+  rate: number;
+  effectiveFrom: string;
+  note: string | null;
+}
+
 /** XetaX's own back office — /api/platform, platform admins only. */
 @Injectable({ providedIn: 'root' })
 export class PlatformService {
@@ -90,6 +99,18 @@ export class PlatformService {
 
   addCredit(ownerUserId: string, messages: number): Observable<WorkspaceDetail> {
     return this.api.post<WorkspaceDetail>(`/api/platform/workspaces/${ownerUserId}/ai-credit`, { messages });
+  }
+
+  whatsappRates(): Observable<WhatsAppRateRow[]> {
+    return this.api.get<WhatsAppRateRow[]>('/api/platform/whatsapp-rates', undefined, { quiet: true });
+  }
+
+  saveWhatsappRate(body: { category: string; rate: number; effectiveFrom: string; note?: string }): Observable<WhatsAppRateRow> {
+    return this.api.post<WhatsAppRateRow>('/api/platform/whatsapp-rates', body);
+  }
+
+  deleteWhatsappRate(id: number): Observable<string> {
+    return this.api.delete(`/api/platform/whatsapp-rates/${id}`);
   }
 
   setEnabled(ownerUserId: string, enabled: boolean): Observable<WorkspaceDetail> {

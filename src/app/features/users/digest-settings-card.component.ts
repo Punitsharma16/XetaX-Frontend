@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import { CrmApiService } from '../../core/services/crm-api.service';
 import { ToastService } from '../../core/services/toast.service';
+import type { RateSummary } from '../whatsapp/whatsapp.service';
 
 interface DigestSettings {
   enabled: boolean;
@@ -22,7 +24,7 @@ interface DigestSettings {
 @Component({
   selector: 'app-digest-settings-card',
   standalone: true,
-  imports: [FormsModule],
+  imports: [DecimalPipe, FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="card mt-3">
@@ -74,6 +76,8 @@ interface DigestSettings {
               <div class="form-text ms-4">
                 Goes to the phone number on your profile. WhatsApp only delivers it if you messaged
                 your business number in the last 24 hours.
+                <br /><i class="bi bi-currency-rupee"></i>From 1 October 2026, Meta charges for each
+                WhatsApp digest (at the utility rate@if (replyRate(); as rate) {, about ₹{{ rate | number: '1.2-4' }} per message}).
                 @if (!s.phoneOnProfile) { <br />Add a phone number to your profile first. }
                 @if (!s.whatsappConnected) { <br />Connect WhatsApp first. }
               </div>
@@ -95,6 +99,8 @@ export class DigestSettingsCardComponent implements OnInit {
   private readonly toast = inject(ToastService);
 
   readonly settings = signal<DigestSettings | null>(null);
+  /** Meta's India price for one digest message, when the rate card could be read. */
+  readonly replyRate = signal<number | null>(null);
   readonly loading = signal(true);
   readonly saving = signal(false);
 
@@ -103,6 +109,10 @@ export class DigestSettingsCardComponent implements OnInit {
   whatsappEnabled = true;
 
   ngOnInit(): void {
+    this.api.get<RateSummary>('/api/whatsapp/rates', undefined, { quiet: true }).subscribe({
+      next: (rates) => this.replyRate.set(rates?.categories?.SERVICE?.rate ?? null),
+      error: () => this.replyRate.set(null),
+    });
     this.api.get<DigestSettings>('/api/settings/digest', undefined, { quiet: true }).subscribe({
       next: (s) => this.apply(s),
       error: () => this.loading.set(false),

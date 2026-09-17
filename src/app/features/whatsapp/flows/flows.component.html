@@ -260,6 +260,19 @@
                   <span class="badge text-bg-success">Record created</span>
                 } @else {
                   <span class="text-muted">{{ row.note || '—' }}</span>
+                  @if (canRetry(row)) {
+                    <div class="mt-1">
+                      <button class="btn btn-outline-primary btn-sm" [disabled]="retrying() !== null"
+                              (click)="retryRecord(row)">
+                        @if (retrying() === row.id) {
+                          <span class="spinner-border spinner-border-sm me-1"></span>
+                        } @else {
+                          <i class="bi bi-arrow-repeat me-1"></i>
+                        }
+                        Create record
+                      </button>
+                    </div>
+                  }
                 }
               </td>
             </tr>

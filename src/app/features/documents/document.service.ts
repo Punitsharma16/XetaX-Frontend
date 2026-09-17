@@ -55,9 +55,17 @@ export class DocumentService {
     return this.api.delete(`/api/documents/${id}`);
   }
 
-  downloadUrl(id: number, recordId?: string): string {
-    const base = `${environment.crmBaseUrl}/api/documents/${id}/download`;
-    return recordId ? `${base}?recordId=${recordId}` : base;
+  /**
+   * The file itself. Fetched through HttpClient so the sign-in token goes with
+   * it — opening the download address directly carries no token, and the API
+   * answers that with 401.
+   */
+  downloadFile(id: number, recordId?: string): Observable<Blob> {
+    const params: Record<string, string> = recordId ? { recordId } : {};
+    return this.http.get(`${environment.crmBaseUrl}/api/documents/${id}/download`, {
+      params,
+      responseType: 'blob',
+    });
   }
 
   send(id: number, input: DocSendInput): Observable<unknown> {

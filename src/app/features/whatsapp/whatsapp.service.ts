@@ -232,6 +232,53 @@ export interface CampaignRecipient {
   error: string | null;
 }
 
+/** How Meta bills an outbound message from 1 October 2026. */
+export type ChargeCategory = 'MARKETING' | 'UTILITY' | 'AUTHENTICATION' | 'SERVICE';
+
+export const CHARGE_LABELS: Record<ChargeCategory, string> = {
+  MARKETING: 'Marketing',
+  UTILITY: 'Utility',
+  AUTHENTICATION: 'Authentication',
+  SERVICE: 'Replies (service)',
+};
+
+/** XetaX's own estimate of this month's WhatsApp bill. */
+export interface ChargeEstimate {
+  month: string;
+  zone: string;
+  currency: string;
+  total: number;
+  lines: { category: ChargeCategory; messages: number; amount: number }[];
+  chargedMessages: number;
+  freeEntryPoint: number;
+  freeAllowance: number;
+  awaitingDelivery: number;
+  otherCountries: number;
+  unknownCategory: number;
+  unpriced: number;
+}
+
+/** Today's India price per message, and the next change if one is scheduled. */
+export interface RateSummary {
+  market: string;
+  currency: string;
+  asOf: string;
+  categories: Record<ChargeCategory, { rate: number | null; next?: { rate: number; from: string } }>;
+}
+
+/** The most a campaign can cost before it starts. */
+export interface CampaignEstimate {
+  recipients: number;
+  india: number;
+  otherCountries: number;
+  category: ChargeCategory | null;
+  templateCategory: string | null;
+  rate: number | null;
+  rateDate: string;
+  amount: number | null;
+  currency: string;
+}
+
 export interface WhatsAppUsage {
   month: string;
   counts: {
@@ -245,6 +292,7 @@ export interface WhatsAppUsage {
     inbound: number;
   };
   categories: { category: string; messages: number }[];
+  estimate?: ChargeEstimate;
   spend: {
     available: boolean;
     total?: number;
@@ -291,6 +339,15 @@ export class WhatsAppService {
   }
 
   /** quiet: "not connected" is a normal state pages handle themselves. */
+  /** India rates — readable by any signed-in user; quiet so a note never raises an error toast. */
+  rates(): Observable<RateSummary> {
+    return this.api.get<RateSummary>(`${this.path}/rates`, undefined, { quiet: true });
+  }
+
+  campaignEstimate(id: number): Observable<CampaignEstimate> {
+    return this.api.get<CampaignEstimate>(`${this.path}/campaigns/${id}/estimate`, undefined, { quiet: true });
+  }
+
   usage(): Observable<WhatsAppUsage> {
     return this.api.get<WhatsAppUsage>(`${this.path}/usage`, undefined, { quiet: true });
   }
@@ -308,10 +365,15 @@ export class WhatsAppService {
    * Uploads the sample image a Meta reviewer sees for a media header and
    * returns the handle that goes into the template being created.
    */
-  uploadTemplateSample(file: File): Observable<{ handle: string }> {
+  /**
+   * Sends the reviewer's sample to Meta and keeps the same file on our server.
+   * `url` is that file's public link — what every send of the template carries —
+   * or null for a format a header cannot carry.
+   */
+  uploadTemplateSample(file: File): Observable<{ handle: string; url: string | null }> {
     const form = new FormData();
     form.append('file', file);
-    return this.api.post<{ handle: string }>(`${this.path}/templates/sample`, form);
+    return this.api.post<{ handle: string; url: string | null }>(`${this.path}/templates/sample`, form);
   }
 
   deleteTemplate(name: string): Observable<string> {
@@ -397,6 +459,11 @@ export class WhatsAppService {
 
   sendFlow(request: FlowSendRequest): Observable<FlowSubmission> {
     return this.api.post<FlowSubmission>(`${this.path}/flows/send`, request);
+  }
+
+  /** Tries the CRM record again for a submission whose record failed. */
+  retryFlowRecord(responseId: number): Observable<FlowSubmission> {
+    return this.api.post<FlowSubmission>(`${this.path}/flows/responses/${responseId}/record`, {});
   }
 
   flowResponses(flowId: number | null, page = 0, size = 20): Observable<Page<FlowSubmission>> {

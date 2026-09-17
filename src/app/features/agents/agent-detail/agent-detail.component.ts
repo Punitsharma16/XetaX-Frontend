@@ -7,7 +7,7 @@ import {
   signal,
   computed,
 } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
@@ -34,7 +34,7 @@ interface ChatMessage {
 @Component({
   selector: 'app-agent-detail',
   standalone: true,
-  imports: [DatePipe, FormsModule, RouterLink, PageHeaderComponent, ErrorStateComponent, TemplateVariablesComponent],
+  imports: [DatePipe, DecimalPipe, FormsModule, RouterLink, PageHeaderComponent, ErrorStateComponent, TemplateVariablesComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './agent-detail.component.html',
   styleUrl: './agent-detail.component.css',
@@ -82,7 +82,7 @@ export class AgentDetailComponent {
   cFormId: number | null = null;
   cHints: StageHint[] = [];
   cKeywords = '';
-  cMaxTurns = 30;
+  cMaxTurns = 10;
   cWait = 3;
   cCapture = true;
   hintStageId: number | null = null;
@@ -96,6 +96,12 @@ export class AgentDetailComponent {
   readonly pbFieldKeys = computed(() => this.pbFields().map((f) => f.fieldKey));
 
   private readonly waService = inject(WhatsAppService);
+  /** Meta's India price for one AI reply on WhatsApp, when the rate card could be read. */
+  readonly replyRate = signal<number | null>(null);
+  private readonly replyRateLoad = this.waService.rates().subscribe({
+    next: (rates) => this.replyRate.set(rates?.categories?.SERVICE?.rate ?? null),
+    error: () => this.replyRate.set(null),
+  });
   /** Approved WhatsApp templates, offered for a rule's cold-send template. */
   readonly waTemplates = signal<WhatsAppTemplate[]>([]);
   private readonly waTemplatesLoad = this.waService.getTemplates().subscribe({
@@ -517,7 +523,7 @@ export class AgentDetailComponent {
         targetFormId: this.cFormId ? Number(this.cFormId) : null,
         stageHints: this.cHints,
         handoffKeywords: this.cKeywords,
-        maxAiTurns: Number(this.cMaxTurns) || 30,
+        maxAiTurns: Number(this.cMaxTurns) || 10,
         websiteWaitMinutes: Number(this.cWait) || 3,
         captureFields: this.cCapture,
       })

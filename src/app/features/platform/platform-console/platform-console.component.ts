@@ -10,6 +10,7 @@ import {
   PlanOption,
   PlatformOverview,
   PlatformService,
+  WhatsAppRateRow,
   Workspace,
   WorkspaceDetail,
 } from '../platform.service';
@@ -50,6 +51,26 @@ export class PlatformConsoleComponent {
 
   readonly planKeys = computed(() => this.plans().map((p) => p.key).filter((k) => k !== 'TRIAL'));
 
+  /* WhatsApp rate card (India) */
+  readonly rates = signal<WhatsAppRateRow[]>([]);
+  rateCategory: WhatsAppRateRow['category'] = 'UTILITY';
+  rateValue: number | null = null;
+  rateFrom = '';
+  rateNote = '';
+
+  /** Today's price per category, so the table can mark which row is in force. */
+  readonly ratesInForce = computed(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    const inForce = new Set<number>();
+    for (const category of ['MARKETING', 'UTILITY', 'AUTHENTICATION']) {
+      const current = this.rates()
+        .filter((r) => r.category === category && r.effectiveFrom <= today)
+        .sort((a, b) => b.effectiveFrom.localeCompare(a.effectiveFrom))[0];
+      if (current) inForce.add(current.id);
+    }
+    return inForce;
+  });
+
   constructor() {
     this.load();
     this.platform.plans().subscribe({ next: (list) => this.plans.set(list ?? []) });
@@ -57,6 +78,7 @@ export class PlatformConsoleComponent {
 
   load(): void {
     this.loading.set(true);
+    this.loadRates();
     this.platform.overview().subscribe({
       next: (o) => this.overview.set(o),
       error: () => this.overview.set(null),
@@ -155,6 +177,56 @@ export class PlatformConsoleComponent {
           error: () => this.busy.set(false),
         });
       });
+  }
+
+  loadRates(): void {
+    this.platform.whatsappRates().subscribe({
+      next: (rows) => this.rates.set(rows ?? []),
+      error: () => this.rates.set([]),
+    });
+  }
+
+  saveRate(): void {
+    const rate = Number(this.rateValue);
+    if (this.rateValue === null || !Number.isFinite(rate) || rate < 0) {
+      this.toast.warning('Enter the rate', 'Rupees per delivered message, e.g. 0.115');
+      return;
+    }
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(this.rateFrom)) {
+      this.toast.warning('Pick the date', 'The date this price starts applying.');
+      return;
+    }
+    this.busy.set(true);
+    this.platform.saveWhatsappRate({
+      category: this.rateCategory,
+      rate,
+      effectiveFrom: this.rateFrom,
+      note: this.rateNote.trim() || undefined,
+    }).subscribe({
+      next: () => {
+        this.busy.set(false);
+        this.rateValue = null;
+        this.rateNote = '';
+        this.toast.success('Rate saved', 'Estimates use it from its date onward.');
+        this.loadRates();
+      },
+      error: () => this.busy.set(false),
+    });
+  }
+
+  deleteRate(row: WhatsAppRateRow): void {
+    this.confirm.ask({
+      title: 'Delete this rate?',
+      message: `${row.category} ₹${row.rate} from ${row.effectiveFrom}. Estimates fall back to the price before it.`,
+      confirmText: 'Delete',
+      variant: 'danger',
+    }).subscribe((ok) => {
+      if (!ok) return;
+      this.platform.deleteWhatsappRate(row.id).subscribe(() => {
+        this.toast.success('Rate deleted');
+        this.loadRates();
+      });
+    });
   }
 
   planBadge(w: Workspace): string {

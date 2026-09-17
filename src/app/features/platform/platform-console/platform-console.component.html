@@ -21,6 +21,76 @@
   </div>
 }
 
+<!-- ------------------------------------------------ WhatsApp rate card (India) -->
+<div class="card mb-3">
+  <div class="card-header d-flex flex-wrap gap-2 align-items-center justify-content-between">
+    <span class="fw-semibold"><i class="bi bi-whatsapp me-1"></i>WhatsApp rates — India</span>
+    <span class="text-muted small">Rupees per delivered message. Replies are billed at the Utility price.</span>
+  </div>
+  <div class="card-body">
+    <div class="table-responsive mb-3">
+      <table class="table table-sm align-middle mb-0 pf-table">
+        <thead>
+          <tr><th>Category</th><th class="text-end">Rate</th><th>From</th><th>Note</th><th></th></tr>
+        </thead>
+        <tbody>
+          @for (row of rates(); track row.id) {
+            <tr>
+              <td>
+                {{ row.category }}
+                @if (ratesInForce().has(row.id)) { <span class="badge text-bg-success ms-1">In force</span> }
+              </td>
+              <td class="text-end pf-num">₹{{ row.rate | number: '1.4-4' }}</td>
+              <td>{{ row.effectiveFrom }}</td>
+              <td class="text-muted small">{{ row.note || '—' }}</td>
+              <td class="text-end">
+                <button class="btn btn-sm btn-outline-danger" title="Delete" (click)="deleteRate(row)">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="5" class="text-muted small">No rates yet — the server seeds them on first start.</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="row g-2 align-items-end">
+      <div class="col-12 col-md-3">
+        <label class="form-label small" for="rateCategory">Category</label>
+        <select id="rateCategory" class="form-select form-select-sm" [(ngModel)]="rateCategory">
+          <option value="MARKETING">Marketing</option>
+          <option value="UTILITY">Utility (also replies)</option>
+          <option value="AUTHENTICATION">Authentication</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label small" for="rateValue">Rate (₹)</label>
+        <input id="rateValue" type="number" min="0" step="0.0001" class="form-control form-control-sm"
+               [(ngModel)]="rateValue" placeholder="0.115" />
+      </div>
+      <div class="col-6 col-md-2">
+        <label class="form-label small" for="rateFrom">Applies from</label>
+        <input id="rateFrom" type="date" class="form-control form-control-sm" [(ngModel)]="rateFrom" />
+      </div>
+      <div class="col-12 col-md-3">
+        <label class="form-label small" for="rateNote">Note</label>
+        <input id="rateNote" class="form-control form-control-sm" [(ngModel)]="rateNote" maxlength="255"
+               placeholder="e.g. Meta card, Jan 2027" />
+      </div>
+      <div class="col-12 col-md-2">
+        <button class="btn btn-sm btn-primary w-100" [disabled]="busy()" (click)="saveRate()">
+          <i class="bi bi-plus-lg me-1"></i>Save rate
+        </button>
+      </div>
+    </div>
+    <div class="form-text">
+      Saving a price for a date that already has one replaces it. Copy the numbers from the rate card in WhatsApp Manager.
+    </div>
+  </div>
+</div>
+
 <div class="card">
   <div class="card-header d-flex flex-wrap gap-2 align-items-center justify-content-between">
     <span class="fw-semibold"><i class="bi bi-buildings me-1"></i>Workspaces</span>
