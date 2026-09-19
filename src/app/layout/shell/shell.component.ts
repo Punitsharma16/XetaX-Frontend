@@ -14,6 +14,7 @@ import { filter, map, startWith } from 'rxjs';
 import { AuthService } from '../../core/authentication/auth.service';
 import { NotificationService } from '../../core/services/notification.service';
 import { PermissionService } from '../../core/services/permission.service';
+import { WorkspaceModulesService } from '../../core/services/workspace-modules.service';
 import { RealtimeService } from '../../core/services/realtime.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { FormResponse } from '../../core/models/crm.model';
@@ -41,6 +42,7 @@ const SIDEBAR_KEY = 'xetax.sidebar.collapsed';
 export class ShellComponent implements OnDestroy {
   private readonly auth = inject(AuthService);
   readonly perms = inject(PermissionService);
+  private readonly modules = inject(WorkspaceModulesService);
   private readonly themeService = inject(ThemeService);
   private readonly router = inject(Router);
   private readonly formService = inject(FormService);
@@ -89,6 +91,7 @@ export class ShellComponent implements OnDestroy {
   readonly sections = computed<NavSection[]>(() => {
     this.user(); // re-evaluate when the session changes
     this.perms.loaded(); // re-evaluate when permissions arrive
+    this.modules.loaded(); // …and when the workspace's pack pages arrive
     return NAVIGATION.map((section) => ({
       ...section,
       items: section.items.filter((item) => this.canSee(item)),
@@ -110,6 +113,7 @@ export class ShellComponent implements OnDestroy {
     this.realtime.start();
     this.notifications.start();
     this.perms.load();
+    this.modules.load();
     // Auto-expand the Records submenu whenever a records page is open.
     effect(() => {
       if (this.onRecords() && !this.recordsOpen()) {
@@ -124,6 +128,8 @@ export class ShellComponent implements OnDestroy {
     if (item.platformOnly && !this.auth.isPlatformAdmin()) return false;
     // perm supports alternatives: 'a|b' => visible when EITHER is granted.
     if (item.perm && !item.perm.split('|').some((key) => this.perms.has(key))) return false;
+    // A pack's own page: only for the workspace that installed that pack.
+    if (item.module && !this.modules.has(item.module)) return false;
     if (!item.roles?.length) return true;
     return this.auth.isAdmin() || this.auth.hasAnyRole(item.roles);
   }

@@ -198,6 +198,17 @@ export class RecordDetailComponent {
     return this.record()?.stageId === stage.id;
   }
 
+  /**
+   * A stage this record has already come through. It is drawn as done, so the
+   * strip reads as progress instead of a row of identical buttons. Stages
+   * arrive in sequence order, so "earlier than the current one" is the rule.
+   */
+  isPassed(stage: StageResponse): boolean {
+    const current = this.stages().find((s) => s.id === this.record()?.stageId);
+    if (!current) return false;
+    return (stage.sequence ?? 0) < (current.sequence ?? 0);
+  }
+
   moveToStage(stage: StageResponse): void {
     const record = this.record();
     if (!record || this.isCurrent(stage) || this.movingStage()) return;

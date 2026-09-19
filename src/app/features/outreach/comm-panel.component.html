@@ -38,6 +38,9 @@
                   {{ message.createdAt | date: 'd MMM, h:mm a' }}
                   @if (message.direction === 'OUTBOUND') { · {{ message.status }} }
                 </small>
+                @if (message.status === 'FAILED' && message.errorMessage) {
+                  <div class="comm-bubble__error text-danger">{{ message.errorMessage }}</div>
+                }
               </div>
             }
           }

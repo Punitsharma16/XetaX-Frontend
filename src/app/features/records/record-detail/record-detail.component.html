@@ -24,7 +24,7 @@
 } @else {
   <app-page-header
     [title]="recordTitle()"
-    [subtitle]="(form()?.name || 'Record') + ' · edit record'"
+    [subtitle]="form()?.name || 'Record'"
     icon="bi-collection"
   >
     <a class="btn btn-outline-secondary" [routerLink]="['/app/records', slug()]">
@@ -47,13 +47,13 @@
     <div class="card mb-3">
       <div class="card-body py-3">
         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
-          <span class="stage-strip-label">
-            <i class="bi bi-signpost-split me-1"></i>Pipeline — click a stage to move this record
-          </span>
+          <span class="section-title mb-0"><i class="bi bi-signpost-split me-2"></i>Pipeline</span>
           @if (movingStage()) {
-            <span class="text-muted" style="font-size: 0.72rem">
-              <span class="spinner-border spinner-border-sm me-1"></span> Moving…
+            <span class="stage-strip-note">
+              <span class="spinner-border spinner-border-sm me-1"></span>Moving…
             </span>
+          } @else {
+            <span class="stage-strip-note">Click a stage to move this record</span>
           }
         </div>
 
@@ -63,12 +63,17 @@
               type="button"
               class="stage-step"
               [class.stage-step--current]="isCurrent(stage)"
+              [class.stage-step--done]="isPassed(stage)"
               [style.--stage-color]="stage.color || '#4f46e5'"
               [disabled]="movingStage() || isCurrent(stage)"
               (click)="moveToStage(stage)"
               [title]="isCurrent(stage) ? 'Current stage' : 'Move to ' + stage.name"
             >
-              <span class="stage-step__dot"></span>
+              @if (isPassed(stage)) {
+                <i class="bi bi-check-circle-fill stage-step__mark"></i>
+              } @else {
+                <span class="stage-step__dot"></span>
+              }
               {{ stage.name }}
               @if (stage.isFinal) {
                 <i class="bi bi-flag-fill stage-step__flag" title="Final stage"></i>
@@ -93,8 +98,12 @@
       <div class="card mb-0">
         <div class="card-header bg-transparent d-flex align-items-center justify-content-between">
           <h6 class="mb-0 section-title"><i class="bi bi-card-list me-2"></i>Record details</h6>
-          <span class="text-secondary" style="font-size: 0.72rem">
-            Created {{ record()?.createdAt | date: 'dd MMM yyyy' }}
+          <span class="record-meta">
+            <span>Created {{ record()?.createdAt | date: 'dd MMM yyyy' }}</span>
+            @if (record()?.updatedAt) {
+              <span class="record-meta__sep">·</span>
+              <span>Updated {{ record()?.updatedAt | date: 'dd MMM yyyy, h:mm a' }}</span>
+            }
           </span>
         </div>
         <div class="card-body">
@@ -116,17 +125,20 @@
           </form>
         </div>
 
-        <div class="card-footer d-flex justify-content-end gap-2">
-          <button type="button" class="btn btn-outline-secondary" (click)="backToList()" [disabled]="saving()">
-            Cancel
-          </button>
-          <button type="submit" form="recordDetailEditor" class="btn btn-primary" [disabled]="saving()">
-            @if (saving()) {
-              <span class="spinner-border spinner-border-sm"></span> Saving…
-            } @else {
-              <i class="bi bi-check2"></i> Save record
-            }
-          </button>
+        <div class="card-footer d-flex flex-wrap align-items-center justify-content-between gap-2">
+          <span class="record-meta">Changes apply to this record only.</span>
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-outline-secondary" (click)="backToList()" [disabled]="saving()">
+              Cancel
+            </button>
+            <button type="submit" form="recordDetailEditor" class="btn btn-primary" [disabled]="saving()">
+              @if (saving()) {
+                <span class="spinner-border spinner-border-sm"></span> Saving…
+              } @else {
+                <i class="bi bi-check2"></i> Save record
+              }
+            </button>
+          </div>
         </div>
       </div>
 

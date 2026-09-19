@@ -10,6 +10,12 @@ export interface NavItem {
   badge?: string;
   /** Only for XetaX's own team — hidden from every customer account. */
   platformOnly?: boolean;
+  /**
+   * A page that arrives with a vertical pack. It is shown only to a workspace
+   * that installed that pack: a salon has no online menu, a restaurant has no
+   * stylist diary, and neither should carry the other's page in its sidebar.
+   */
+  module?: 'menu' | 'booking';
 }
 
 export interface NavSection {
@@ -49,7 +55,8 @@ export const NAVIGATION: NavSection[] = [
       { label: 'Records', icon: 'bi-collection', route: '/app/records', perm: 'records.view|records.view.own' },
       { label: 'Documents', icon: 'bi-folder2-open', route: '/app/documents', perm: 'documents.view' },
       { label: 'Invoices', icon: 'bi-receipt', route: '/app/invoices', perm: 'invoices.view' },
-      { label: 'Online Menu', icon: 'bi-shop-window', route: '/app/menu', perm: 'forms.view' },
+      { label: 'Online Menu', icon: 'bi-shop-window', route: '/app/menu', perm: 'forms.view', module: 'menu' },
+      { label: 'Bookings', icon: 'bi-calendar2-check', route: '/app/bookings', perm: 'forms.view', module: 'booking' },
     ],
   },
   {

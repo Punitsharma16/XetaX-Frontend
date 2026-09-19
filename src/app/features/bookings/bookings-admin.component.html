@@ -1,0 +1,342 @@
+@if (loading()) {
+  <app-table-skeleton [rows]="6" />
+} @else if (failed()) {
+  <div class="card">
+    <app-error-state
+      title="Bookings could not be loaded"
+      message="The CRM service may be unavailable. Try again in a moment."
+    />
+  </div>
+} @else {
+  <app-page-header
+    [title]="page()?.title || 'Bookings'"
+    subtitle="Your people, their slots, and the page customers book from"
+    icon="bi-calendar2-check"
+  >
+    <a class="btn btn-outline-secondary" [href]="page()?.publicUrl" target="_blank" rel="noopener">
+      <i class="bi bi-box-arrow-up-right me-1"></i>Open page
+    </a>
+    <button type="button" class="btn" [class.btn-success]="!page()?.enabled"
+            [class.btn-outline-danger]="page()?.enabled"
+            [disabled]="working()" (click)="toggleEnabled()">
+      <i class="bi me-1" [class.bi-play-circle]="!page()?.enabled" [class.bi-pause-circle]="page()?.enabled"></i>
+      {{ page()?.enabled ? 'Stop taking bookings' : 'Take bookings' }}
+    </button>
+  </app-page-header>
+
+  <!-- ------------------------------------------------------------ status -->
+  <div class="card mb-3">
+    <div class="card-body d-flex flex-wrap align-items-center gap-3">
+      <span class="badge rounded-pill" [class.text-bg-success]="page()?.enabled"
+            [class.text-bg-secondary]="!page()?.enabled">
+        {{ page()?.enabled ? 'Live' : 'Not live yet' }}
+      </span>
+      <span class="stat"><b>{{ activeStaff().length }}</b> people</span>
+      <span class="stat"><b>{{ openCount() }}</b> free slots</span>
+      <span class="stat"><b>{{ bookedCount() }}</b> booked</span>
+
+      @if (blockers().length) {
+        <span class="text-secondary small ms-auto">
+          <i class="bi bi-info-circle me-1"></i>{{ blockers().join(' · ') }}
+        </span>
+      }
+    </div>
+  </div>
+
+  <!-- -------------------------------------------------------------- tabs -->
+  <ul class="nav nav-pills mb-3 gap-2">
+    <li class="nav-item">
+      <button class="nav-link" [class.active]="tab() === 'diary'" (click)="tab.set('diary')">
+        <i class="bi bi-calendar3 me-1"></i>Diary
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" [class.active]="tab() === 'people'" (click)="tab.set('people')">
+        <i class="bi bi-people me-1"></i>People
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" [class.active]="tab() === 'share'" (click)="tab.set('share')">
+        <i class="bi bi-share me-1"></i>Link &amp; QR
+      </button>
+    </li>
+  </ul>
+
+  <!-- ======================================================== diary tab -->
+  @if (tab() === 'diary') {
+    <div class="card mb-3">
+      <div class="card-header bg-transparent">
+        <h6 class="mb-0 section-title"><i class="bi bi-plus-circle me-2"></i>Add slots</h6>
+      </div>
+      <div class="card-body">
+        @if (!activeStaff().length) {
+          <div class="text-secondary small">
+            Add a person under <b>People</b> first — every slot belongs to whoever takes the appointment.
+          </div>
+        } @else {
+          <div class="mb-3">
+            <label class="form-label">Who</label>
+            <div class="d-flex flex-wrap gap-2">
+              @for (person of activeStaff(); track person.id) {
+                <button type="button" class="chip" [class.chip--on]="planStaff().includes(person.id)"
+                        (click)="togglePlanStaff(person.id)">
+                  {{ person.name }}
+                </button>
+              }
+            </div>
+            <div class="form-text">Nobody chosen means everyone.</div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-6 col-md-3">
+              <label class="form-label" for="planFrom">From</label>
+              <input id="planFrom" type="date" class="form-control" [(ngModel)]="planFrom" />
+            </div>
+            <div class="col-6 col-md-3">
+              <label class="form-label" for="planTo">To</label>
+              <input id="planTo" type="date" class="form-control" [(ngModel)]="planTo" />
+            </div>
+            <div class="col-6 col-md-2">
+              <label class="form-label" for="planStart">Opens</label>
+              <input id="planStart" type="time" class="form-control" [(ngModel)]="planStart" />
+            </div>
+            <div class="col-6 col-md-2">
+              <label class="form-label" for="planEnd">Closes</label>
+              <input id="planEnd" type="time" class="form-control" [(ngModel)]="planEnd" />
+            </div>
+            <div class="col-6 col-md-2">
+              <label class="form-label" for="planMinutes">Each slot</label>
+              <div class="input-group">
+                <input id="planMinutes" type="number" min="5" max="480" class="form-control"
+                       [(ngModel)]="planMinutes" />
+                <span class="input-group-text">min</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-3">
+            <label class="form-label">Days</label>
+            <div class="d-flex flex-wrap gap-2">
+              @for (day of weekdayNames; track day.value) {
+                <button type="button" class="chip" [class.chip--on]="planWeekdays().includes(day.value)"
+                        (click)="toggleWeekday(day.value)">
+                  {{ day.label }}
+                </button>
+              }
+            </div>
+            <div class="form-text">Nothing chosen means every day in the range.</div>
+          </div>
+
+          <div class="d-flex justify-content-end mt-3">
+            <button class="btn btn-primary" [disabled]="working()" (click)="addSlots()">
+              @if (working()) {
+                <span class="spinner-border spinner-border-sm me-1"></span>
+              } @else {
+                <i class="bi bi-calendar-plus me-1"></i>
+              }
+              Add slots
+            </button>
+          </div>
+        }
+      </div>
+    </div>
+
+    @if (!days().length) {
+      <div class="card">
+        <app-empty-state
+          icon="bi-calendar3"
+          title="No slots yet"
+          message="Add a stretch of slots above and they appear here, day by day."
+        />
+      </div>
+    } @else {
+      @for (day of days(); track day.date) {
+        <div class="card mb-3">
+          <div class="card-header bg-transparent d-flex align-items-center justify-content-between">
+            <h6 class="mb-0 section-title">{{ day.label }}</h6>
+            <span class="text-secondary small">{{ day.open }} free · {{ day.booked }} booked</span>
+          </div>
+          <div class="card-body">
+            <div class="slot-grid">
+              @for (slot of day.slots; track slot.id) {
+                <div class="slot" [class.slot--booked]="slot.status === 'BOOKED'"
+                     [class.slot--blocked]="slot.status === 'BLOCKED'">
+                  <div class="slot__time">{{ timeLabel(slot.time) }}</div>
+                  <div class="slot__who">{{ slot.staffName }}</div>
+
+                  @if (slot.status === 'BOOKED') {
+                    <div class="slot__customer">
+                      {{ slot.customerName }}
+                      @if (slot.service) { <span class="text-secondary"> · {{ slot.service }}</span> }
+                    </div>
+                    <div class="slot__actions">
+                      @if (recordLink(slot); as link) {
+                        <a class="btn btn-sm btn-outline-secondary" [routerLink]="link">Record</a>
+                      }
+                      <button class="btn btn-sm btn-outline-danger" (click)="cancelBooking(slot)">Cancel</button>
+                    </div>
+                  } @else {
+                    <div class="slot__actions">
+                      <button class="btn btn-sm btn-outline-secondary"
+                              (click)="blockSlot(slot, slot.status !== 'BLOCKED')">
+                        {{ slot.status === 'BLOCKED' ? 'Open' : 'Hold' }}
+                      </button>
+                      <button class="btn btn-sm btn-outline-danger" (click)="deleteSlot(slot)">Remove</button>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    }
+  }
+
+  <!-- ======================================================= people tab -->
+  @if (tab() === 'people') {
+    <div class="card">
+      <div class="card-header bg-transparent d-flex align-items-center justify-content-between">
+        <h6 class="mb-0 section-title"><i class="bi bi-people me-2"></i>Your people</h6>
+        <button class="btn btn-sm btn-primary" (click)="addPerson()">
+          <i class="bi bi-plus-lg me-1"></i>Add person
+        </button>
+      </div>
+
+      @if (staffDraft(); as draft) {
+        <div class="card-body border-bottom">
+          <div class="row g-2 align-items-end">
+            <div class="col-12 col-md-4">
+              <label class="form-label" for="staffName">Name</label>
+              <input id="staffName" class="form-control" [(ngModel)]="draft.name" placeholder="e.g. Neha" />
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label" for="staffRole">What they do</label>
+              <input id="staffRole" class="form-control" [(ngModel)]="draft.role"
+                     placeholder="e.g. Senior stylist" />
+            </div>
+            <div class="col-6 col-md-2">
+              <label class="form-check mt-4">
+                <input type="checkbox" class="form-check-input" [(ngModel)]="draft.active" />
+                <span class="form-check-label">Taking bookings</span>
+              </label>
+            </div>
+            <div class="col-6 col-md-2 d-flex gap-2 justify-content-end">
+              <button class="btn btn-outline-secondary" (click)="staffDraft.set(null)">Cancel</button>
+              <button class="btn btn-primary" [disabled]="working()" (click)="savePerson()">Save</button>
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (!staff().length) {
+        <app-empty-state
+          icon="bi-person-plus"
+          title="No one added yet"
+          message="Add the people who take appointments — customers pick a slot from their diary."
+        />
+      } @else {
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>What they do</th>
+                <th>Status</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (person of staff(); track person.id) {
+                <tr>
+                  <td class="fw-semibold">{{ person.name }}</td>
+                  <td class="text-secondary">{{ person.role || '—' }}</td>
+                  <td>
+                    <span class="badge rounded-pill"
+                          [class.text-bg-success]="person.active"
+                          [class.text-bg-secondary]="!person.active">
+                      {{ person.active ? 'Taking bookings' : 'Off' }}
+                    </span>
+                  </td>
+                  <td class="text-end">
+                    <button class="btn btn-sm btn-outline-secondary me-1" (click)="editPerson(person)">Edit</button>
+                    <button class="btn btn-sm btn-outline-danger" (click)="removePerson(person)">Remove</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ======================================================== share tab -->
+  @if (tab() === 'share') {
+    <div class="row g-3">
+      <div class="col-12 col-lg-7">
+        <div class="card h-100">
+          <div class="card-header bg-transparent">
+            <h6 class="mb-0 section-title"><i class="bi bi-gear me-2"></i>Page settings</h6>
+          </div>
+          <div class="card-body">
+            <div class="mb-3">
+              <label class="form-label" for="bookingForm">Bookings go into</label>
+              <select id="bookingForm" class="form-select"
+                      [ngModel]="page()?.formId ?? ''" (ngModelChange)="chooseForm($event)">
+                <option value="">Choose a form…</option>
+                @for (form of forms(); track form.id) {
+                  <option [value]="form.id">{{ form.name }}</option>
+                }
+              </select>
+              <div class="form-text">
+                Every booking becomes a record here — the Hair Salon pack installed this form.
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" for="pageTitle">Page title</label>
+              <input id="pageTitle" class="form-control" [ngModel]="page()?.title"
+                     (ngModelChange)="savePage({ title: $event })" />
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label" for="pageTagline">Tagline</label>
+              <input id="pageTagline" class="form-control" [ngModel]="page()?.tagline"
+                     (ngModelChange)="savePage({ tagline: $event })"
+                     placeholder="e.g. Walk in beautiful, walk out stunning" />
+            </div>
+
+            <div class="mb-0">
+              <label class="form-label" for="pageNote">Note for customers</label>
+              <textarea id="pageNote" rows="2" class="form-control" [ngModel]="page()?.note"
+                        (ngModelChange)="savePage({ note: $event })"
+                        placeholder="Parking, cancellation, anything they should know"></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-5">
+        <div class="card h-100">
+          <div class="card-header bg-transparent">
+            <h6 class="mb-0 section-title"><i class="bi bi-qr-code me-2"></i>Link &amp; QR</h6>
+          </div>
+          <div class="card-body text-center">
+            <img class="qr mb-3" [src]="page()?.qrUrl" alt="QR code for the booking page" width="180" height="180" />
+            <div class="input-group mb-2">
+              <input class="form-control" [value]="page()?.publicUrl" readonly />
+              <button class="btn btn-outline-secondary" (click)="copyLink()">
+                <i class="bi bi-clipboard"></i>
+              </button>
+            </div>
+            <a class="btn btn-sm btn-outline-secondary" [href]="page()?.qrUrl + '?download=true'">
+              <i class="bi bi-download me-1"></i>Download QR
+            </a>
+            <button class="btn btn-sm btn-link text-danger" (click)="regenerateKey()">Create a new link</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+}

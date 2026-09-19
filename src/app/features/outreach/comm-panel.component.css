@@ -34,6 +34,16 @@
   margin-top: 2px;
 }
 
+/* Why a send failed, in Meta's own words — same place the email history
+   shows its reason, so a failure never reads as just the word FAILED.
+   The colour comes from .text-danger, which follows the theme. */
+.comm-bubble__error {
+  font-size: 0.65rem;
+  margin-top: 2px;
+  white-space: pre-line;
+  word-break: break-word;
+}
+
 .comm-bubble__tpl {
   display: inline-block;
   font-size: 0.65rem;

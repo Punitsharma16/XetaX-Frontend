@@ -1,0 +1,110 @@
+@if (loading()) {
+  <div class="pb-shell"><div class="pb-card text-center text-muted py-5">Loading…</div></div>
+} @else if (notFound()) {
+  <div class="pb-shell">
+    <div class="pb-card text-center py-5">
+      <i class="bi bi-calendar-x d-block mb-2" style="font-size: 1.6rem"></i>
+      <h1 class="h5 mb-1">This booking page is not open</h1>
+      <p class="text-muted mb-0">The link may be old. Please ask the salon for the current one.</p>
+    </div>
+  </div>
+} @else {
+  <div class="pb-shell">
+    <header class="pb-head">
+      <h1 class="pb-title">{{ page()?.title || 'Book an appointment' }}</h1>
+      @if (page()?.tagline) { <p class="pb-tagline">{{ page()?.tagline }}</p> }
+    </header>
+
+    @if (done(); as booked) {
+      <div class="pb-card pb-done">
+        <i class="bi bi-check-circle-fill pb-done__icon"></i>
+        <h2 class="h5 mb-1">Booked!</h2>
+        <p class="mb-1">{{ booked.when }}</p>
+        @if (booked.staffName) { <p class="text-muted mb-1">with {{ booked.staffName }}</p> }
+        @if (booked.service) { <p class="text-muted mb-1">{{ booked.service }}</p> }
+        <p class="text-muted small mb-3">We have sent a confirmation to {{ phone }}.</p>
+        <button class="btn btn-outline-secondary btn-sm" (click)="bookAnother()">Book another time</button>
+      </div>
+    } @else {
+      @if (!days().length) {
+        <div class="pb-card text-center py-4">
+          <i class="bi bi-calendar2-x d-block mb-2" style="font-size: 1.4rem"></i>
+          <p class="mb-0">No free slots right now. Please check again a little later.</p>
+        </div>
+      } @else {
+        <!-- 1. the day -->
+        <section class="pb-card">
+          <h2 class="pb-step">1 · Pick a day</h2>
+          <div class="pb-days">
+            @for (day of days(); track day.date) {
+              <button type="button" class="pb-day" [class.pb-day--on]="activeDay() === day.date"
+                      (click)="chooseDay(day.date)">
+                <span class="pb-day__label">{{ day.label }}</span>
+                <span class="pb-day__count">{{ day.slots.length }} free</span>
+              </button>
+            }
+          </div>
+        </section>
+
+        <!-- 2. the slot — only free ones are ever listed -->
+        <section class="pb-card">
+          <h2 class="pb-step">2 · Pick a time</h2>
+          <div class="pb-slots">
+            @for (slot of visibleSlots(); track slot.id) {
+              <button type="button" class="pb-slot" [class.pb-slot--on]="chosen()?.id === slot.id"
+                      (click)="chooseSlot(slot)">
+                <span class="pb-slot__time">{{ slot.label }}</span>
+                <span class="pb-slot__who">{{ slot.staffName }}</span>
+              </button>
+            }
+          </div>
+        </section>
+
+        <!-- 3. who is coming -->
+        <section class="pb-card">
+          <h2 class="pb-step">3 · Your details</h2>
+          <div class="pb-form">
+            <label class="pb-label" for="pbName">Name</label>
+            <input id="pbName" class="form-control" [(ngModel)]="name" placeholder="Your name" maxlength="60" />
+
+            <label class="pb-label" for="pbPhone">Phone</label>
+            <input id="pbPhone" class="form-control" [(ngModel)]="phone" inputmode="tel"
+                   placeholder="10-digit number" maxlength="15" />
+
+            @if (page()?.services?.length) {
+              <label class="pb-label" for="pbService">Service</label>
+              <select id="pbService" class="form-select" [(ngModel)]="service">
+                <option value="">Not sure yet</option>
+                @for (item of page()?.services; track item) {
+                  <option [value]="item">{{ item }}</option>
+                }
+              </select>
+            }
+
+            <label class="pb-label" for="pbNote">Anything we should know?</label>
+            <textarea id="pbNote" rows="2" class="form-control" [(ngModel)]="note"
+                      placeholder="Optional" maxlength="300"></textarea>
+          </div>
+
+          @if (error()) { <p class="pb-error">{{ error() }}</p> }
+
+          @if (chosen(); as slot) {
+            <p class="pb-summary">
+              <i class="bi bi-calendar-check me-1"></i>
+              {{ chosenDayLabel() }}, {{ slot.label }} with {{ slot.staffName }}
+            </p>
+          }
+
+          <button class="btn btn-primary w-100" [disabled]="!ready() || booking()" (click)="confirm()">
+            @if (booking()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            }
+            {{ chosen() ? 'Confirm booking' : 'Pick a time first' }}
+          </button>
+        </section>
+      }
+    }
+
+    @if (page()?.note) { <p class="pb-note">{{ page()?.note }}</p> }
+  </div>
+}

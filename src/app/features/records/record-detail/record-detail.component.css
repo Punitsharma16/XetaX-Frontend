@@ -1,7 +1,17 @@
-.stage-strip-label {
+.stage-strip-note {
   font-size: 0.72rem;
-  font-weight: 600;
   color: var(--text-muted);
+}
+
+/* Quiet meta line — dates in the card header, the note in its footer. */
+.record-meta {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.record-meta__sep {
+  margin: 0 0.35rem;
+  opacity: 0.6;
 }
 
 .stage-strip {
@@ -45,21 +55,32 @@
   color: var(--text-muted);
 }
 
-/* The record's own stage stands out and pulses so it can't be missed. */
+/* Where the record stands now: the stage's own colour, filled, so it reads at
+   a glance without the strip blinking at the user. */
 .stage-step--current {
   border-color: var(--stage-color);
-  background: color-mix(in srgb, var(--stage-color) 12%, transparent);
-  animation: stage-blink 1.2s ease-in-out infinite;
+  background: var(--stage-color);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.12);
 }
 
-@keyframes stage-blink {
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--stage-color) 45%, transparent);
-  }
-  50% {
-    box-shadow: 0 0 0 6px color-mix(in srgb, var(--stage-color) 0%, transparent);
-  }
+.stage-step--current .stage-step__dot {
+  background: #fff;
+}
+
+.stage-step--current .stage-step__flag {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Already behind it — quiet, but clearly walked through. */
+.stage-step--done {
+  color: var(--text-muted);
+  background: transparent;
+}
+
+.stage-step__mark {
+  font-size: 0.7rem;
+  color: var(--stage-color);
 }
 
 /* -------------------------------------------------------- whatsapp modal */

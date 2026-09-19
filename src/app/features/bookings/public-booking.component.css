@@ -1,0 +1,164 @@
+/* The page a customer sees on their phone — its own small world, so nothing
+   from the signed-in panel's theme leaks in. */
+:host {
+  display: block;
+  min-height: 100vh;
+  background: #f6f7fb;
+  color: #111827;
+}
+
+.pb-shell {
+  max-width: 560px;
+  margin: 0 auto;
+  padding: 1rem 1rem 3rem;
+}
+
+.pb-head {
+  padding: 1.25rem 0.25rem 0.75rem;
+}
+
+.pb-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.pb-tagline {
+  margin: 0.15rem 0 0;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.pb-card {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 1rem;
+  margin-bottom: 0.9rem;
+}
+
+.pb-step {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #6b7280;
+  margin: 0 0 0.6rem;
+}
+
+.pb-days {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.pb-day {
+  flex: 0 0 auto;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 12px;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  min-width: 108px;
+}
+
+.pb-day--on {
+  border-color: #4f46e5;
+  background: #eef2ff;
+}
+
+.pb-day__label {
+  display: block;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.pb-day__count {
+  display: block;
+  font-size: 0.7rem;
+  color: #6b7280;
+}
+
+.pb-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: 0.5rem;
+}
+
+.pb-slot {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 12px;
+  padding: 0.5rem;
+  text-align: center;
+}
+
+.pb-slot--on {
+  border-color: #4f46e5;
+  background: #4f46e5;
+  color: #fff;
+}
+
+.pb-slot--on .pb-slot__who {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.pb-slot__time {
+  display: block;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.pb-slot__who {
+  display: block;
+  font-size: 0.7rem;
+  color: #6b7280;
+}
+
+.pb-form {
+  display: grid;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+}
+
+.pb-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+  margin-top: 0.35rem;
+}
+
+.pb-summary {
+  background: #eef2ff;
+  border-radius: 10px;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.82rem;
+  margin-bottom: 0.65rem;
+}
+
+.pb-error {
+  color: #b91c1c;
+  font-size: 0.82rem;
+  margin-bottom: 0.5rem;
+}
+
+.pb-note {
+  color: #6b7280;
+  font-size: 0.78rem;
+  text-align: center;
+  margin: 0.5rem 0 0;
+  white-space: pre-line;
+}
+
+.pb-done {
+  text-align: center;
+  padding: 1.75rem 1rem;
+}
+
+.pb-done__icon {
+  color: #16a34a;
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}

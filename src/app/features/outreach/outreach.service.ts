@@ -16,6 +16,9 @@ export interface WaChatMessage {
   mediaSize: number | null;
   templateName: string | null;
   status: string | null;
+  /** Why a FAILED message failed — Meta's own words, shown under the bubble. */
+  errorCode: string | null;
+  errorMessage: string | null;
   createdAt: string | null;
 }
 

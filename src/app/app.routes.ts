@@ -204,6 +204,14 @@ export const routes: Routes = [
           import('./features/menu/menu-admin.component').then((m) => m.MenuAdminComponent),
       },
 
+      // ---- Bookings (Hair Salon pack) — the diary; bookings land in Records ----
+      {
+        path: 'bookings',
+        title: 'Bookings · XetaX CRM',
+        loadComponent: () =>
+          import('./features/bookings/bookings-admin.component').then((m) => m.BookingsAdminComponent),
+      },
+
       // ---- Invoices ----
       {
         path: 'invoices',
@@ -488,6 +496,14 @@ export const routes: Routes = [
     title: 'Menu',
     loadComponent: () =>
       import('./features/menu/public-menu.component').then((m) => m.PublicMenuComponent),
+  },
+
+  // Public booking page — customers pick a free slot here, no login.
+  {
+    path: 'book/:key',
+    title: 'Book an appointment',
+    loadComponent: () =>
+      import('./features/bookings/public-booking.component').then((m) => m.PublicBookingComponent),
   },
 
   {
