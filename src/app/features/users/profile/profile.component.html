@@ -11,10 +11,10 @@
 
         <span
           class="badge"
-          [class.badge-soft-primary]="user()?.isAdmin"
-          [class.badge-soft-muted]="!user()?.isAdmin"
+          [class.badge-soft-primary]="perms.isOwner() || user()?.isAdmin"
+          [class.badge-soft-muted]="!perms.isOwner() && !user()?.isAdmin"
         >
-          {{ user()?.isAdmin ? 'Administrator' : (user()?.roles?.[0] || 'Member') }}
+          {{ perms.isOwner() ? 'Owner' : (perms.role() || (user()?.isAdmin ? 'Administrator' : 'Member')) }}
         </span>
 
         @if (user()?.company) {

@@ -1,4 +1,5 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
+import { Observable, ReplaySubject, of, take } from 'rxjs';
 
 import { CrmApiService } from './crm-api.service';
 
@@ -28,11 +29,31 @@ export class PermissionService {
   readonly userId = computed(() => this.context()?.userId ?? '');
   readonly company = computed(() => this.context()?.company ?? this.context()?.name ?? '');
 
+  private readonly settled = new ReplaySubject<void>(1);
+  private inFlight = false;
+
   load(): void {
+    if (this.inFlight) return;
+    this.inFlight = true;
     this.api.get<MeContext>('/api/team/me', undefined, { quiet: true }).subscribe({
-      next: (ctx) => this.context.set(ctx),
-      error: () => this.context.set(null),
+      next: (ctx) => {
+        this.inFlight = false;
+        this.context.set(ctx);
+        this.settled.next();
+      },
+      error: () => {
+        this.inFlight = false;
+        this.context.set(null);
+        this.settled.next();
+      },
     });
+  }
+
+  /** Emits once /api/team/me has answered, so a guard can decide on facts. */
+  ready(): Observable<unknown> {
+    if (this.context()) return of(null);
+    this.load();
+    return this.settled.pipe(take(1));
   }
 
   /** Unknown/unloaded context => allow (owner-like) so nothing flashes hidden. */

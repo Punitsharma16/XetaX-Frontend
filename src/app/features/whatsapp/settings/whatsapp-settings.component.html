@@ -278,8 +278,8 @@
         <div class="wa-hint">
           <i class="bi bi-lightbulb me-1"></i>
           Approval usually takes minutes to 24h — press "Sync" to pull the latest status.
-          24-hour window ke bahar wale customers ko sirf <strong>approved</strong> template hi
-          any time.
+          Outside the 24-hour window, only an <strong>approved</strong> template can
+          reach a customer.
         </div>
       } @else {
         <div class="card-body">
@@ -475,7 +475,7 @@
           placeholder="Hi {{ '{' }}{{ '{' }}1{{ '}' }}{{ '}' }}, your order {{ '{' }}{{ '{' }}2{{ '}' }}{{ '}' }} has been shipped."
         ></textarea>
         <div class="form-text">
-          Variables ke liye {{ '{' }}{{ '{' }}1{{ '}' }}{{ '}' }},
+          Use {{ '{' }}{{ '{' }}1{{ '}' }}{{ '}' }},
           {{ '{' }}{{ '{' }}2{{ '}' }}{{ '}' }}… in the body. Detected:
           <strong>{{ tplVariableCount() }}</strong>
         </div>
@@ -484,7 +484,7 @@
         <div class="col-12">
           <label class="form-label">Example values <span class="text-muted fw-normal">(comma-separated, one per variable)</span></label>
           <input class="form-control" [(ngModel)]="tplExamples" placeholder="Punit, ORD-1042" />
-          <div class="form-text">Meta reviewers yehi examples dekhte hain — approval ke liye zaroori.</div>
+          <div class="form-text">Meta's reviewers read these examples — approval depends on them.</div>
         </div>
       }
       <div class="col-12">
@@ -509,12 +509,17 @@
         <button class="btn btn-outline-secondary" (click)="addButton('QUICK_REPLY')">
           <i class="bi bi-reply me-1"></i>Quick reply
         </button>
+        <button class="btn btn-outline-secondary" (click)="addButton('FLOW')"
+                title="Open one of your published Flows from this template">
+          <i class="bi bi-ui-radios-grid me-1"></i>Flow
+        </button>
       </div>
     </div>
 
     @if (!tplButtons.length) {
       <div class="form-text mb-2">
-        Up to two links, one call button, and quick replies. Optional.
+        Up to two links, one call button, quick replies, and one Flow. Optional.
+        A Flow button is the only way to open a Flow outside the 24-hour window.
       </div>
     }
 
@@ -522,7 +527,9 @@
       <div class="row g-2 align-items-end mb-2">
         <div class="col-12 col-md-3">
           <label class="form-label small">
-            {{ button.type === 'URL' ? 'Link button' : button.type === 'PHONE_NUMBER' ? 'Call button' : 'Quick reply' }}
+            {{ button.type === 'URL' ? 'Link button'
+               : button.type === 'PHONE_NUMBER' ? 'Call button'
+               : button.type === 'FLOW' ? 'Flow button' : 'Quick reply' }}
           </label>
           <input class="form-control form-control-sm" [(ngModel)]="button.text"
                  [name]="'btnText' + $index" maxlength="25" placeholder="Visit website" />
@@ -549,6 +556,17 @@
         @if (button.type === 'QUICK_REPLY') {
           <div class="col-12 col-md-8">
             <div class="form-text">The customer's tap comes back as a reply in your inbox.</div>
+          </div>
+        }
+        @if (button.type === 'FLOW') {
+          <div class="col-12 col-md-8">
+            <label class="form-label small">Flow to open</label>
+            <select class="form-select form-select-sm" [(ngModel)]="button.flowId" [name]="'btnFlow' + $index">
+              @for (flow of publishedFlows(); track flow.id) {
+                <option [value]="flow.metaFlowId">{{ flow.name }}</option>
+              }
+            </select>
+            <div class="form-text">The tap opens this Flow in the chat — no 24-hour window needed.</div>
           </div>
         }
         <div class="col-12 col-md-1 text-end">

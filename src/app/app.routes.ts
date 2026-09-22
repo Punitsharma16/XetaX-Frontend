@@ -2,16 +2,16 @@ import { Routes } from '@angular/router';
 
 import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
+import { permissionGuard } from './core/guards/permission.guard';
 import { platformGuard } from './core/guards/platform.guard';
 
 /**
  * Every feature is lazy-loaded, so a signed-out visitor downloads nothing but
  * the login chunk.
  *
- * No route is role-gated: the auth service never grants roles and no backend
- * endpoint checks one, so gating here only hid pages users may open. roleGuard
- * is still available — add `canActivate: [roleGuard], data: { roles: [...] }`
- * once real roles exist (see layout/navigation.ts).
+ * Pages under /app are gated by permissionGuard, which reads the permission
+ * the sidebar declares for each page (see layout/navigation.ts) and sends a
+ * member who lacks it to /unauthorized.
  *
  * Route params reach components as inputs via withComponentInputBinding().
  */
@@ -63,6 +63,7 @@ export const routes: Routes = [
   {
     path: 'app',
     canActivate: [authGuard],
+    canActivateChild: [permissionGuard],
     loadComponent: () => import('./layout/shell/shell.component').then((m) => m.ShellComponent),
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },

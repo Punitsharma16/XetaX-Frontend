@@ -549,7 +549,7 @@
 <app-modal [open]="transferOpen()" title="Transfer records" icon="bi-arrow-left-right" size="md"
            (closed)="transferOpen.set(false)">
   <p class="mb-2">
-    <b>{{ selectedIds().size }}</b> records kisko assign karne hain?
+    Assign <b>{{ selectedIds().size }}</b> records to:
   </p>
   <select class="form-select" [(ngModel)]="transferTo">
     <option value="">Choose a member…</option>

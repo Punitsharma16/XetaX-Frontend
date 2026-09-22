@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
 import { DatePipe, DecimalPipe, LowerCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -136,10 +136,13 @@ export class InvoiceDetailComponent {
   }
 
   constructor() {
+    // Only the route decides when the page re-initialises. initCreate() reads
+    // the items signal, so tracking its reads made every addItem/removeItem
+    // (and the AI draft) run initCreate again, wiping the customer the user
+    // had just typed.
     effect(() => {
       const id = this.id();
-      if (id === 'new') this.initCreate();
-      else this.load(Number(id));
+      untracked(() => (id === 'new' ? this.initCreate() : this.load(Number(id))));
     });
   }
 
@@ -227,9 +230,15 @@ export class InvoiceDetailComponent {
     this.items.update((rows) => rows.filter((r) => r.uid !== uid));
   }
 
-  // local mirrors of the server math — preview only
-  readonly subtotal = computed(() =>
-    this.items().reduce((sum, r) => sum + (r.quantity || 0) * (r.unitPrice || 0), 0));
+  // Local mirrors of the server math — preview only.
+  //
+  // A method, not a computed: the quantity and price boxes write straight into
+  // the row objects, which the items signal cannot see. As a computed this
+  // stayed on its first value, so an invoice typed by hand showed a line of
+  // Rs. 3,000 above a subtotal of Rs. 0.
+  subtotal(): number {
+    return this.items().reduce((sum, r) => sum + (r.quantity || 0) * (r.unitPrice || 0), 0);
+  }
 
   taxAmount(): number {
     return (this.subtotal() * (this.taxPercent || 0)) / 100;
@@ -284,8 +293,14 @@ export class InvoiceDetailComponent {
   // ------------------------------------------------------------------ save
 
   save(): void {
-    if (!this.customerName.trim() && !this.selectedContactId && !this.attachedRecordId) {
-      this.toast.warning('Pick a contact or enter the customer details');
+    // The server files every invoice under a contact or a record. Typing a
+    // name alone got as far as the save button and came back refused.
+    if (!this.selectedContactId && !this.attachedRecordId) {
+      this.toast.warning('Pick a contact', 'An invoice is filed under a contact or a record.');
+      return;
+    }
+    if (!this.customerName.trim()) {
+      this.toast.warning('Add the customer name');
       return;
     }
     const rows = this.items().filter((r) => r.description.trim());

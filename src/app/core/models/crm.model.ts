@@ -213,6 +213,8 @@ export interface AutomationRequest {
   description?: string;
   formId: number;
   trigger: AutomationTrigger;
+  /** Left out, the rule keeps the state it already had. */
+  active?: boolean | null;
   /** STAGE_CHANGED only: fire when the record lands on this stage (null = any). */
   triggerStageId?: number | null;
   documentId?: number | null;

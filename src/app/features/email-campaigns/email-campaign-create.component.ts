@@ -60,11 +60,32 @@ export class EmailCampaignCreateComponent {
   name = '';
   subject = '';
   body = '';
+  aiPrompt = '';
+  readonly aiDrafting = signal(false);
   scheduleAt = '';
 
   readonly selectedForm = computed(
     () => this.forms().find((f) => f.id === this.selectedFormId) ?? null,
   );
+
+  /** Writes the subject and the message from one line about the offer. */
+  draftWithAi(): void {
+    const prompt = this.aiPrompt.trim();
+    if (!prompt) {
+      this.toast.warning('Describe the email first', 'What is the offer or the news?');
+      return;
+    }
+    this.aiDrafting.set(true);
+    this.campaigns.aiDraft(prompt, this.placeholderKeys()).subscribe({
+      next: (draft) => {
+        this.aiDrafting.set(false);
+        this.subject = draft.subject;
+        this.body = draft.body;
+        this.toast.success('Draft ready — read it through before sending');
+      },
+      error: () => this.aiDrafting.set(false),
+    });
+  }
 
   /** Keys the user can drop into the subject/body for the chosen audience. */
   readonly placeholderKeys = computed<string[]>(() => {

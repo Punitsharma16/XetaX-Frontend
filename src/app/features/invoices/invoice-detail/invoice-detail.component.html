@@ -63,7 +63,7 @@
         <div class="ai-draft-bar">
           <i class="bi bi-stars ai-draft-bar__spark"></i>
           <input class="form-control" [(ngModel)]="aiPrompt" [disabled]="aiDrafting()"
-                 placeholder='Describe it — "Ramesh ke liye website 15k + 1 saal hosting 5k, 18% GST"'
+                 placeholder='Describe it — "website 15k + 1 year hosting 5k for Ramesh, 18% GST"'
                  (keydown.enter)="draftWithAi()" />
           <button class="btn btn-ai" (click)="draftWithAi()" [disabled]="aiDrafting()">
             @if (aiDrafting()) {
@@ -84,7 +84,7 @@
           <div class="row g-3">
             @if (isNew() && !attachedRecordId) {
               <div class="col-12">
-                <label class="form-label">Pick a contact <span class="text-muted">(optional — or type below)</span></label>
+                <label class="form-label">Pick a contact <span class="text-muted">(every invoice belongs to one)</span></label>
                 <select class="form-select" [(ngModel)]="selectedContactId" (ngModelChange)="onContactPicked()">
                   <option [ngValue]="null">— none —</option>
                   @for (contact of contacts(); track contact.id) {

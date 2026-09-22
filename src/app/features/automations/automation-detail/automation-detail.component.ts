@@ -94,6 +94,7 @@ export class AutomationDetailComponent {
   readonly loading = signal(true);
   readonly failed = signal(false);
   readonly saving = signal(false);
+  readonly switching = signal(false);
 
   readonly automation = signal<AutomationResponse | null>(null);
   readonly fields = signal<FieldResponse[]>([]);
@@ -239,6 +240,43 @@ export class AutomationDetailComponent {
   }
 
   // ------------------------------------------------------------------- save
+
+  /**
+   * Switches the rule on or off. A pack installs its automations paused and
+   * tells the owner to review them and switch them on — until now the panel
+   * showed the state and offered no way to change it.
+   */
+  toggleActive(): void {
+    const automation = this.automation();
+    if (!automation || this.switching()) return;
+    const active = !automation.active;
+    this.switching.set(true);
+    this.automationService
+      .update(automation.id, {
+        name: automation.name,
+        description: automation.description,
+        formId: automation.formId,
+        trigger: automation.trigger,
+        triggerStageId: automation.triggerStageId,
+        documentId: automation.documentId,
+        channel: automation.channel,
+        actionType: automation.actionType,
+        actionFieldId: automation.actionFieldId,
+        actionValue: automation.actionValue,
+        emailSubject: automation.emailSubject,
+        emailMessage: automation.emailMessage,
+        active,
+      })
+      .subscribe({
+        next: (saved) => {
+          this.automation.set(saved);
+          this.switching.set(false);
+          this.toast.success(saved.active ? 'Automation switched on' : 'Automation paused',
+            saved.active ? 'It runs on every matching record from now on.' : 'It will not run until you switch it back on.');
+        },
+        error: () => this.switching.set(false),
+      });
+  }
 
   save(): void {
     const automation = this.automation();

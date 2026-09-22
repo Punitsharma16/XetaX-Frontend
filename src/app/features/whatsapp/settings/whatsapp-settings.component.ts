@@ -20,6 +20,7 @@ import {
   TemplateButton,
   TemplateCard,
   WhatsAppConfig,
+  WhatsAppFlow,
   WhatsAppService,
   WhatsAppTemplate,
   WhatsAppUsage,
@@ -123,7 +124,7 @@ export class WhatsAppSettingsComponent implements OnDestroy {
     return Object.entries(spend.byCategory).map(([category, cost]) => ({ category, cost }));
   });
 
-  /** WhatsApp par pehli baar aane wale ke liye live checklist — sab green hote hi chhup jaati hai. */
+  /** Live checklist for a first visit to WhatsApp — it hides itself once every step is green. */
   readonly setupSteps = computed(() => {
     const cfg = this.config();
     const meta = this.meta();
@@ -219,6 +220,8 @@ export class WhatsAppSettingsComponent implements OnDestroy {
 
   /** Buttons under the message. */
   tplButtons: TemplateButton[] = [];
+  /** Published Flows a FLOW button can open — loaded with the page. */
+  readonly publishedFlows = signal<WhatsAppFlow[]>([]);
 
   /** Carousel cards, empty unless the user turns a carousel on. */
   readonly tplCarousel = signal(false);
@@ -247,6 +250,7 @@ export class WhatsAppSettingsComponent implements OnDestroy {
 
   constructor() {
     this.loadDrafts();
+    this.loadPublishedFlows();
     window.addEventListener('message', this.onSignupMessage);
     this.reload();
   }
@@ -486,6 +490,10 @@ export class WhatsAppSettingsComponent implements OnDestroy {
 
   private resetTemplateDraft(): void {
     this.tplName = this.tplHeader = this.tplBody = this.tplFooter = this.tplExamples = '';
+    // Category decides what Meta charges for every send of this template, so a
+    // new draft starts at the default rather than inheriting the last one.
+    this.tplCategory = 'MARKETING';
+    this.tplLanguage = 'en';
     this.tplHeaderType = 'NONE';
     this.tplHeaderExample = '';
     this.tplMediaUrl = '';
@@ -540,9 +548,30 @@ export class WhatsAppSettingsComponent implements OnDestroy {
 
   /* ------------------------------------------------------- buttons */
 
+  /** Only a PUBLISHED Flow can sit behind a button — a draft is refused by Meta. */
+  private loadPublishedFlows(): void {
+    this.whatsapp.flows().subscribe({
+      next: (flows) => this.publishedFlows.set(flows.filter((f) => f.status === 'PUBLISHED')),
+      error: () => this.publishedFlows.set([]),
+    });
+  }
+
   addButton(type: TemplateButton['type']): void {
     if (this.tplButtons.length >= 10) {
       this.toast.warning('Too many buttons', 'Meta allows at most 10.');
+      return;
+    }
+    if (type === 'FLOW') {
+      if (!this.publishedFlows().length) {
+        this.toast.warning('No published Flow yet', 'Publish a Flow first, then it can sit behind a button.');
+        return;
+      }
+      if (this.tplButtons.some((b) => b.type === 'FLOW')) {
+        this.toast.warning('One Flow button only', 'A template opens a single Flow.');
+        return;
+      }
+      this.tplButtons = [...this.tplButtons,
+        { type, text: '', flowId: String(this.publishedFlows()[0].metaFlowId ?? ''), flowAction: 'navigate' }];
       return;
     }
     if (type === 'URL' && this.tplButtons.filter((b) => b.type === 'URL').length >= 2) {
@@ -648,6 +677,10 @@ export class WhatsAppSettingsComponent implements OnDestroy {
       .filter((b) => b.text);
     if (buttons.length !== this.tplButtons.length) {
       this.toast.warning('Button label missing', 'Every button needs a label.');
+      return;
+    }
+    if (buttons.some((b) => b.type === 'FLOW' && !b.flowId)) {
+      this.toast.warning('Pick the Flow', 'A Flow button has to say which Flow it opens.');
       return;
     }
 

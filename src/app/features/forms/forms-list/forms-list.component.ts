@@ -100,7 +100,7 @@ export class FormsListComponent {
     });
   }
 
-  /** Step 1: card click => full preview (kya-kya banega) — abhi kuch create NAHI hota. */
+  /** Step 1: a card click only previews what would be built — nothing is created yet. */
   openPreview(template: PackCard): void {
     this.previewFor.set(template);
     this.templateFormName = template.name;
@@ -110,7 +110,7 @@ export class FormsListComponent {
     this.applyWhatsapp = true;
   }
 
-  /** Step 2: user ke confirm par hi create hota hai. */
+  /** Step 2: creation happens only once the user confirms. */
   confirmApply(): void {
     const template = this.previewFor();
     if (!template) return;

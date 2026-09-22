@@ -10,6 +10,10 @@
           title="Download all contacts as CSV">
     <i class="bi bi-download me-1"></i>{{ exporting() ? 'Exporting…' : 'Export' }}
   </button>
+  <button type="button" class="btn btn-ai-outline btn-sm" (click)="aiOpen.set(true)"
+          title="Ask AI about your contacts">
+    <i class="bi bi-stars me-1"></i>Ask AI
+  </button>
   <a class="btn btn-primary btn-sm" routerLink="/app/contacts/new">
     <i class="bi bi-person-plus me-1"></i>New contact
   </a>
@@ -193,3 +197,12 @@
     </button>
   </div>
 </app-modal>
+
+<app-ai-panel
+  [open]="aiOpen()"
+  contextLabel="Contacts"
+  storageKey="contacts"
+  [suggestions]="aiSuggestions"
+  (closed)="aiOpen.set(false)"
+  (answered)="load()"
+/>

@@ -7,6 +7,7 @@ import { RouterLink } from '@angular/router';
 import { ToastService } from '../../../core/services/toast.service';
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { AiPanelComponent } from '../../../shared/components/ai/ai-panel.component';
 import {
   EmptyStateComponent,
   ErrorStateComponent,
@@ -26,6 +27,7 @@ type ComposeChannel = 'whatsapp' | 'email';
   selector: 'app-contacts-list',
   standalone: true,
   imports: [
+    AiPanelComponent,
     FormsModule,
     TemplateVariablesComponent,
     RouterLink,
@@ -40,6 +42,12 @@ type ComposeChannel = 'whatsapp' | 'email';
   styleUrl: './contacts-list.component.css',
 })
 export class ContactsListComponent {
+  readonly aiOpen = signal(false);
+  readonly aiSuggestions = [
+    'Which contacts have not been messaged in the last 30 days?',
+    'Show contacts from Ludhiana with a phone number saved.',
+  ];
+
   private readonly contactsService = inject(ContactsService);
   private readonly whatsappService = inject(WhatsAppService);
   private readonly toast = inject(ToastService);

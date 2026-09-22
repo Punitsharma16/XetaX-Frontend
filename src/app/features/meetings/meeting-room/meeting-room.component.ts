@@ -240,10 +240,10 @@ export class MeetingRoomComponent implements OnDestroy {
         this.removePeer(msg['id'] as string);
         break;
       case 'meeting-ended':
-        this.leave('Host ne meeting end kar di');
+        this.leave('The host ended the meeting');
         break;
       case 'room-full':
-        this.leave('Room full hai (max participants reached)');
+        this.leave('The room is full — it has reached the participant limit');
         break;
     }
   }

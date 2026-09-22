@@ -138,19 +138,21 @@ export class PublicMenuComponent {
         .subscribe({
           next: (res) => {
             this.menu.set(res.data);
-            this.orderType = this.defaultOrderType(res.data.orderTypes);
+            this.orderType = this.table() && res.data.orderTypes.includes('DINE_IN')
+              ? 'DINE_IN'
+              : this.defaultOrderType(res.data.orderTypes);
             this.dropMissingItems();
           },
           error: () => this.notFound.set(true),
         });
     });
 
+    // Only the table in the QR link is copied here. The order type is decided
+    // where the menu lands, so a reload of the menu cannot overwrite what the
+    // guest has already picked.
     effect(() => {
       const table = this.table();
-      if (table) {
-        this.tableNo = table;
-        if (this.menu()?.orderTypes.includes('DINE_IN')) this.orderType = 'DINE_IN';
-      }
+      if (table) this.tableNo = table;
     });
 
     // Keep the basket across an accidental refresh on a phone.

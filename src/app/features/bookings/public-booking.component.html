@@ -22,7 +22,9 @@
         <p class="mb-1">{{ booked.when }}</p>
         @if (booked.staffName) { <p class="text-muted mb-1">with {{ booked.staffName }}</p> }
         @if (booked.service) { <p class="text-muted mb-1">{{ booked.service }}</p> }
-        <p class="text-muted small mb-3">We have sent a confirmation to {{ phone }}.</p>
+        <!-- Whether a message goes out depends on the salon's own automations,
+             so this only says what is certainly true. -->
+        <p class="text-muted small mb-3">Your slot is held against {{ phone }}.</p>
         <button class="btn btn-outline-secondary btn-sm" (click)="bookAnother()">Book another time</button>
       </div>
     } @else {

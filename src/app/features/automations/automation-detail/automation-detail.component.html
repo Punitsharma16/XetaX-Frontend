@@ -37,6 +37,22 @@
           >
             {{ automation()!.active ? 'Active' : 'Paused' }}
           </span>
+          <button
+            type="button"
+            class="btn btn-sm"
+            [class.btn-outline-secondary]="automation()!.active"
+            [class.btn-outline-success]="!automation()!.active"
+            [disabled]="switching()"
+            (click)="toggleActive()"
+          >
+            @if (switching()) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+            } @else {
+              <i class="bi me-1" [class.bi-pause-fill]="automation()!.active"
+                 [class.bi-play-fill]="!automation()!.active"></i>
+            }
+            {{ automation()!.active ? 'Pause' : 'Switch on' }}
+          </button>
         </div>
         <p class="page-subtitle mb-0">
           {{ automation()!.formName || 'Form #' + automation()!.formId }} · one rule, saved as a whole

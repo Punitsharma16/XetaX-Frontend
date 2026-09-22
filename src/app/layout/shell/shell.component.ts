@@ -6,6 +6,7 @@ import {
   effect,
   inject,
   signal,
+  untracked,
 } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -114,12 +115,17 @@ export class ShellComponent implements OnDestroy {
     this.notifications.start();
     this.perms.load();
     this.modules.load();
-    // Auto-expand the Records submenu whenever a records page is open.
+    // Auto-expand the Records submenu when a records page opens — on arrival
+    // only. Tracking recordsOpen here made the submenu impossible to collapse
+    // while on a records page: the collapse re-ran this and expanded it again.
     effect(() => {
-      if (this.onRecords() && !this.recordsOpen()) {
-        this.recordsOpen.set(true);
-        this.loadRecordForms();
-      }
+      const onRecords = this.onRecords();
+      untracked(() => {
+        if (onRecords && !this.recordsOpen()) {
+          this.recordsOpen.set(true);
+          this.loadRecordForms();
+        }
+      });
     });
   }
 

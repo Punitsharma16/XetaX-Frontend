@@ -316,9 +316,21 @@ export class DashboardComponent {
 
   /** Guards the first-run redirect so it fires at most once per dashboard visit. */
   private onboardingChecked = false;
+  private invoicesAsked = false;
 
   constructor() {
     this.load();
+    // The revenue tile waits for /api/team/me. Asked before the context has
+    // arrived, `has()` answers optimistically, so every member without
+    // invoices.view used to send a request that came back 403.
+    effect(() => {
+      if (!this.perms.loaded() || this.invoicesAsked) return;
+      this.invoicesAsked = true;
+      if (!this.canSee('invoices.view')) return;
+      this.api.get<InvoiceSummary>('/api/invoices/summary', undefined, { quiet: true })
+        .pipe(catchError(() => of(null)))
+        .subscribe((invoices) => this.invoices.set(invoices));
+    });
     // First-run: a workspace owner with no forms yet is taken to the setup
     // wizard once. The wizard sets a per-user flag when finished or skipped,
     // so this never loops; /api/team/me failing (context null) means no redirect.
@@ -347,15 +359,11 @@ export class DashboardComponent {
     // allowed to fail on its own (no permission, old backend, module off).
     forkJoin({
       summary: this.api.get<DashboardSummary>('/api/dashboard/summary', undefined, quiet),
-      invoices: this.canSee('invoices.view')
-        ? this.api.get<InvoiceSummary>('/api/invoices/summary', undefined, quiet).pipe(catchError(() => of(null)))
-        : of(null),
       billing: this.api.get<BillingSummary>('/api/billing/summary', undefined, quiet).pipe(catchError(() => of(null))),
       desk: this.api.get<DeskBadge>('/api/desk/badge', undefined, quiet).pipe(catchError(() => of(null))),
     }).subscribe({
-      next: ({ summary, invoices, billing, desk }) => {
+      next: ({ summary, billing, desk }) => {
         this.summary.set(summary);
-        this.invoices.set(invoices);
         this.billing.set(billing);
         this.desk.set(desk);
         this.loading.set(false);

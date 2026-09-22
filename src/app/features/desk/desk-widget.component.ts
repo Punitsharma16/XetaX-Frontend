@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, afterRenderEffect, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, OnDestroy, afterRenderEffect, computed, effect, inject, signal, untracked, viewChild } from '@angular/core';
 import { DatePipe, LowerCasePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -58,13 +58,23 @@ export class DeskWidgetComponent implements OnDestroy {
   private chatTimer: ReturnType<typeof setInterval> | null = null;
   private lastBadge = 0;
   private lastMessageId = 0;
+  private deepLinkOpened = false;
 
   constructor() {
     this.refreshBadge();
     this.badgeTimer = setInterval(() => this.refreshBadge(), 20000);
-    // Deep link from a bell notification: /app/…?desk=open
+    // Deep link from a bell notification: /app/…?desk=open. It opens the desk
+    // once, when the desk becomes available. Reading `open` reactively kept
+    // re-opening the panel the moment the user closed it, because the query
+    // string is still in the URL.
     effect(() => {
-      if (this.router.url.includes('desk=open') && this.enabled() && !this.open()) this.toggle();
+      const enabled = this.enabled();
+      untracked(() => {
+        if (this.deepLinkOpened || !enabled) return;
+        if (!this.router.url.includes('desk=open')) return;
+        this.deepLinkOpened = true;
+        if (!this.open()) this.toggle();
+      });
     });
     // Pin the thread to its newest line. This runs after Angular has painted
     // the new bubbles — a microtask fired before the render, so the pane
@@ -261,7 +271,11 @@ export class DeskWidgetComponent implements OnDestroy {
   }
 
   waitingFor(iso: string): string {
-    const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+    // The API sends this instant without a zone, and a browser reads a bare
+    // timestamp as its own local time: in India every request that had just
+    // arrived showed up as 330 minutes old.
+    const utc = /[zZ]|[+-]\d{2}:?\d{2}$/.test(iso) ? iso : `${iso}Z`;
+    const mins = Math.max(0, Math.round((Date.now() - new Date(utc).getTime()) / 60000));
     return mins < 1 ? 'just now' : mins === 1 ? '1 min' : `${mins} min`;
   }
 

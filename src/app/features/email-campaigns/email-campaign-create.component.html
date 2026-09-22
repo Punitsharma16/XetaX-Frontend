@@ -117,6 +117,21 @@
           <input class="form-control" [(ngModel)]="name" placeholder="Diwali offer mailer" />
         </div>
         <div class="col-12">
+          <div class="ai-draft-bar">
+            <i class="bi bi-stars ai-draft-bar__spark"></i>
+            <input class="form-control" [(ngModel)]="aiPrompt" [disabled]="aiDrafting()"
+                   placeholder='Describe it — "Diwali offer, 20% off every service till 5 Nov"'
+                   (keydown.enter)="draftWithAi()" />
+            <button class="btn btn-ai" (click)="draftWithAi()" [disabled]="aiDrafting()">
+              @if (aiDrafting()) {
+                <span class="spinner-border spinner-border-sm"></span> Drafting…
+              } @else {
+                <i class="bi bi-stars me-1"></i>Draft with AI
+              }
+            </button>
+          </div>
+        </div>
+        <div class="col-12">
           <label class="form-label">Subject</label>
           <input
             class="form-control"
@@ -175,7 +190,7 @@
             style="max-width: 240px"
             [(ngModel)]="scheduleAt"
           />
-          <span class="text-muted small ms-2">Khali chhodo to turant start hoga.</span>
+          <span class="text-muted small ms-2">Leave it empty to send straight away.</span>
         </dd>
         <dt class="col-sm-3">Subject</dt>
         <dd class="col-sm-9">{{ subject }}</dd>

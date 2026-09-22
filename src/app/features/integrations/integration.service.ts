@@ -63,8 +63,11 @@ export class IntegrationService {
    * comes back empty.
    */
   webhookUrl(integration: IntegrationResponse): string {
-    if (integration.endpoint?.trim()) {
-      return integration.endpoint;
+    const endpoint = integration.endpoint?.trim();
+    // The backend answers with a path, not a URL. Handed to someone as a curl
+    // command to paste into their own system, a path alone never reaches us.
+    if (endpoint) {
+      return /^https?:\/\//i.test(endpoint) ? endpoint : `${environment.crmBaseUrl}${endpoint}`;
     }
     return `${environment.crmBaseUrl}/api/public/integrations/${integration.integrationKey}`;
   }

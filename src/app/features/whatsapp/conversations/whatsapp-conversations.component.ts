@@ -225,7 +225,7 @@ export class WhatsAppConversationsComponent implements OnDestroy {
     (event.target as HTMLInputElement).value = '';
     if (!conversation || !file) return;
     if (file.size > 5 * 1024 * 1024) {
-      this.toast.warning('File badi hai', 'Max 5MB tak bhej sakte ho.');
+      this.toast.warning('File is too large', 'The limit is 5MB per file.');
       return;
     }
     this.sending.set(true);

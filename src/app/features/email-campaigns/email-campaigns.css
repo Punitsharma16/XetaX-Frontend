@@ -162,3 +162,23 @@ table thead th {
   border-radius: 8px;
   padding: 0.5rem 0.7rem;
 }
+
+/* "Draft with AI" bar above the subject — same treatment as the invoice editor. */
+.ai-draft-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  border-radius: 12px;
+  background: linear-gradient(120deg, rgba(99, 102, 241, 0.06), rgba(139, 92, 246, 0.06));
+}
+.ai-draft-bar__spark { color: #6366f1; font-size: 1.1rem; }
+.ai-draft-bar .form-control { border: 0; background: transparent; box-shadow: none; }
+.btn-ai {
+  background: linear-gradient(120deg, #6366f1, #8b5cf6);
+  color: #fff;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.btn-ai:hover { color: #fff; filter: brightness(1.05); }

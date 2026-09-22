@@ -341,20 +341,30 @@
           <div><div class="dash-card__title">Quick actions</div></div>
         </div>
         <div class="quick">
-          <a class="quick__tile" routerLink="/app/forms"><i class="bi bi-grid-1x2"></i><span>Templates</span></a>
-          <a class="quick__tile" routerLink="/app/contacts"><i class="bi bi-person-lines-fill"></i><span>Contacts</span></a>
+          @if (canSee('forms.view')) {
+            <a class="quick__tile" routerLink="/app/forms"><i class="bi bi-grid-1x2"></i><span>Templates</span></a>
+          }
+          @if (canSee('contacts.view')) {
+            <a class="quick__tile" routerLink="/app/contacts"><i class="bi bi-person-lines-fill"></i><span>Contacts</span></a>
+          }
           @if (canSee('records.view|records.view.own')) {
             <a class="quick__tile" routerLink="/app/records"><i class="bi bi-collection"></i><span>Records</span></a>
           }
-          <a class="quick__tile" routerLink="/app/meetings"><i class="bi bi-camera-video"></i><span>Meeting</span></a>
-          <a class="quick__tile" routerLink="/app/whatsapp/campaigns"><i class="bi bi-megaphone"></i><span>Campaign</span></a>
+          @if (canSee('meetings.view')) {
+            <a class="quick__tile" routerLink="/app/meetings"><i class="bi bi-camera-video"></i><span>Meeting</span></a>
+          }
+          @if (canSee('whatsapp.view')) {
+            <a class="quick__tile" routerLink="/app/whatsapp/campaigns"><i class="bi bi-megaphone"></i><span>Campaign</span></a>
+          }
           @if (canSee('invoices.manage|invoices.view')) {
             <a class="quick__tile" routerLink="/app/invoices"><i class="bi bi-receipt"></i><span>Invoice</span></a>
           }
           @if (isAdmin()) {
             <a class="quick__tile" routerLink="/app/users"><i class="bi bi-people"></i><span>Team</span></a>
           }
-          <a class="quick__tile" routerLink="/app/automations"><i class="bi bi-lightning-charge"></i><span>Automation</span></a>
+          @if (canSee('automations.view')) {
+            <a class="quick__tile" routerLink="/app/automations"><i class="bi bi-lightning-charge"></i><span>Automation</span></a>
+          }
         </div>
       </section>
     </aside>

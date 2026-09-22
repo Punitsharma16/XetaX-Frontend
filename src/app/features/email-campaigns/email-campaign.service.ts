@@ -90,6 +90,14 @@ export class EmailCampaignService {
     return this.api.get<EmailCampaign>(`${this.path}/${id}`);
   }
 
+  /** One sentence about the offer in, a subject line and a message out. */
+  aiDraft(prompt: string, placeholders: string[]): Observable<{ subject: string; body: string }> {
+    return this.api.post<{ subject: string; body: string }>(`${this.path}/ai-draft`, {
+      prompt,
+      placeholders,
+    });
+  }
+
   create(request: EmailCampaignCreateRequest): Observable<EmailCampaign> {
     return this.api.post<EmailCampaign>(this.path, request);
   }

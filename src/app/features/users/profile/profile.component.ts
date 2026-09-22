@@ -7,6 +7,7 @@ import { AuthService } from '../../../core/authentication/auth.service';
 import { CrmApiService } from '../../../core/services/crm-api.service';
 import { ThemeService } from '../../../core/services/theme.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { PermissionService } from '../../../core/services/permission.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { UserService } from '../user.service';
 import { WhatsAppConnectCardComponent } from '../../whatsapp/whatsapp-connect-card.component';
@@ -42,6 +43,7 @@ interface ServiceStatus {
 export class ProfileComponent {
   private readonly userService = inject(UserService);
   private readonly auth = inject(AuthService);
+  readonly perms = inject(PermissionService);
   private readonly themeService = inject(ThemeService);
   private readonly fb = inject(FormBuilder);
   private readonly toast = inject(ToastService);

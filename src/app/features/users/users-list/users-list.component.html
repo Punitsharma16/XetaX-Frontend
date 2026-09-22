@@ -68,13 +68,16 @@
                 </td>
                 <td class="text-muted">{{ member.email }}</td>
                 <td>
+                  <!-- The chosen role is marked on the option itself. Bound on
+                       the <select>, the value was set before the options
+                       existed, so every member read as the first role in the
+                       list — the page said ADMIN for people who were not. -->
                   <select
                     class="form-select form-select-sm"
-                    [value]="member.roleId"
                     (change)="changeRole(member, $any($event.target).value)"
                   >
                     @for (role of assignableRoles(); track role.id) {
-                      <option [value]="role.id">{{ role.name }}</option>
+                      <option [value]="role.id" [selected]="role.id === member.roleId">{{ role.name }}</option>
                     }
                   </select>
                 </td>
@@ -135,7 +138,7 @@
             </button>
           </div>
         } @else {
-          <div class="tm-role__perms"><span class="tm-chip tm-chip--all">Sab kuch allowed</span></div>
+          <div class="tm-role__perms"><span class="tm-chip tm-chip--all">Everything allowed</span></div>
         }
       </div>
     }
