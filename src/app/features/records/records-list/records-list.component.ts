@@ -289,10 +289,18 @@ export class RecordsListComponent {
     return true;
   }
 
-  /** createdAt/updatedAt arrive as ISO LocalDateTime strings — compare dates. */
+  /**
+   * createdAt/updatedAt are instants. "Today" has to mean the reader's today:
+   * slicing the date off the front of the string gave the UTC date, so past
+   * 5:30 am IST a record made this morning fell outside "today".
+   */
   private inPreset(dateTime: string | null | undefined, preset: string): boolean {
     if (!dateTime) return false;
-    const day = String(dateTime).slice(0, 10);
+    const at = new Date(String(dateTime));
+    if (isNaN(at.getTime())) return false;
+
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const day = `${at.getFullYear()}-${pad(at.getMonth() + 1)}-${pad(at.getDate())}`;
     const range = this.presetRange(preset);
     return day >= range.from && day <= range.to;
   }

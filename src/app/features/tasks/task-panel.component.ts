@@ -85,7 +85,7 @@ export class TaskPanelComponent {
       .create({
         title: this.title.trim(),
         notes: this.notes.trim() || undefined,
-        dueAt: this.dueAt || null,
+        dueAt: toInstant(this.dueAt),
         contactId: this.contactId() ?? null,
         recordId: this.recordId() ?? null,
         linkedName: this.linkedName() || null,
@@ -113,6 +113,12 @@ export class TaskPanelComponent {
     this.taskService.delete(task.id).subscribe({ next: () => this.load() });
   }
 
+  /**
+   * A reminder is due at an instant, so the wall-clock time the user picked is
+   * sent as one. Sent as typed it was stored as though it were UTC, and the
+   * reminder for "6 pm" fired at 11:30 pm for an IST user.
+   */
+
   /** Quick due-time chips — writes datetime-local format (local time). */
   preset(kind: 'hour' | 'evening' | 'tomorrow'): void {
     const d = new Date();
@@ -129,4 +135,14 @@ export class TaskPanelComponent {
   isOverdue(task: TaskItem): boolean {
     return task.status === 'OPEN' && !!task.dueAt && new Date(task.dueAt).getTime() < Date.now();
   }
+}
+
+/**
+ * A `datetime-local` value ("2026-09-22T18:00") is a wall-clock time in the
+ * reader's own zone. The API stores instants, so it goes out as one.
+ */
+export function toInstant(localValue: string): string | null {
+  if (!localValue) return null;
+  const at = new Date(localValue);
+  return isNaN(at.getTime()) ? null : at.toISOString();
 }
