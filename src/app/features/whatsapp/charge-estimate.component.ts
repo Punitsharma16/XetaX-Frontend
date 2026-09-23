@@ -36,6 +36,23 @@ import { CHARGE_LABELS, ChargeCategory, ChargeEstimate } from './whatsapp.servic
           @if (metaTotal() != null) {
             <div>Meta's own figure so far: <b>₹{{ metaTotal() | number: '1.2-2' }}</b></div>
           }
+          <!-- Meta's own answer beside ours. The point of keeping the
+               billable flag: from 1 October 2026 a service message still
+               arrives as category "service" while it starts being charged, so
+               a bill can grow with nothing on screen to explain it. -->
+          @if (e.metaKnown) {
+            <div>
+              Meta priced {{ e.metaKnown | number }} of this month's
+              {{ e.metaOutbound | number }} messages so far —
+              <b>{{ e.metaBillable | number }} billable</b>, {{ e.metaFree | number }} free.
+              This estimate charges {{ e.chargedMessages | number }}.
+              @if (metaChargesMore()) {
+                <span class="ce__warn">Meta is charging for more than we counted — worth checking.</span>
+              }
+            </div>
+          } @else if (e.metaOutbound) {
+            <div>Meta has not priced this month's messages yet.</div>
+          }
           @if (e.awaitingDelivery) {
             <div>{{ e.awaitingDelivery | number }} sent but not delivered yet — charged once delivered.</div>
           }
@@ -105,6 +122,20 @@ export class ChargeEstimateComponent {
   readonly estimate = input<ChargeEstimate | null | undefined>(null);
   /** Meta's official spend so far, when Meta returned one. */
   readonly metaTotal = input<number | null | undefined>(null);
+
+  /**
+   * Whether Meta is charging for more than this estimate counted.
+   *
+   * <p>Only once Meta has priced most of the month, because early in a month
+   * its receipts trail ours and "Meta says 3, we charge 40" would read as a
+   * disaster when it only means the delivery reports have not arrived.
+   */
+  metaChargesMore(): boolean {
+    const e = this.estimate();
+    if (!e || !e.metaOutbound) return false;
+    const mostOfTheMonthIsPriced = e.metaKnown >= e.metaOutbound * 0.8;
+    return mostOfTheMonthIsPriced && e.metaBillable > e.chargedMessages;
+  }
 
   label(category: ChargeCategory): string {
     return CHARGE_LABELS[category] ?? category;

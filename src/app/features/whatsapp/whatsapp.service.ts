@@ -260,6 +260,14 @@ export interface ChargeEstimate {
   /** Whether this month is on or past that day. */
   serviceCharging: boolean;
   awaitingDelivery: number;
+  /** How many messages Meta itself marked billable this month. */
+  metaBillable: number;
+  /** How many it marked free. */
+  metaFree: number;
+  /** Messages Meta has priced at all — billable + free. */
+  metaKnown: number;
+  /** Messages we sent this month, priced by Meta or not yet. */
+  metaOutbound: number;
   otherCountries: number;
   unknownCategory: number;
   unpriced: number;
