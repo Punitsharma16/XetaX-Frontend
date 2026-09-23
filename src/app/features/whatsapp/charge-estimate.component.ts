@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { DecimalPipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 
 import { CHARGE_LABELS, ChargeCategory, ChargeEstimate } from './whatsapp.service';
 
@@ -10,7 +10,7 @@ import { CHARGE_LABELS, ChargeCategory, ChargeEstimate } from './whatsapp.servic
 @Component({
   selector: 'app-charge-estimate',
   standalone: true,
-  imports: [DecimalPipe],
+  imports: [DatePipe, DecimalPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (estimate(); as e) {
@@ -42,8 +42,25 @@ import { CHARGE_LABELS, ChargeCategory, ChargeEstimate } from './whatsapp.servic
           @if (e.freeEntryPoint) {
             <div>{{ e.freeEntryPoint | number }} free — chats that started from an ad or Page button.</div>
           }
-          @if (e.freeAllowance) {
-            <div>{{ e.freeAllowance | number }} replies covered by Meta's free monthly allowance.</div>
+          <!-- Worded from the cutover, because the same number means two
+               different things: before 1 Oct 2026 Meta charges for no reply at
+               all; from that day only the first thousand each month are free. -->
+          @if (e.serviceCharging) {
+            @if (e.freeAllowanceLimit) {
+              <div>
+                {{ e.freeAllowance | number }} of {{ e.freeAllowanceLimit | number }}
+                free replies used this month.
+                @if (e.freeAllowance >= e.freeAllowanceLimit) {
+                  <span class="ce__warn">The allowance is used up — replies are charged from here.</span>
+                }
+              </div>
+            }
+          } @else if (e.freeAllowance) {
+            <div>
+              {{ e.freeAllowance | number }} replies free — Meta starts charging for these on
+              {{ e.serviceChargingFrom | date: 'd MMM y' }}, after which
+              {{ e.freeAllowanceLimit | number }} a month stay free.
+            </div>
           }
           @if (e.otherCountries) {
             <div>{{ e.otherCountries | number }} to numbers outside India — not included.</div>

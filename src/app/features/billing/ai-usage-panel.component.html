@@ -135,7 +135,14 @@
               <tbody>
                 @for (h of s.topupHistory; track $index) {
                   <tr>
-                    <td class="text-nowrap">{{ h.at | date: 'd MMM y, h:mm a' }}</td>
+                    <!-- Deliberately allowed to wrap: kept on one line the
+                         date made the table wider than a phone, and the first
+                         column — the one that says which payment this is —
+                         was what scrolled out of sight. -->
+                    <td>
+                      <div>{{ h.at | date: 'd MMM y' }}</div>
+                      <div class="text-secondary" style="font-size: 0.72rem">{{ h.at | date: 'h:mm a' }}</div>
+                    </td>
                     <td>{{ packLabel(h.packKey, s.packs) }}</td>
                     <td class="text-end">{{ h.messages | number }}</td>
                     <td class="text-end">{{ rupees(h.amountPaise) }}</td>

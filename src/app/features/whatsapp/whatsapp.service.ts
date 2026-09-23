@@ -251,7 +251,14 @@ export interface ChargeEstimate {
   lines: { category: ChargeCategory; messages: number; amount: number }[];
   chargedMessages: number;
   freeEntryPoint: number;
+  /** Service replies that cost nothing — by the cutover date, or by the allowance. */
   freeAllowance: number;
+  /** How many service replies Meta leaves free each month once it charges for them. */
+  freeAllowanceLimit: number;
+  /** The day Meta starts charging for service replies, ISO. */
+  serviceChargingFrom: string;
+  /** Whether this month is on or past that day. */
+  serviceCharging: boolean;
   awaitingDelivery: number;
   otherCountries: number;
   unknownCategory: number;

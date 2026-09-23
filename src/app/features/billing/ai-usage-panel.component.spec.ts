@@ -85,6 +85,19 @@ describe('AiUsagePanelComponent — top-up history', () => {
     expect(rows[1].textContent).toContain('Failed');
   });
 
+  it('keeps the date readable without pushing the table off a phone', async () => {
+    const el = await render([
+      { packKey: 'PACK_1K', messages: 1000, amountPaise: 19900, status: 'PAID', at: '2026-09-23T05:54:00Z' },
+    ] as any);
+
+    const dateCell = el.querySelector('tbody tr td')!;
+    // Day and time on their own lines, so the column that identifies the
+    // payment does not scroll out of view on a narrow screen.
+    expect(dateCell.querySelectorAll('div').length).toBe(2);
+    expect(dateCell.className).not.toContain('text-nowrap');
+    expect(dateCell.textContent).toContain('Sep');
+  });
+
   it('says nothing at all when nobody has ever topped up', async () => {
     const el = await render([]);
 
