@@ -376,6 +376,15 @@ export class WhatsAppService {
     return this.api.post<{ handle: string; url: string | null }>(`${this.path}/templates/sample`, form);
   }
 
+  /**
+   * Edits a template Meta already has. Its name and language cannot change —
+   * Meta refuses — so they are not sent; everything else is replaced wholesale
+   * and the template goes back through review.
+   */
+  updateTemplate(id: number, request: TemplateCreateRequest): Observable<WhatsAppTemplate> {
+    return this.api.put<WhatsAppTemplate>(`${this.path}/templates/${id}`, request);
+  }
+
   deleteTemplate(name: string): Observable<string> {
     return this.api.delete(`${this.path}/templates/${name}`);
   }

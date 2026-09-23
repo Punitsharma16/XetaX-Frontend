@@ -64,7 +64,20 @@ export class AiUsagePanelComponent {
   }
 
   priceOf(pack: TopupPack): string {
-    return '₹' + (pack.amountPaise / 100).toLocaleString('en-IN');
+    return this.rupees(pack.amountPaise);
+  }
+
+  /** Paise as the customer's bank would show it. */
+  rupees(paise: number): string {
+    return '₹' + ((paise ?? 0) / 100).toLocaleString('en-IN');
+  }
+
+  /**
+   * The pack's own name, looked up from the packs on offer. History carries
+   * only the key, and "PACK_1K" on a receipt means nothing to a customer.
+   */
+  packLabel(key: string, packs: TopupPack[]): string {
+    return packs.find((p) => p.key === key)?.label ?? key;
   }
 
   barClass(pct: number): string {

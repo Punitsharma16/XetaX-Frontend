@@ -20,7 +20,10 @@ export interface TopupHistoryRow {
   packKey: string;
   messages: number;
   amountPaise: number;
-  paidAt: string;
+  /** PAID, or FAILED when the payment was attempted and rejected. */
+  status: string;
+  /** When it was paid, or — for a failed one — when it was attempted. */
+  at: string;
 }
 
 export interface SubscriptionInfo {

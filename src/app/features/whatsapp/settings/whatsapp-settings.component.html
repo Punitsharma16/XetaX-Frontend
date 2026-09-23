@@ -261,7 +261,19 @@
                       }
                     }
                   </td>
-                  <td class="text-end">
+                  <td class="text-end text-nowrap">
+                    <!-- Meta only edits an approved, rejected or paused
+                         template, so the action is offered only then rather
+                         than failing after the click. -->
+                    @if (canEditTemplate(template)) {
+                      <button
+                        class="btn btn-link btn-sm p-0 me-3"
+                        title="Edit at Meta — keeps the name and the template's history"
+                        (click)="editTemplate(template)"
+                      >
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                    }
                     <button
                       class="btn btn-link btn-sm text-danger p-0"
                       title="Delete on Meta and locally"
@@ -347,10 +359,10 @@
   </div>
 }
 
-<!-- --------------------------------------------------- new template modal -->
+<!-- ----------------------------------------------- new / edit template modal -->
 <app-modal
   [open]="tplOpen()"
-  title="New message template"
+  [title]="tplEditing() ? 'Edit message template' : 'New message template'"
   icon="bi-file-earmark-plus"
   size="xl"
   (closed)="tplOpen.set(false)"
@@ -360,20 +372,30 @@
   <div class="row g-3">
     <div class="col-12 col-md-6">
       <label class="form-label">Template name</label>
-      <input class="form-control" [(ngModel)]="tplName" placeholder="order_update" />
-      <div class="form-text">Lowercase letters, numbers, underscores (Meta rule).</div>
+      <input class="form-control" [(ngModel)]="tplName" placeholder="order_update"
+             [disabled]="!!tplEditing()" />
+      <div class="form-text">
+        @if (tplEditing()) {
+          A template's name can't be changed — Meta keeps it for the life of the template.
+        } @else {
+          Lowercase letters, numbers, underscores (Meta rule).
+        }
+      </div>
     </div>
     <div class="col-6 col-md-3">
       <label class="form-label">Category</label>
-      <select class="form-select" [(ngModel)]="tplCategory">
+      <select class="form-select" [(ngModel)]="tplCategory" [disabled]="categoryLocked()">
         <option value="MARKETING">Marketing</option>
         <option value="UTILITY">Utility</option>
         <option value="AUTHENTICATION">Authentication (OTP)</option>
       </select>
+      @if (categoryLocked()) {
+        <div class="form-text">Meta won't re-categorise a template it has approved.</div>
+      }
     </div>
     <div class="col-6 col-md-3">
       <label class="form-label">Language</label>
-      <select class="form-select" [(ngModel)]="tplLanguage">
+      <select class="form-select" [(ngModel)]="tplLanguage" [disabled]="!!tplEditing()">
         <option value="en">English (en)</option>
         <option value="en_US">English US (en_US)</option>
         <option value="hi">Hindi (hi)</option>
@@ -663,7 +685,7 @@
       } @else {
         <i class="bi bi-send me-1"></i>
       }
-      Submit for approval
+      {{ tplEditing() ? 'Save and send for review' : 'Submit for approval' }}
     </button>
   </div>
 </app-modal>

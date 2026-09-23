@@ -197,6 +197,8 @@ export class WhatsAppSettingsComponent implements OnDestroy {
   /* ------------------------------------------------- new template modal */
   readonly tplOpen = signal(false);
   readonly tplSaving = signal(false);
+  /** The template being edited, or null while a new one is being written. */
+  readonly tplEditing = signal<WhatsAppTemplate | null>(null);
   tplName = '';
   tplCategory: 'MARKETING' | 'UTILITY' | 'AUTHENTICATION' = 'MARKETING';
   tplLanguage = 'en';
@@ -488,7 +490,88 @@ export class WhatsAppSettingsComponent implements OnDestroy {
     this.tplOpen.set(true);
   }
 
+  /**
+   * Opens the template that already exists, filled in as it stands today.
+   *
+   * <p>Meta replaces every component on an edit, so the form has to start from
+   * the whole template rather than a blank sheet — otherwise saving a one-word
+   * change would quietly drop the header, the footer and every button.
+   */
+  editTemplate(template: WhatsAppTemplate): void {
+    this.resetTemplateDraft();
+    this.tplEditing.set(template);
+
+    this.tplName = template.name;
+    this.tplLanguage = template.language;
+    const category = (template.category || 'MARKETING').toUpperCase();
+    this.tplCategory = category === 'UTILITY' || category === 'AUTHENTICATION'
+      ? (category as 'UTILITY' | 'AUTHENTICATION')
+      : 'MARKETING';
+    this.tplMediaUrl = template.headerMediaUrl || '';
+    this.fillDraftFromComponents(template.componentsJson);
+
+    this.tplOpen.set(true);
+  }
+
+  /** Meta edits only a template that is past review, one way or the other. */
+  canEditTemplate(template: WhatsAppTemplate): boolean {
+    const status = (template.status || '').toUpperCase();
+    return status === 'APPROVED' || status === 'REJECTED' || status === 'PAUSED';
+  }
+
+  /** An approved template keeps the category Meta approved it under. */
+  categoryLocked(): boolean {
+    return (this.tplEditing()?.status || '').toUpperCase() === 'APPROVED';
+  }
+
+  /** Meta's component array, read back into the fields of this form. */
+  private fillDraftFromComponents(componentsJson: string | null): void {
+    let components: any[];
+    try {
+      components = JSON.parse(componentsJson || '[]');
+    } catch {
+      components = [];
+    }
+    if (!Array.isArray(components)) return;
+
+    for (const component of components) {
+      switch ((component?.type || '').toUpperCase()) {
+        case 'HEADER': {
+          const format = (component.format || 'TEXT').toUpperCase();
+          this.tplHeaderType = format;
+          if (format === 'TEXT') {
+            this.tplHeader = component.text || '';
+            this.tplHeaderExample = component.example?.header_text?.[0] ?? '';
+          }
+          break;
+        }
+        case 'BODY':
+          this.tplBody = component.text || '';
+          // body_text is an array of one row of values.
+          this.tplExamples = (component.example?.body_text?.[0] ?? []).join(', ');
+          break;
+        case 'FOOTER':
+          this.tplFooter = component.text || '';
+          break;
+        case 'BUTTONS':
+          this.tplButtons = (component.buttons ?? []).map((b: any) => ({
+            type: (b.type || 'QUICK_REPLY').toUpperCase(),
+            text: b.text || '',
+            url: b.url,
+            urlExample: Array.isArray(b.example) ? b.example[0] : undefined,
+            phoneNumber: b.phone_number,
+            flowId: b.flow_id != null ? String(b.flow_id) : undefined,
+            flowAction: b.flow_action,
+          }));
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
   private resetTemplateDraft(): void {
+    this.tplEditing.set(null);
     this.tplName = this.tplHeader = this.tplBody = this.tplFooter = this.tplExamples = '';
     // Category decides what Meta charges for every send of this template, so a
     // new draft starts at the default rather than inheriting the last one.
@@ -703,36 +786,41 @@ export class WhatsAppSettingsComponent implements OnDestroy {
       }));
     }
 
+    const draft = {
+      name: this.tplName.trim(),
+      category: this.tplCategory,
+      language: this.tplLanguage.trim() || 'en',
+      headerFormat: this.tplCategory === 'AUTHENTICATION' ? undefined : this.tplHeaderType,
+      headerText: this.tplHeaderType === 'TEXT' ? this.tplHeader.trim() || undefined : undefined,
+      headerExample: this.tplHeaderHasVariable ? this.tplHeaderExample.trim() : undefined,
+      headerHandle: this.tplHeaderIsMedia ? this.tplSampleHandle() ?? undefined : undefined,
+      headerMediaUrl: this.tplHeaderIsMedia ? this.tplMediaUrl.trim() : undefined,
+      bodyText: this.tplBody.trim() || undefined,
+      footerText: this.tplFooter.trim() || undefined,
+      exampleParams: examples.length ? examples : undefined,
+      buttons: buttons.length ? buttons : undefined,
+      cards,
+    };
+
+    const editing = this.tplEditing();
     this.tplSaving.set(true);
-    this.whatsapp
-      .createTemplate({
-        name: this.tplName.trim(),
-        category: this.tplCategory,
-        language: this.tplLanguage.trim() || 'en',
-        headerFormat: this.tplCategory === 'AUTHENTICATION' ? undefined : this.tplHeaderType,
-        headerText: this.tplHeaderType === 'TEXT' ? this.tplHeader.trim() || undefined : undefined,
-        headerExample: this.tplHeaderHasVariable ? this.tplHeaderExample.trim() : undefined,
-        headerHandle: this.tplHeaderIsMedia ? this.tplSampleHandle() ?? undefined : undefined,
-        headerMediaUrl: this.tplHeaderIsMedia ? this.tplMediaUrl.trim() : undefined,
-        bodyText: this.tplBody.trim() || undefined,
-        footerText: this.tplFooter.trim() || undefined,
-        exampleParams: examples.length ? examples : undefined,
-        buttons: buttons.length ? buttons : undefined,
-        cards,
-      })
-      .subscribe({
-        next: (template) => {
-          this.tplSaving.set(false);
-          this.tplOpen.set(false);
-          this.resetTemplateDraft();
-          this.toast.success(
-            'Submitted to Meta',
-            `'${template.name}' is ${template.status} — approval usually takes minutes to 24h.`,
-          );
-          this.loadTemplates();
-        },
-        error: () => this.tplSaving.set(false),
-      });
+    const save = editing
+      ? this.whatsapp.updateTemplate(editing.id, draft)
+      : this.whatsapp.createTemplate(draft);
+
+    save.subscribe({
+      next: (template) => {
+        this.tplSaving.set(false);
+        this.tplOpen.set(false);
+        this.resetTemplateDraft();
+        this.toast.success(
+          editing ? 'Sent back to Meta' : 'Submitted to Meta',
+          `'${template.name}' is ${template.status} — approval usually takes minutes to 24h.`,
+        );
+        this.loadTemplates();
+      },
+      error: () => this.tplSaving.set(false),
+    });
   }
 
   deleteTemplate(template: WhatsAppTemplate): void {
