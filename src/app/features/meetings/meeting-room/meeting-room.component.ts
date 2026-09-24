@@ -1,11 +1,14 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   OnDestroy,
+  afterRenderEffect,
   computed,
   inject,
   input,
   signal,
+  viewChildren,
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -71,6 +74,33 @@ export class MeetingRoomComponent implements OnDestroy {
   /** Signal so OnPush bindings (join button, tiles) react when media arrives. */
   readonly localStream = signal<MediaStream | null>(null);
 
+  /**
+   * What the local tile shows — the camera normally, the screen while sharing.
+   * Kept apart from {@link localStream}, which stays the camera and mic the
+   * call is actually sending.
+   */
+  private readonly localView = signal<MediaStream | null>(null);
+
+  private readonly localVideos = viewChildren<ElementRef<HTMLVideoElement>>('localVideo');
+  private readonly peerVideos = viewChildren<ElementRef<HTMLVideoElement>>('peerVideo');
+
+  /**
+   * Puts a stream on a tile and starts it playing.
+   *
+   * <p>muted is set here rather than in the template on purpose. Angular
+   * builds the element and writes `muted` as an attribute, which only decides
+   * what the element starts as — so a local tile marked muted in the markup
+   * still played the person their own microphone back. Setting the property is
+   * what actually silences it.
+   */
+  private showOn(el: HTMLVideoElement, stream: MediaStream | null, isLocal: boolean): void {
+    // Your own tile is never heard; everyone else's always is.
+    el.muted = isLocal;
+    if (el.srcObject !== stream) el.srcObject = stream;
+    // A tile that was attached before it was visible never starts on its own.
+    if (stream) el.play().catch(() => { /* the browser may refuse until a tap */ });
+  }
+
   private meeting: Meeting | null = null;
   private token = '';
   private ws: WebSocket | null = null;
@@ -99,6 +129,27 @@ export class MeetingRoomComponent implements OnDestroy {
     this.token = this.route.snapshot.queryParamMap.get('t') ?? '';
     // Defer until the route input is bound.
     queueMicrotask(() => this.bootstrap());
+
+    /*
+     * Tiles get their stream here, after they are on the page, and again
+     * whenever the streams or the people in the call change.
+     *
+     * It used to be a one-shot querySelector on a timer, which left two
+     * things broken: joining swaps the pre-join preview for the call's own
+     * tile, so nobody saw their own face once they were in; and a peer's tile
+     * is drawn from a signal, so a stream arriving before Angular had drawn
+     * that tile was attached to nothing and the other person was never heard.
+     */
+    afterRenderEffect(() => {
+      const view = this.localView();
+      for (const ref of this.localVideos()) this.showOn(ref.nativeElement, view, true);
+
+      const streamOf = new Map(this.peers().map((peer) => [peer.id, peer.stream]));
+      for (const ref of this.peerVideos()) {
+        const el = ref.nativeElement;
+        this.showOn(el, streamOf.get(el.dataset['peer'] ?? '') ?? null, false);
+      }
+    });
   }
 
   private bootstrap(): void {
@@ -138,8 +189,8 @@ export class MeetingRoomComponent implements OnDestroy {
         video: { width: { ideal: 1280 }, height: { ideal: 720 } },
       });
       this.localStream.set(stream);
+      this.localView.set(stream);
       this.mediaError.set('');
-      this.attachLocal();
     } catch (error: unknown) {
       const name = (error as { name?: string })?.name;
       this.mediaError.set(
@@ -150,14 +201,6 @@ export class MeetingRoomComponent implements OnDestroy {
             : 'Could not start the camera/mic: ' + name,
       );
     }
-  }
-
-  private attachLocal(): void {
-    setTimeout(() => {
-      document.querySelectorAll<HTMLVideoElement>('video[data-local]').forEach((el) => {
-        if (el.srcObject !== this.localStream()) el.srcObject = this.localStream();
-      });
-    });
   }
 
   /* ---------------------------------------------------------------- join */
@@ -177,7 +220,6 @@ export class MeetingRoomComponent implements OnDestroy {
     this.ws.onopen = () => {
       this.joining.set(false);
       this.phase.set('incall');
-      this.attachLocal();
     };
     this.ws.onmessage = (event) => this.onSignal(JSON.parse(event.data));
     this.ws.onclose = () => {
@@ -257,11 +299,9 @@ export class MeetingRoomComponent implements OnDestroy {
 
     pc.ontrack = (event) => {
       peer.stream = event.streams[0] ?? null;
+      // syncPeers() redraws the tiles; the render effect attaches the stream
+      // once that tile exists, whichever order the two happen in.
       this.syncPeers();
-      setTimeout(() => {
-        const el = document.querySelector<HTMLVideoElement>(`video[data-peer="${id}"]`);
-        if (el && el.srcObject !== peer.stream) el.srcObject = peer.stream;
-      });
     };
     pc.onicecandidate = (event) => {
       if (event.candidate) this.send({ type: 'ice', to: id, candidate: event.candidate });
@@ -336,15 +376,14 @@ export class MeetingRoomComponent implements OnDestroy {
       if (sender && track) await sender.replaceTrack(track);
     }
     // Local tile follows whatever is being sent (camera or screen).
-    const local = document.querySelector<HTMLVideoElement>('video[data-local]');
     const camStream = this.localStream();
-    if (local && track && camStream) {
+    if (track && camStream) {
       if (track === camStream.getVideoTracks()[0]) {
-        local.srcObject = camStream;
+        this.localView.set(camStream);
       } else {
         const mixed = new MediaStream([track]);
         camStream.getAudioTracks().forEach((audio) => mixed.addTrack(audio));
-        local.srcObject = mixed;
+        this.localView.set(mixed);
       }
     }
   }
@@ -404,6 +443,7 @@ export class MeetingRoomComponent implements OnDestroy {
     this.screenStream?.getTracks().forEach((track) => track.stop());
     this.localStream()?.getTracks().forEach((track) => track.stop());
     this.localStream.set(null);
+    this.localView.set(null);
   }
 
   ngOnDestroy(): void {

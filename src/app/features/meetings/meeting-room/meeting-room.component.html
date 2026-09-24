@@ -28,7 +28,7 @@
     @case ('prejoin') {
       <div class="prejoin">
         <div class="prejoin__preview">
-          <video data-local autoplay playsinline muted></video>
+          <video #localVideo data-local autoplay playsinline muted></video>
           @if (mediaError()) {
             <div class="prejoin__error"><i class="bi bi-camera-video-off me-1"></i>{{ mediaError() }}</div>
           }
@@ -77,7 +77,7 @@
         <div class="videos" [class]="gridClass()">
           <!-- local tile -->
           <div class="tile tile--me" [class.tile--sharing]="sharing()">
-            <video data-local autoplay playsinline muted></video>
+            <video #localVideo data-local autoplay playsinline muted></video>
             <span class="tile__name">{{ displayName }} (You)</span>
             <span class="tile__state">
               @if (!micOn()) { <i class="bi bi-mic-mute-fill"></i> }
@@ -87,7 +87,7 @@
           <!-- remote tiles -->
           @for (peer of peers(); track peer.id) {
             <div class="tile">
-              <video [attr.data-peer]="peer.id" autoplay playsinline></video>
+              <video #peerVideo [attr.data-peer]="peer.id" autoplay playsinline></video>
               @if (!peer.stream) {
                 <div class="tile__connecting"><span class="spin"></span> Connecting…</div>
               }
