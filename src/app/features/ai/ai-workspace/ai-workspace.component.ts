@@ -186,13 +186,22 @@ export class AiWorkspaceComponent implements AfterViewChecked, OnDestroy {
       });
   }
 
-  /** Replace the text of the last (streaming) assistant bubble. */
+  /**
+   * Replace the text of the last (streaming) assistant bubble.
+   *
+   * html has to be rebuilt with it. The template binds
+   * [innerHTML]="message.html" and html is otherwise only ever built in
+   * push(), so updating text alone left the bubble showing the rendering of
+   * the empty string it was pushed with — the answer arrived, the bubble
+   * appeared, and it stayed blank until a reload rebuilt html from the
+   * persisted text.
+   */
   private updateLastAi(text: string): void {
     this.messages.update((list) => {
       const next = [...list];
       for (let i = next.length - 1; i >= 0; i--) {
         if (next[i].role === 'ai') {
-          next[i] = { ...next[i], text };
+          next[i] = { ...next[i], text, html: renderAiMarkdown(text) };
           break;
         }
       }
