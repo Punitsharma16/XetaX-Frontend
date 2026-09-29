@@ -263,6 +263,105 @@ export class IntegrationsListComponent {
       });
   }
 
+  // ------------------------------------------------------------- on / off
+
+  /**
+   * DISABLED was in the status enum from the beginning but nothing ever set
+   * it, so the only way to stop an integration was to delete it — losing its
+   * URL, its key and its mappings with it. This is the switch that was missing.
+   */
+  toggleEnabled(integration: IntegrationResponse): void {
+    const disabling = integration.status === IntegrationStatus.ACTIVE;
+    const next = disabling ? IntegrationStatus.DISABLED : IntegrationStatus.ACTIVE;
+
+    const run = () =>
+      this.integrationService.setStatus(integration.id, next).subscribe({
+        next: () => {
+          this.toast.success(
+            disabling ? 'Integration disabled' : 'Integration enabled',
+            disabling
+              ? `${integration.name} will reject payloads until you turn it back on.`
+              : `${integration.name} is accepting payloads again.`,
+          );
+          this.load();
+        },
+      });
+
+    if (!disabling) {
+      run();
+      return;
+    }
+
+    this.confirm
+      .ask({
+        title: `Disable "${integration.name}"?`,
+        message:
+          'Its endpoint starts rejecting payloads. The URL, API key and field ' +
+          'mappings are kept, so you can switch it back on at any time.',
+        confirmText: 'Disable',
+        // Not 'danger' — nothing is lost, and the switch goes both ways.
+        variant: 'primary',
+      })
+      .subscribe((ok) => {
+        if (ok) run();
+      });
+  }
+
+  // --------------------------------------------------------- diagnostics
+
+  /*
+   * An unmapped key is dropped on purpose, but it used to be dropped in
+   * silence: the sender saw 200 OK and the record came out missing a field.
+   * The backend now remembers what the last payload left over on both sides.
+   */
+
+  private split(value: string | null | undefined): string[] {
+    return (value ?? '')
+      .split(',')
+      .map((part) => part.trim())
+      .filter(Boolean);
+  }
+
+  /** Paths the last payload sent that no mapping claimed. */
+  ignoredKeys(integration: IntegrationResponse): string[] {
+    return this.split(integration.lastIgnoredKeys);
+  }
+
+  /** Mapped source fields the last payload did not carry — usually a rename. */
+  unmatchedFields(integration: IntegrationResponse): string[] {
+    return this.split(integration.lastUnmatchedFields);
+  }
+
+  hasDiagnostics(integration: IntegrationResponse): boolean {
+    return (
+      this.ignoredKeys(integration).length > 0 || this.unmatchedFields(integration).length > 0
+    );
+  }
+
+  /** Keys from the last payload, offered inside the mapping panel. */
+  readonly mappingSuggestions = computed(() => {
+    const integration = this.mappingFor();
+    return integration ? this.ignoredKeys(integration) : [];
+  });
+
+  /**
+   * Drops a key the last payload actually sent into the mapping table — the
+   * first empty row, or a new one. Saves retyping a path like
+   * "customer.billing.city" by hand.
+   */
+  useSuggestion(key: string): void {
+    const rows = this.mappingRows();
+    const empty = rows.find((row) => !row.sourceField.trim());
+    if (empty) {
+      this.patchMappingRow(empty.uid, { sourceField: key });
+      return;
+    }
+    this.mappingRows.update((current) => [
+      ...current,
+      { uid: this.nextUid++, sourceField: key, formFieldId: this.mappingFields()[0]?.id ?? null },
+    ]);
+  }
+
   // --------------------------------------------------------------- mapping
 
   /**
@@ -369,9 +468,13 @@ export class IntegrationsListComponent {
       next: () => {
         this.mappingSaving.set(false);
         this.mappingOpen.set(false);
+        // A disabled integration stays disabled when its mapping is edited,
+        // so promising it is "now active" would be wrong.
         this.toast.success(
           'Mapping saved',
-          `${mappings.length} field(s) mapped — integration is now active.`,
+          integration.status === IntegrationStatus.DISABLED
+            ? `${mappings.length} field(s) mapped — this integration is still disabled.`
+            : `${mappings.length} field(s) mapped — integration is now active.`,
         );
         this.load();
       },

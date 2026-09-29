@@ -6,6 +6,7 @@ import { CrmApiService } from '../../core/services/crm-api.service';
 import {
   IntegrationRequest,
   IntegrationResponse,
+  IntegrationStatus,
   MappingItemResponse,
   SaveMappingRequest,
 } from '../../core/models/crm.model';
@@ -44,6 +45,17 @@ export class IntegrationService {
 
   delete(id: number): Observable<string> {
     return this.api.delete(`${this.path}/${id}`);
+  }
+
+  /**
+   * Turns an integration on or off. The backend accepts ACTIVE and DISABLED
+   * only — PENDING means "no mapping saved yet" and clears itself when one is.
+   */
+  setStatus(
+    id: number,
+    status: IntegrationStatus.ACTIVE | IntegrationStatus.DISABLED,
+  ): Observable<IntegrationResponse> {
+    return this.api.patch<IntegrationResponse>(`${this.path}/${id}/status`, { status });
   }
 
   saveMappings(id: number, request: SaveMappingRequest): Observable<string> {

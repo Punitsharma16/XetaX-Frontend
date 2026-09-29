@@ -56,6 +56,10 @@ export class CrmApiService {
     return this.http.put<ApiResponse<T>>(this.url(path), body).pipe(map((res) => res.data));
   }
 
+  patch<T>(path: string, body: unknown): Observable<T> {
+    return this.http.patch<ApiResponse<T>>(this.url(path), body).pipe(map((res) => res.data));
+  }
+
   /** Delete endpoints return `ApiResponse<Void>`; only the message matters. */
   delete(path: string): Observable<string> {
     return this.http.delete<ApiResponse<void>>(this.url(path)).pipe(map((res) => res.message));

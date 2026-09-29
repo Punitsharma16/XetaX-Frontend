@@ -15,10 +15,35 @@ export interface WhatsAppConfig {
   verifiedName: string | null;
   qualityRating: string | null;
   accountMode: string | null;
+  /** Meta tier, e.g. "TIER_250" / "TIER_1K" — unique customers per day. */
+  messagingLimit: string | null;
   connectedAt: string | null;
   lastSyncAt: string | null;
   lastError: string | null;
   webhookSubscribed?: boolean;
+}
+
+/**
+ * Meta's messaging tier as a number of unique customers per day.
+ * "TIER_250" -> 250, "TIER_1K" -> 1000, "TIER_UNLIMITED" -> Infinity.
+ * Returns null for anything unrecognised rather than guessing.
+ */
+export function dailyCustomerLimit(tier: string | null | undefined): number | null {
+  if (!tier) return null;
+  const raw = tier.toUpperCase().replace(/^TIER[_-]?/, '');
+  if (raw === 'UNLIMITED') return Infinity;
+  const match = /^(\d+)(K|M)?$/.exec(raw);
+  if (!match) return null;
+  const multiplier = match[2] === 'K' ? 1_000 : match[2] === 'M' ? 1_000_000 : 1;
+  return Number(match[1]) * multiplier;
+}
+
+/** The same tier as something a person can read, or null if unknown. */
+export function messagingLimitLabel(tier: string | null | undefined): string | null {
+  const limit = dailyCustomerLimit(tier);
+  if (limit === null) return null;
+  if (limit === Infinity) return 'Unlimited';
+  return `${limit.toLocaleString('en-IN')} customers/day`;
 }
 
 export interface EmbeddedSignupMeta {

@@ -17,6 +17,7 @@ import { WhatsAppNavComponent } from '../whatsapp-nav.component';
 import { TemplateDraft, TemplateService } from '../../forms/template.service';
 import {
   EmbeddedSignupMeta,
+  messagingLimitLabel,
   TemplateButton,
   TemplateCard,
   WhatsAppConfig,
@@ -100,6 +101,12 @@ export class WhatsAppSettingsComponent implements OnDestroy {
   readonly error = signal(false);
   readonly config = signal<WhatsAppConfig | null>(null);
   readonly meta = signal<EmbeddedSignupMeta | null>(null);
+
+  /**
+   * Meta's daily reach for this number. It caps a campaign harder than any
+   * setting in the panel does, so it belongs next to the number itself.
+   */
+  readonly dailyLimit = computed(() => messagingLimitLabel(this.config()?.messagingLimit));
   readonly connecting = signal(false);
 
   readonly templates = signal<WhatsAppTemplate[]>([]);

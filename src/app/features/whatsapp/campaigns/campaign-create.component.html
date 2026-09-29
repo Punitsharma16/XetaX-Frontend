@@ -23,6 +23,13 @@
   <div class="card-body">
     <!-- STEP 1: audience -->
     @if (step() === 1) {
+      @if (dailyLimit()) {
+        <div class="alert alert-light py-2 px-3 mb-3" style="font-size: 0.75rem">
+          <i class="bi bi-speedometer2 me-1"></i>
+          Your WhatsApp number can reach <strong>{{ dailyLimit() }}</strong>. An audience
+          larger than that will not all go out today — Meta stops the rest.
+        </div>
+      }
       <div class="d-flex gap-3 mb-3">
         <div
           class="source-card"

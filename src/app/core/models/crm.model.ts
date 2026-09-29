@@ -292,6 +292,11 @@ export interface AutomationConditionResponse {
 
 // ------------------------------------------------------------ integration --
 
+/** IntegrationStatusRequest — the panel's on/off switch. */
+export interface IntegrationStatusRequest {
+  status: IntegrationStatus.ACTIVE | IntegrationStatus.DISABLED;
+}
+
 /** IntegrationRequest */
 export interface IntegrationRequest {
   name: string;
@@ -318,6 +323,14 @@ export interface IntegrationResponse {
   apiKey: string;
   /** Public ingest path, e.g. /api/public/integrations/{integrationKey}. */
   endpoint: string;
+
+  /* Diagnostics from the last payload this integration received. A key with no
+   * mapping is dropped by design; these are how that stops being silent. Both
+   * lists arrive comma-separated. */
+
+  lastPayloadAt?: string | null;
+  lastIgnoredKeys?: string | null;
+  lastUnmatchedFields?: string | null;
 }
 
 /** MappingItemRequest */

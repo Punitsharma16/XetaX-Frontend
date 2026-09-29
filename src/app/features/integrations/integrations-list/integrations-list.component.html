@@ -160,6 +160,17 @@
                       <i class="bi bi-pencil me-2"></i>Edit
                     </button>
                   </li>
+                  @if (integration.status !== Status.PENDING) {
+                    <li>
+                      <button type="button" class="dropdown-item" (click)="toggleEnabled(integration)">
+                        @if (integration.status === Status.ACTIVE) {
+                          <i class="bi bi-pause-circle me-2"></i>Disable
+                        } @else {
+                          <i class="bi bi-play-circle me-2"></i>Enable
+                        }
+                      </button>
+                    </li>
+                  }
                   <li><hr class="dropdown-divider" /></li>
                   <li>
                     <button type="button" class="dropdown-item text-danger" (click)="remove(integration)">
@@ -174,6 +185,47 @@
               <div class="alert alert-warning py-2 px-3 mb-2" style="font-size: 0.72rem">
                 <i class="bi bi-exclamation-triangle me-1"></i>
                 Not live yet — save a field mapping to activate this endpoint.
+              </div>
+            } @else if (integration.status === Status.DISABLED) {
+              <div class="alert alert-secondary py-2 px-3 mb-2" style="font-size: 0.72rem">
+                <i class="bi bi-pause-circle me-1"></i>
+                Turned off — payloads are rejected. The URL, key and mappings are kept.
+              </div>
+            }
+
+            <!--
+              A key with no mapping is dropped by design. It used to be dropped
+              in silence, so a rename on the sending side showed up only as a
+              record with an empty field.
+            -->
+            @if (hasDiagnostics(integration)) {
+              <div class="alert alert-warning py-2 px-3 mb-2" style="font-size: 0.72rem">
+                <div class="fw-semibold mb-1">
+                  <i class="bi bi-exclamation-circle me-1"></i>Last payload didn't line up
+                </div>
+                @if (ignoredKeys(integration).length) {
+                  <div class="mb-1">
+                    Sent but not mapped:
+                    @for (key of ignoredKeys(integration); track key) {
+                      <code class="me-1">{{ key }}</code>
+                    }
+                  </div>
+                }
+                @if (unmatchedFields(integration).length) {
+                  <div>
+                    Mapped but not sent:
+                    @for (key of unmatchedFields(integration); track key) {
+                      <code class="me-1">{{ key }}</code>
+                    }
+                  </div>
+                }
+                <button
+                  type="button"
+                  class="btn btn-light btn-sm mt-2"
+                  (click)="openMapping(integration)"
+                >
+                  <i class="bi bi-diagram-2"></i> Fix mapping
+                </button>
               </div>
             }
 
@@ -333,12 +385,42 @@
   (closed)="closeMapping()"
 >
   @if (mappingFor(); as integration) {
-    <p class="text-muted mb-3" style="font-size: 0.75rem">
+    <p class="text-muted mb-2" style="font-size: 0.75rem">
       Map each key of the incoming JSON to a field on
       <strong>{{ formName(integration) }}</strong>. Keys are matched
       case-insensitively, and anything unmapped is ignored. Saving replaces the
-      existing mapping and activates the endpoint.
+      existing mapping.
+      @if (integration.status === Status.DISABLED) {
+        This integration stays disabled until you enable it again.
+      } @else {
+        Saving also activates the endpoint.
+      }
     </p>
+
+    <p class="text-muted mb-3" style="font-size: 0.75rem">
+      <i class="bi bi-diagram-3 me-1"></i>
+      For a value nested inside the JSON, use a dot path — <code>customer.email</code>,
+      <code>items.0.sku</code>. Pointing at an object stores the whole object.
+    </p>
+
+    @if (mappingSuggestions().length) {
+      <div class="alert alert-light py-2 px-3 mb-3" style="font-size: 0.72rem">
+        <div class="mb-1">
+          The last payload sent these keys with nothing mapped to them — click one to use it:
+        </div>
+        <div class="d-flex flex-wrap gap-1">
+          @for (key of mappingSuggestions(); track key) {
+            <button
+              type="button"
+              class="btn btn-light btn-sm py-0 px-2"
+              (click)="useSuggestion(key)"
+            >
+              <code>{{ key }}</code>
+            </button>
+          }
+        </div>
+      </div>
+    }
   }
 
   @if (mappingLoading()) {

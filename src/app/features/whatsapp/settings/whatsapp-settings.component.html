@@ -34,6 +34,9 @@
             @if (config()?.qualityRating) {
               <span><i class="bi bi-heart-pulse"></i> Quality: {{ config()?.qualityRating }}</span>
             }
+            @if (dailyLimit()) {
+              <span><i class="bi bi-speedometer2"></i> Daily reach: {{ dailyLimit() }}</span>
+            }
             @if (config()?.connectedAt) {
               <span><i class="bi bi-calendar-check"></i> Since {{ config()?.connectedAt | date: 'mediumDate' }}</span>
             }

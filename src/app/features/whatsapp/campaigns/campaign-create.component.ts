@@ -11,6 +11,7 @@ import { FieldService } from '../../fields/field.service';
 import { FormService } from '../../forms/form.service';
 import {
   Campaign,
+  messagingLimitLabel,
   WhatsAppService,
   WhatsAppTemplate,
 } from '../whatsapp.service';
@@ -42,6 +43,14 @@ export class WhatsAppCampaignCreateComponent {
 
   readonly step = signal<Step>(1);
   readonly saving = signal(false);
+
+  /**
+   * Meta's daily reach for the connected number. It caps a campaign harder
+   * than anything in the panel — a TIER_250 number cannot deliver a 5,000-row
+   * audience however big the CSV is — so it is shown while the audience is
+   * still being chosen, not discovered afterwards from failed recipients.
+   */
+  readonly dailyLimit = signal<string | null>(null);
 
   /* step 1 — audience */
   sourceType: 'RECORDS' | 'CSV' = 'RECORDS';
@@ -109,6 +118,11 @@ export class WhatsAppCampaignCreateComponent {
       next: (templates) =>
         this.templates.set(templates.filter((t) => t.status === 'APPROVED')),
       error: () => this.templates.set([]),
+    });
+    // quiet: the wizard still works if this never answers.
+    this.whatsapp.getConfig(true).subscribe({
+      next: (config) => this.dailyLimit.set(messagingLimitLabel(config?.messagingLimit)),
+      error: () => this.dailyLimit.set(null),
     });
   }
 
