@@ -246,6 +246,13 @@ export interface CampaignCreateRequest {
   filters?: Record<string, unknown>;
   templateParams?: string[];
   templateVariables?: TemplateVariables;
+
+  /* Narrowing for a RECORDS audience. `filters` is keyed by form fieldKey and
+   * only reaches inside a record's data, so the stage a record sits in and the
+   * day it was created need fields of their own. Dates are yyyy-MM-dd. */
+  stageId?: number;
+  createdFrom?: string;
+  createdTo?: string;
 }
 
 export interface CampaignRecipient {

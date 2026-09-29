@@ -77,6 +77,52 @@
             <div class="form-text">Records without a valid number are skipped automatically.</div>
           </div>
         </div>
+
+        <!--
+          Optional narrowing. A stage and the record's own created date are
+          columns on the record, which the field filters cannot reach.
+        -->
+        <div class="row g-3 mt-1">
+          <div class="col-12 col-md-5">
+            <label class="form-label">
+              Stage <span class="text-muted fw-normal">(optional)</span>
+            </label>
+            <select
+              class="form-select"
+              [(ngModel)]="stageId"
+              [disabled]="!selectedFormId || !stages().length"
+            >
+              <option [ngValue]="null">Every stage</option>
+              @for (stage of stages(); track stage.id) {
+                <option [ngValue]="stage.id">{{ stage.name }}</option>
+              }
+            </select>
+            @if (selectedFormId && !stages().length) {
+              <div class="form-text">This form has no stages.</div>
+            }
+          </div>
+
+          <div class="col-6 col-md-3">
+            <label class="form-label">
+              Created from <span class="text-muted fw-normal">(optional)</span>
+            </label>
+            <input type="date" class="form-control" [(ngModel)]="createdFrom" [max]="createdTo || null" />
+          </div>
+
+          <div class="col-6 col-md-3">
+            <label class="form-label">
+              Created to <span class="text-muted fw-normal">(optional)</span>
+            </label>
+            <input type="date" class="form-control" [(ngModel)]="createdTo" [min]="createdFrom || null" />
+          </div>
+
+          <div class="col-12">
+            <div class="form-text">
+              Leave these alone to message the whole form. Both dates count the
+              whole day, so a record added at 4pm on the last day is included.
+            </div>
+          </div>
+        </div>
       } @else {
         <label class="form-label">CSV file</label>
         <input type="file" accept=".csv,text/csv" class="form-control" (change)="onCsvPicked($event)" />

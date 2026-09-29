@@ -4,11 +4,12 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 
-import { FormResponse, FieldResponse } from '../../../core/models/crm.model';
+import { FormResponse, FieldResponse, StageResponse } from '../../../core/models/crm.model';
 import { ToastService } from '../../../core/services/toast.service';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { FieldService } from '../../fields/field.service';
 import { FormService } from '../../forms/form.service';
+import { StageService } from '../../stages/stage.service';
 import {
   Campaign,
   messagingLimitLabel,
@@ -38,6 +39,7 @@ export class WhatsAppCampaignCreateComponent {
   private readonly whatsapp = inject(WhatsAppService);
   private readonly formService = inject(FormService);
   private readonly fieldService = inject(FieldService);
+  private readonly stageService = inject(StageService);
   private readonly toast = inject(ToastService);
   private readonly router = inject(Router);
 
@@ -60,6 +62,15 @@ export class WhatsAppCampaignCreateComponent {
   phoneFieldKey = '';
   csvFile: File | null = null;
   csvName = signal('');
+
+  /*
+   * Narrowing the record audience. All three are optional — left alone the
+   * campaign goes to the whole form, exactly as before.
+   */
+  readonly stages = signal<StageResponse[]>([]);
+  stageId: number | null = null;
+  createdFrom = '';
+  createdTo = '';
 
   /* step 2 — message */
   name = '';
@@ -129,7 +140,16 @@ export class WhatsAppCampaignCreateComponent {
   onFormPicked(): void {
     this.fields.set([]);
     this.phoneFieldKey = '';
+    // Stages belong to a form, so a stage chosen for the previous one would
+    // silently match nothing here.
+    this.stages.set([]);
+    this.stageId = null;
     if (this.selectedFormId == null) return;
+
+    this.stageService.getByForm(this.selectedFormId).subscribe({
+      next: (stages) => this.stages.set(stages ?? []),
+      error: () => this.stages.set([]),
+    });
     this.fieldService.getByForm(this.selectedFormId).subscribe({
       next: (fields) => {
         this.fields.set(fields);
@@ -155,6 +175,12 @@ export class WhatsAppCampaignCreateComponent {
       if (this.sourceType === 'RECORDS') {
         if (!this.selectedFormId || !this.phoneFieldKey) {
           this.toast.warning('Audience incomplete', 'Pick the form and its phone field.');
+          return;
+        }
+        if (this.createdFrom && this.createdTo && this.createdFrom > this.createdTo) {
+          // Backwards dates match nothing, and an empty audience is refused
+          // only after the campaign has been created.
+          this.toast.warning('Check the dates', 'The "from" date is after the "to" date.');
           return;
         }
       } else if (!this.csvFile) {
@@ -213,6 +239,9 @@ export class WhatsAppCampaignCreateComponent {
         templateLanguage: this.messageMode === 'template' ? template?.language : undefined,
         formSlug: this.sourceType === 'RECORDS' ? this.selectedForm()?.slug : undefined,
         phoneFieldKey: this.sourceType === 'RECORDS' ? this.phoneFieldKey : undefined,
+        stageId: this.sourceType === 'RECORDS' ? this.stageId ?? undefined : undefined,
+        createdFrom: this.sourceType === 'RECORDS' ? this.createdFrom || undefined : undefined,
+        createdTo: this.sourceType === 'RECORDS' ? this.createdTo || undefined : undefined,
         templateVariables: this.messageMode === 'template' ? this.templateVars ?? undefined : undefined,
       })
       .subscribe({
