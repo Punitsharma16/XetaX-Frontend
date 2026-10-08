@@ -41,6 +41,8 @@ export interface EmailCampaignCreateRequest {
   name: string;
   subject: string;
   body: string;
+  /** Pre-fills subject/body from a saved template; anything typed still wins. */
+  templateId?: number;
   sourceType: EmailCampaignSource;
   formSlug?: string;
   emailFieldKey?: string;

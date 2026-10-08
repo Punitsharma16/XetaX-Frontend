@@ -116,6 +116,28 @@
           <label class="form-label">Campaign name</label>
           <input class="form-control" [(ngModel)]="name" placeholder="Diwali offer mailer" />
         </div>
+        <div class="col-12 col-md-6">
+          <label class="form-label">Start from a saved template</label>
+          <div class="d-flex gap-2">
+            <select class="form-select" [(ngModel)]="selectedTemplateId" (ngModelChange)="applyTemplate()">
+              <option [ngValue]="null">Write it myself</option>
+              @for (t of templateList(); track t.id) {
+                <option [ngValue]="t.id">{{ t.name }}</option>
+              }
+            </select>
+            <button type="button" class="btn btn-outline-secondary text-nowrap"
+                    (click)="openSaveTemplate()" title="Save this subject and message as a template">
+              <i class="bi bi-bookmark-plus me-1"></i>Save as template
+            </button>
+          </div>
+          <div class="form-text">
+            @if (templateList().length) {
+              Picking one fills the subject and message — edit them however you like.
+            } @else {
+              No templates yet. Write a message, then save it for next time.
+            }
+          </div>
+        </div>
         <div class="col-12">
           <div class="ai-draft-bar">
             <i class="bi bi-stars ai-draft-bar__spark"></i>
@@ -136,6 +158,7 @@
           <input
             class="form-control"
             [(ngModel)]="subject"
+            (ngModelChange)="onMessageEdited()"
             placeholder="{name}, a special offer for you"
           />
         </div>
@@ -145,6 +168,7 @@
             class="form-control"
             rows="8"
             [(ngModel)]="body"
+            (ngModelChange)="onMessageEdited()"
             placeholder="Hi {name},&#10;&#10;We have an offer for you…"
           ></textarea>
           @if (placeholderKeys().length) {
@@ -221,3 +245,30 @@
     }
   </div>
 </div>
+
+<app-modal
+  [open]="templateModalOpen()"
+  title="Save as template"
+  icon="bi-bookmark-plus"
+  (closed)="templateModalOpen.set(false)"
+>
+  <label class="form-label">Template name</label>
+  <input class="form-control" [(ngModel)]="templateName" placeholder="Diwali offer"
+         (keydown.enter)="saveTemplate()" />
+  <div class="form-text">
+    The subject and message below are saved as they are now. Starting a campaign
+    from this template copies the text, so editing the template later never
+    changes a campaign that has already gone out.
+  </div>
+
+  <div modalFooter class="d-flex gap-2 justify-content-end">
+    <button class="btn btn-light" (click)="templateModalOpen.set(false)">Cancel</button>
+    <button class="btn btn-primary" (click)="saveTemplate()" [disabled]="savingTemplate()">
+      @if (savingTemplate()) {
+        <span class="spinner-border spinner-border-sm me-1"></span>Saving…
+      } @else {
+        Save template
+      }
+    </button>
+  </div>
+</app-modal>

@@ -7,12 +7,14 @@ import { ToastService } from '../../core/services/toast.service';
 import { PageHeaderComponent } from '../../shared/components/page-header/page-header.component';
 import { FieldService } from '../fields/field.service';
 import { FormService } from '../forms/form.service';
+import { ModalComponent } from '../../shared/components/modal/modal.component';
 import {
   EmailCampaign,
   EmailCampaignSenderStatus,
   EmailCampaignService,
   EmailCampaignSource,
 } from './email-campaign.service';
+import { EmailTemplate, EmailTemplateService } from './email-template.service';
 
 type Step = 1 | 2 | 3;
 
@@ -31,13 +33,14 @@ const CONTACT_KEYS = ['name', 'email', 'phone', 'company'];
 @Component({
   selector: 'app-email-campaign-create',
   standalone: true,
-  imports: [FormsModule, RouterLink, PageHeaderComponent],
+  imports: [FormsModule, RouterLink, PageHeaderComponent, ModalComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './email-campaign-create.component.html',
   styleUrl: './email-campaigns.css',
 })
 export class EmailCampaignCreateComponent {
   private readonly campaigns = inject(EmailCampaignService);
+  private readonly templates = inject(EmailTemplateService);
   private readonly formService = inject(FormService);
   private readonly fieldService = inject(FieldService);
   private readonly toast = inject(ToastService);
@@ -64,6 +67,15 @@ export class EmailCampaignCreateComponent {
   readonly aiDrafting = signal(false);
   scheduleAt = '';
 
+  /* step 2 — saved templates */
+  readonly templateList = signal<EmailTemplate[]>([]);
+  /** Which template the text came from. Cleared the moment it is edited. */
+  readonly usedTemplateId = signal<number | null>(null);
+  selectedTemplateId: number | null = null;
+  readonly savingTemplate = signal(false);
+  readonly templateModalOpen = signal(false);
+  templateName = '';
+
   readonly selectedForm = computed(
     () => this.forms().find((f) => f.id === this.selectedFormId) ?? null,
   );
@@ -81,6 +93,7 @@ export class EmailCampaignCreateComponent {
         this.aiDrafting.set(false);
         this.subject = draft.subject;
         this.body = draft.body;
+        this.onMessageEdited();
         this.toast.success('Draft ready — read it through before sending');
       },
       error: () => this.aiDrafting.set(false),
@@ -96,6 +109,7 @@ export class EmailCampaignCreateComponent {
 
   constructor() {
     this.formService.getAll().subscribe({ next: (forms) => this.forms.set(forms) });
+    this.loadTemplates();
     this.campaigns.senderStatus().subscribe({
       next: (status) => this.sender.set(status),
       error: () => this.sender.set(null),
@@ -168,8 +182,75 @@ export class EmailCampaignCreateComponent {
     this.step.update((s) => (s > 1 ? ((s - 1) as Step) : s));
   }
 
+  /* ------------------------------------------------------- saved templates */
+
+  private loadTemplates(): void {
+    this.templates.list().subscribe({
+      next: (list) => this.templateList.set(list),
+      error: () => this.templateList.set([]),
+    });
+  }
+
+  /** Drops the chosen template's text into the form; it stays fully editable. */
+  applyTemplate(): void {
+    const chosen = this.templateList().find((t) => t.id === this.selectedTemplateId);
+    if (!chosen) {
+      this.usedTemplateId.set(null);
+      return;
+    }
+    this.subject = chosen.subject;
+    this.body = chosen.body;
+    this.usedTemplateId.set(chosen.id);
+    if (!this.name.trim()) this.name = chosen.name;
+    this.toast.success('Template loaded', 'Edit it however you like before sending.');
+  }
+
+  /*
+   * Once the text is touched the campaign is no longer "that template", so the
+   * id is dropped and the typed text is what gets sent. The server applies the
+   * same rule, but clearing it here keeps the picker honest.
+   */
+  onMessageEdited(): void {
+    if (this.usedTemplateId() !== null) {
+      this.usedTemplateId.set(null);
+      this.selectedTemplateId = null;
+    }
+  }
+
+  openSaveTemplate(): void {
+    if (!this.subject.trim() || !this.body.trim()) {
+      this.toast.warning('Nothing to save yet', 'Write the subject and the message first.');
+      return;
+    }
+    this.templateName = this.name.trim();
+    this.templateModalOpen.set(true);
+  }
+
+  saveTemplate(): void {
+    const name = this.templateName.trim();
+    if (!name) {
+      this.toast.warning('Name missing', 'Give the template a name.');
+      return;
+    }
+    this.savingTemplate.set(true);
+    this.templates
+      .create({ name, subject: this.subject.trim(), body: this.body })
+      .subscribe({
+        next: (saved) => {
+          this.savingTemplate.set(false);
+          this.templateModalOpen.set(false);
+          this.templateList.update((list) => [saved, ...list]);
+          this.selectedTemplateId = saved.id;
+          this.usedTemplateId.set(saved.id);
+          this.toast.success('Template saved', saved.name);
+        },
+        error: () => this.savingTemplate.set(false),
+      });
+  }
+
   appendPlaceholder(key: string): void {
     this.body = `${this.body}{${key}}`;
+    this.onMessageEdited();
   }
 
   /** Creates the draft (+ CSV upload) and lands on the detail page. */
@@ -180,6 +261,7 @@ export class EmailCampaignCreateComponent {
         name: this.name.trim(),
         subject: this.subject.trim(),
         body: this.body,
+        templateId: this.usedTemplateId() ?? undefined,
         sourceType: this.sourceType,
         formSlug: this.sourceType === 'RECORDS' ? this.selectedForm()?.slug : undefined,
         emailFieldKey: this.sourceType === 'RECORDS' ? this.emailFieldKey : undefined,
