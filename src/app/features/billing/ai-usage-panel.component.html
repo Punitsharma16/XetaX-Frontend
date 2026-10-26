@@ -2,8 +2,8 @@
   <div class="card mb-0">
     <div class="card-body">
       <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-        <h6 class="mb-0"><i class="bi bi-speedometer2 me-1"></i>AI usage this month</h6>
-        <div class="d-flex align-items-center gap-2">
+        <h6 class="mb-0 aiu-title"><i class="bi bi-speedometer2 me-1"></i>AI usage this month</h6>
+        <div class="d-flex flex-wrap align-items-center gap-2">
           <span class="badge text-bg-primary">{{ s.planLabel }}</span>
           @if (s.planKey === 'TRIAL' && !s.trialExpired && s.trialEndsAt) {
             <span class="badge text-bg-light border">Trial ends {{ s.trialEndsAt | date: 'dd MMM' }}</span>
@@ -40,7 +40,7 @@
             <span>Assistant (panel)</span>
             <span class="text-secondary">{{ s.assistantUsed | number }} / {{ s.assistantQuota | number }}</span>
           </div>
-          <div class="progress" style="height: 8px">
+          <div class="progress aiu-progress">
             <div class="progress-bar {{ barClass(assistantPct()) }}" [style.width.%]="assistantPct()"></div>
           </div>
         </div>
@@ -49,13 +49,13 @@
             <span>Website agents (public)</span>
             <span class="text-secondary">{{ s.agentUsed | number }} / {{ s.agentQuota | number }}</span>
           </div>
-          <div class="progress" style="height: 8px">
+          <div class="progress aiu-progress">
             <div class="progress-bar {{ barClass(agentPct()) }}" [style.width.%]="agentPct()"></div>
           </div>
         </div>
       </div>
 
-      <div class="small text-secondary mt-2">
+      <div class="small text-secondary mt-3 aiu-balance">
         Top-up balance: <strong>{{ s.topupBalance | number }}</strong> messages
         <span class="ms-1">(shared by assistant &amp; agents, never expires)</span>
         <!-- Without this, a top-up looks broken: credits are spent only after
@@ -84,7 +84,7 @@
       }
 
       <hr />
-      <div class="d-flex align-items-center justify-content-between mb-2">
+      <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
         <div class="small fw-semibold">Top-up packs</div>
         @if (!s.razorpayConfigured) {
           <span class="badge text-bg-light border">Payment not configured yet</span>
@@ -93,7 +93,7 @@
       <div class="row g-2">
         @for (pack of s.packs; track pack.key) {
           <div class="col-12 col-md-4 col-xl-12">
-            <div class="border rounded-3 p-2 px-3 h-100 d-flex align-items-center gap-2 pack-card">
+            <div class="h-100 d-flex align-items-center gap-2 pack-card">
               <div>
                 <div class="fw-semibold small">{{ pack.label }}</div>
                 <div class="fw-bold">{{ priceOf(pack) }}</div>
@@ -141,7 +141,7 @@
                          was what scrolled out of sight. -->
                     <td>
                       <div>{{ h.at | date: 'd MMM y' }}</div>
-                      <div class="text-secondary" style="font-size: 0.72rem">{{ h.at | date: 'h:mm a' }}</div>
+                      <div class="text-secondary aiu-time">{{ h.at | date: 'h:mm a' }}</div>
                     </td>
                     <td>{{ packLabel(h.packKey, s.packs) }}</td>
                     <td class="text-end">{{ h.messages | number }}</td>
@@ -158,7 +158,7 @@
               </tbody>
             </table>
           </div>
-          <div class="text-secondary mt-1" style="font-size: 0.75rem">
+          <div class="text-secondary mt-1 aiu-note">
             The last 20. A failed payment is never charged — if money left your
             account it is refunded automatically.
           </div>

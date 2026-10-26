@@ -1,8 +1,8 @@
 <div class="card">
   <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
-    <span><i class="bi bi-input-cursor-text me-2"></i>Fields</span>
+    <span class="fw-semibold"><i class="bi bi-input-cursor-text me-2"></i>Fields</span>
     <div class="d-flex gap-2">
-      <button type="button" class="btn btn-light btn-sm" (click)="load()" title="Refresh">
+      <button type="button" class="btn btn-light btn-sm" (click)="load()" title="Refresh" aria-label="Refresh">
         <i class="bi bi-arrow-clockwise"></i>
       </button>
       <button type="button" class="btn btn-primary btn-sm" (click)="openCreate()">
@@ -28,12 +28,12 @@
       <table class="table table-hover align-middle mb-0">
         <thead>
           <tr>
-            <th style="width: 60px">Order</th>
+            <th class="col-order">Order</th>
             <th>Label</th>
             <th>Key</th>
             <th>Type</th>
             <th>Flags</th>
-            <th class="text-end" style="width: 110px">Actions</th>
+            <th class="text-end col-actions">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -69,7 +69,7 @@
                   <div class="min-w-0">
                     <div class="fw-semibold text-truncate">{{ field.label }}</div>
                     @if (field.placeholder) {
-                      <div class="text-muted text-truncate" style="font-size: 0.7rem">
+                      <div class="text-muted text-truncate meta-xs">
                         {{ field.placeholder }}
                       </div>
                     }
@@ -82,7 +82,7 @@
               <td>
                 <span class="badge badge-soft-primary">{{ meta(field.fieldType).label }}</span>
                 @if (isChoice(field.fieldType)) {
-                  <div class="text-muted mt-1" style="font-size: 0.7rem">
+                  <div class="text-muted mt-1 meta-xs">
                     {{ optionsOf(field).length }} option(s)
                   </div>
                 }
@@ -108,12 +108,13 @@
                 </div>
               </td>
 
-              <td class="text-end">
+              <td class="text-end text-nowrap">
                 <button
                   type="button"
                   class="btn btn-light btn-icon me-1"
                   (click)="openEdit(field)"
                   title="Edit field"
+                  aria-label="Edit field"
                 >
                   <i class="bi bi-pencil"></i>
                 </button>
@@ -122,6 +123,7 @@
                   class="btn btn-light btn-icon text-danger"
                   (click)="remove(field)"
                   title="Delete field"
+                  aria-label="Delete field"
                 >
                   <i class="bi bi-trash"></i>
                 </button>
@@ -144,6 +146,7 @@
   (closed)="closeEditor()"
 >
   <form [formGroup]="editorForm" (ngSubmit)="save()" novalidate id="fieldEditor">
+    <div class="form-section">
     <div class="row g-3">
       <div class="col-12 col-md-6">
         <label class="form-label" for="fieldLabel">Label <span class="text-danger">*</span></label>
@@ -170,14 +173,15 @@
           (input)="onKeyInput()"
           [class.is-invalid]="editorForm.controls.fieldKey.invalid && editorForm.controls.fieldKey.touched"
         />
-        <div class="form-text" style="font-size: 0.7rem">
+        <div class="form-text meta-xs">
           The key records are stored under. Lowercase letters, numbers and underscores.
         </div>
         <div class="invalid-feedback">Use lowercase letters, numbers and underscores.</div>
       </div>
     </div>
+    </div>
 
-    <div class="mt-3">
+    <div class="form-section">
       <label class="form-label">Field type</label>
       @for (group of typeGroups; track group.group) {
         <div class="mb-2">
@@ -188,6 +192,7 @@
                 type="button"
                 class="type-option"
                 [class.is-selected]="editorForm.controls.fieldType.value === t.type"
+                [attr.aria-pressed]="editorForm.controls.fieldType.value === t.type"
                 (click)="pickType(t.type)"
               >
                 <i class="bi" [class]="t.icon"></i>
@@ -197,7 +202,6 @@
           </div>
         </div>
       }
-    </div>
 
     @if (isChoice(editorForm.controls.fieldType.value)) {
       <div class="mt-3">
@@ -209,11 +213,13 @@
           formControlName="optionsText"
           placeholder="One option per line&#10;New&#10;Contacted&#10;Qualified"
         ></textarea>
-        <div class="form-text" style="font-size: 0.7rem">One option per line.</div>
+        <div class="form-text meta-xs">One option per line.</div>
       </div>
     }
+    </div>
 
-    <div class="row g-3 mt-1">
+    <div class="form-section">
+    <div class="row g-3">
       <div class="col-12 col-md-6">
         <label class="form-label" for="fieldPlaceholder">Placeholder</label>
         <input
@@ -236,8 +242,9 @@
         />
       </div>
     </div>
+    </div>
 
-    <div class="mt-3">
+    <div class="form-section">
       <div class="section-label mb-2">Behaviour</div>
       <div class="row g-2">
         <div class="col-6 col-md-4">

@@ -3,7 +3,8 @@
   display: flex;
   flex-direction: column;
   height: calc(100vh - 190px);
-  min-height: 420px;
+  height: calc(100dvh - 190px);
+  min-height: 440px;
   padding: 0;
   overflow: hidden;
 }
@@ -11,39 +12,45 @@
 .ai-scroll {
   flex: 1 1 auto;
   overflow-y: auto;
-  padding: 1.25rem;
+  padding: 1.5rem 1.25rem;
+  background:
+    radial-gradient(520px 260px at 50% 0%, color-mix(in srgb, var(--brand-500) 6%, transparent), transparent 70%),
+    var(--surface-card);
 }
 
 /* ------------------------------------------------------------- welcome */
 .ai-hello {
-  max-width: 560px;
-  margin: 8% auto 0;
+  max-width: 580px;
+  margin: 7% auto 0;
   text-align: center;
 }
 
+/* Marigold halo around the spark — the one AI accent on this screen */
 .ai-hello__spark {
-  width: 52px;
-  height: 52px;
-  margin: 0 auto 0.9rem;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 1rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 16px;
-  font-size: 1.4rem;
+  border-radius: var(--radius-lg);
+  font-size: 1.45rem;
   color: #fff;
   background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
-  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+  box-shadow: 0 0 0 6px var(--accent-50), var(--shadow-primary);
 }
 
 .ai-hello__title {
-  font-size: 1.15rem;
+  font-size: 1.25rem;
   font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.4rem;
 }
 
 .ai-hello__text {
-  font-size: 0.85rem;
-  color: var(--bs-secondary-color);
-  margin-bottom: 1.1rem;
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  margin-bottom: 1.25rem;
 }
 
 .ai-hello__prompts {
@@ -54,31 +61,43 @@
 }
 
 .ai-prompt-chip {
-  border: 1px solid var(--brand-200);
-  background: var(--bs-body-bg);
-  color: var(--brand-700);
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+  color: var(--text-primary);
   border-radius: var(--radius-pill);
-  padding: 0.35rem 0.8rem;
-  font-size: 0.8rem;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8125rem;
+  text-align: left;
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  box-shadow: var(--shadow-xs);
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
 }
 
 .ai-prompt-chip:hover {
   background: var(--brand-50);
-  border-color: var(--brand-400);
+  border-color: var(--brand-300);
+  color: var(--brand-700);
+  transform: translateY(-1px);
+}
+
+.ai-prompt-chip:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .ai-prompt-chip i {
-  font-size: 0.7rem;
-  margin-right: 0.25rem;
+  font-size: 0.75rem;
+  margin-right: 0.35rem;
+  color: var(--accent-600);
 }
 
 /* ------------------------------------------------------------- thread */
 .ai-thread {
   display: flex;
   flex-direction: column;
-  gap: 0.9rem;
+  gap: 1rem;
   max-width: 860px;
   margin: 0 auto;
 }
@@ -87,6 +106,7 @@
   display: flex;
   gap: 0.6rem;
   align-items: flex-start;
+  min-width: 0;
 }
 
 .ai-msg--user {
@@ -94,25 +114,26 @@
 }
 
 .ai-msg__avatar {
-  width: 28px;
-  height: 28px;
-  flex: 0 0 28px;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 9px;
+  border-radius: var(--radius-md);
   font-size: 0.8rem;
   color: #fff;
   background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
+  box-shadow: var(--shadow-xs);
   margin-top: 2px;
 }
 
 .ai-msg__bubble {
   max-width: min(680px, 85%);
   border-radius: var(--radius-lg);
-  padding: 0.6rem 0.85rem;
-  font-size: 0.85rem;
-  line-height: 1.5;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.875rem;
+  line-height: 1.55;
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -121,18 +142,21 @@
   background: var(--brand-600);
   color: #fff;
   border-bottom-right-radius: 4px;
+  box-shadow: var(--shadow-xs);
 }
 
 .ai-msg--ai .ai-msg__bubble {
-  background: var(--bs-tertiary-bg, #f6f7f9);
-  border: 1px solid var(--bs-border-color);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
   border-bottom-left-radius: 4px;
   white-space: normal;
+  min-width: 0;
 }
 
-.ai-msg__bubble--error {
-  background: var(--bs-danger-bg-subtle, #f8d7da);
-  border-color: var(--bs-danger-border-subtle, #f1aeb5);
+.ai-msg--ai .ai-msg__bubble.ai-msg__bubble--error {
+  background: var(--danger-50);
+  border-color: color-mix(in srgb, var(--danger-500) 35%, transparent);
+  color: var(--danger-600);
 }
 
 /* ------------------------------------------------------------- composer */
@@ -140,30 +164,49 @@
   display: flex;
   gap: 0.5rem;
   align-items: flex-end;
-  padding: 0.75rem 1rem 0.35rem;
-  border-top: 1px solid var(--bs-border-color);
+  margin: 0.75rem 1rem 0.35rem;
+  padding: 0.4rem 0.4rem 0.4rem 0.25rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background: var(--surface-card);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.ai-composer:focus-within {
+  border-color: var(--brand-400);
+  box-shadow: var(--focus-ring);
+}
+
+/* The field melts into the composer frame, which carries the focus ring */
+.ai-composer__input,
+.ai-composer__input:focus,
+.ai-composer__input:hover:not(:disabled):not(:focus) {
+  border: 0;
+  box-shadow: none;
+  background: transparent;
 }
 
 .ai-composer__input {
   resize: none;
   max-height: 120px;
-  font-size: 0.85rem;
+  font-size: 0.875rem;
 }
 
 .ai-composer__send {
   flex: 0 0 auto;
-  width: 42px;
+  width: 40px;
   height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
+  border-radius: var(--radius-md);
 }
 
 .ai-hint {
-  padding: 0 1rem 0.6rem;
-  font-size: 0.7rem;
-  color: var(--bs-secondary-color);
+  padding: 0.15rem 1rem 0.65rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
   text-align: center;
 }
 
@@ -176,17 +219,20 @@
 }
 
 /* ------------------------------------------------------------- mobile */
-@media (max-width: 576px) {
+@media (max-width: 575.98px) {
   .ai-shell {
     height: calc(100dvh - 170px);
   }
   .ai-scroll {
-    padding: 0.85rem;
+    padding: 1rem 0.85rem;
   }
   .ai-msg__bubble {
     max-width: 92%;
   }
   .ai-hello {
-    margin-top: 1.5rem;
+    margin-top: 1.25rem;
+  }
+  .ai-composer {
+    margin: 0.6rem 0.6rem 0.3rem;
   }
 }

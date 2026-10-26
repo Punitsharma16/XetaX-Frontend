@@ -9,7 +9,29 @@
   font-weight: 700;
   color: #fff;
   background: linear-gradient(135deg, var(--brand-500), var(--brand-800));
-  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.3);
+  box-shadow: var(--shadow-primary);
+}
+
+.profile-name,
+.profile-email {
+  overflow-wrap: anywhere;
+}
+
+.profile-email {
+  font-size: 0.8125rem;
+}
+
+.profile-company {
+  font-size: 0.75rem;
+}
+
+.profile-pref {
+  text-align: left;
+}
+
+.profile-pref__label {
+  font-size: 0.8125rem;
+  font-weight: 600;
 }
 
 hr {
@@ -17,23 +39,55 @@ hr {
   opacity: 1;
 }
 
+.card-header {
+  font-weight: 650;
+}
+
 .svc-row {
   font-size: 0.8125rem;
+  background: transparent;
 }
 
 .svc-icon {
-  color: var(--brand-600, #4f46e5);
+  width: 28px;
+  height: 28px;
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--brand-50);
+  color: var(--brand-600);
+}
+
+.svc-tile {
+  height: 100%;
+  padding: 0.85rem 1rem;
+  box-shadow: none;
+  background: var(--surface-sunken);
 }
 
 .svc-stat {
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.svc-stat .text-secondary {
+  font-size: 0.85rem;
+  font-weight: 600;
 }
 
 .svc-stat-label {
+  order: -1;
   font-size: 0.7rem;
-  color: var(--bs-secondary-color);
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.03em;
+}
+
+@media (max-width: 575.98px) {
+  .form-actions .btn {
+    width: 100%;
+  }
 }

@@ -1,9 +1,9 @@
 @if (loading()) {
-  <div class="pb-shell"><div class="pb-card text-center text-muted py-5">Loading…</div></div>
+  <div class="pb-shell"><div class="pb-card pb-state" aria-live="polite"><span class="spinner-border spinner-border-sm pb-state__spinner" aria-hidden="true"></span>Loading…</div></div>
 } @else if (notFound()) {
   <div class="pb-shell">
-    <div class="pb-card text-center py-5">
-      <i class="bi bi-calendar-x d-block mb-2" style="font-size: 1.6rem"></i>
+    <div class="pb-card pb-state">
+      <span class="pb-state__icon" aria-hidden="true"><i class="bi bi-calendar-x"></i></span>
       <h1 class="h5 mb-1">This booking page is not open</h1>
       <p class="text-muted mb-0">The link may be old. Please ask the salon for the current one.</p>
     </div>
@@ -16,8 +16,8 @@
     </header>
 
     @if (done(); as booked) {
-      <div class="pb-card pb-done">
-        <i class="bi bi-check-circle-fill pb-done__icon"></i>
+      <div class="pb-card pb-done" role="status">
+        <i class="bi bi-check-circle-fill pb-done__icon" aria-hidden="true"></i>
         <h2 class="h5 mb-1">Booked!</h2>
         <p class="mb-1">{{ booked.when }}</p>
         @if (booked.staffName) { <p class="text-muted mb-1">with {{ booked.staffName }}</p> }
@@ -29,8 +29,8 @@
       </div>
     } @else {
       @if (!days().length) {
-        <div class="pb-card text-center py-4">
-          <i class="bi bi-calendar2-x d-block mb-2" style="font-size: 1.4rem"></i>
+        <div class="pb-card pb-state">
+          <span class="pb-state__icon" aria-hidden="true"><i class="bi bi-calendar2-x"></i></span>
           <p class="mb-0">No free slots right now. Please check again a little later.</p>
         </div>
       } @else {
@@ -39,7 +39,7 @@
           <h2 class="pb-step">1 · Pick a day</h2>
           <div class="pb-days">
             @for (day of days(); track day.date) {
-              <button type="button" class="pb-day" [class.pb-day--on]="activeDay() === day.date"
+              <button type="button" class="pb-day" [class.pb-day--on]="activeDay() === day.date" [attr.aria-pressed]="activeDay() === day.date"
                       (click)="chooseDay(day.date)">
                 <span class="pb-day__label">{{ day.label }}</span>
                 <span class="pb-day__count">{{ day.slots.length }} free</span>
@@ -53,7 +53,7 @@
           <h2 class="pb-step">2 · Pick a time</h2>
           <div class="pb-slots">
             @for (slot of visibleSlots(); track slot.id) {
-              <button type="button" class="pb-slot" [class.pb-slot--on]="chosen()?.id === slot.id"
+              <button type="button" class="pb-slot" [class.pb-slot--on]="chosen()?.id === slot.id" [attr.aria-pressed]="chosen()?.id === slot.id"
                       (click)="chooseSlot(slot)">
                 <span class="pb-slot__time">{{ slot.label }}</span>
                 <span class="pb-slot__who">{{ slot.staffName }}</span>
@@ -88,7 +88,7 @@
                       placeholder="Optional" maxlength="300"></textarea>
           </div>
 
-          @if (error()) { <p class="pb-error">{{ error() }}</p> }
+          @if (error()) { <p class="pb-error" role="alert">{{ error() }}</p> }
 
           @if (chosen(); as slot) {
             <p class="pb-summary">

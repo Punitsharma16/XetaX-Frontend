@@ -1,51 +1,106 @@
+/* KPI tiles — the global .stat-card supplies surface, border, radius and
+   shadow; the label is shown above its value. */
 .stat-card {
-  border: 1px solid var(--border-subtle, #e9ecef);
-  border-radius: var(--radius-md, 10px);
-  background: var(--surface-card, #fff);
-  padding: 0.6rem 0.8rem;
-  text-align: center;
   height: 100%;
+  padding: 0.8rem 1rem;
+  flex-direction: column-reverse;
+  justify-content: flex-end;
+  align-items: flex-start;
+}
+
+.stat-card > .badge {
+  margin-bottom: 0 !important;
+  align-self: flex-start;
 }
 
 .stat-card__value {
-  font-size: 1.15rem;
+  font-size: 1.4rem;
   font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 .stat-card__label {
   font-size: 0.68rem;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--text-muted, #6c757d);
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+}
+
+.stat-card--bad {
+  border-color: var(--danger-50);
+  background: var(--danger-50);
 }
 
 .stat-card--bad .stat-card__value {
-  color: var(--danger-600, #dc3545);
+  color: var(--danger-600);
+}
+
+.wa-run-progress {
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
 }
 
 .message-preview {
   font-family: inherit;
   font-size: 0.85rem;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--text-primary);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.8rem;
 }
 
 .wa-card {
-  border: 1px solid var(--border-subtle, #e9ecef);
-  border-radius: var(--radius-lg, 12px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.wa-card > .card-header {
+  font-weight: 600;
+}
+
+.wa-card > .card-footer {
+  background: var(--surface-card);
+}
+
+/* Seven status filters: scroll sideways on phones instead of overflowing */
+.filter-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.filter-scroll > .btn-group {
+  flex-wrap: nowrap;
+}
+
+.filter-scroll .btn {
+  white-space: nowrap;
 }
 
 .wa-btn {
   background: var(--wa-600);
   border: 1px solid var(--wa-600);
-  color: #fff;
+  color: var(--bs-white);
   font-weight: 600;
 }
-.wa-btn:hover:not(:disabled) { background: var(--wa-500); border-color: var(--wa-500); color: #fff; }
-.wa-btn:disabled { opacity: 0.65; color: #fff; }
+.wa-btn:hover:not(:disabled) { background: var(--wa-500); border-color: var(--wa-500); color: var(--bs-white); }
+.wa-btn:disabled { opacity: 0.65; color: var(--bs-white); }
 
-.stat-card {
-  box-shadow: var(--shadow-sm);
+:host-context([data-theme='dark']) .wa-btn,
+:host-context([data-theme='dark']) .wa-btn:hover:not(:disabled),
+:host-context([data-theme='dark']) .wa-btn:disabled {
+  color: var(--slate-900);
 }
 
 .progress-bar.bg-success {

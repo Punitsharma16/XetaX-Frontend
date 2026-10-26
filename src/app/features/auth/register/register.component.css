@@ -1,35 +1,53 @@
+/* ==========================================================================
+   Auth screens (login · forgot password · verify email; register extends it)
+   Split layout on desktop: an always-dark brand panel on the left and a
+   centred form card on the right. On phones and tablets only the card shows.
+   Tokens only — the brand panel stays dark in both themes on purpose.
+   ========================================================================== */
+
 .auth-page {
   min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
+  background: var(--surface-page);
 }
 
 @media (min-width: 992px) {
   .auth-page {
-    grid-template-columns: minmax(380px, 42%) 1fr;
+    grid-template-columns: minmax(380px, 42%) minmax(0, 1fr);
   }
 }
 
-/* ------------------------------------------------------------- left panel */
+@media (min-width: 1400px) {
+  .auth-page {
+    grid-template-columns: minmax(460px, 38%) minmax(0, 1fr);
+  }
+}
+
+/* ------------------------------------------------------------- brand panel */
 
 .auth-aside {
   position: relative;
   background:
-    radial-gradient(900px 500px at 15% 10%, rgba(129, 140, 248, 0.35), transparent 60%),
-    linear-gradient(160deg, #312e81 0%, #1e1b4b 55%, #0f172a 100%);
-  color: #fff;
+    radial-gradient(900px 520px at 12% 8%, color-mix(in srgb, var(--brand-500) 45%, transparent), transparent 62%),
+    radial-gradient(600px 420px at 95% 100%, color-mix(in srgb, var(--accent-500) 14%, transparent), transparent 70%),
+    linear-gradient(165deg, var(--brand-800) 0%, var(--sidebar-bg) 68%);
+  color: var(--sidebar-fg-strong);
   overflow: hidden;
 }
 
+/* Faint grid, fading out from the top-left */
 .auth-aside::after {
   content: '';
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-  background-size: 42px 42px;
+    linear-gradient(var(--sidebar-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--sidebar-border) 1px, transparent 1px);
+  background-size: 44px 44px;
   mask-image: radial-gradient(circle at 30% 25%, #000 0%, transparent 75%);
+  -webkit-mask-image: radial-gradient(circle at 30% 25%, #000 0%, transparent 75%);
   pointer-events: none;
 }
 
@@ -39,72 +57,66 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 2.75rem;
+  gap: 2.5rem;
+  padding: 2.75rem clamp(2rem, 4vw, 3.5rem);
   width: 100%;
 }
 
 .auth-aside__copy {
-  max-width: 420px;
+  max-width: 440px;
+}
+
+.auth-aside__copy h2 {
+  font-size: clamp(1.5rem, 2.2vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
 }
 
 .auth-aside__lead {
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--sidebar-fg);
   font-size: 0.9375rem;
   line-height: 1.65;
+  margin: 0;
 }
 
-.auth-aside__foot {
-  color: rgba(255, 255, 255, 0.45);
-  font-size: 0.75rem;
-}
-
-/* ------------------------------------------------------------ step ladder */
-
-.auth-steps {
+.auth-points {
   list-style: none;
   padding: 0;
-  margin: 1.75rem 0 0;
+  margin: 2rem 0 0;
   display: grid;
-  gap: 1rem;
-}
-
-.auth-steps li {
-  display: flex;
-  align-items: flex-start;
   gap: 0.75rem;
 }
 
-.auth-steps__num {
-  width: 26px;
-  height: 26px;
-  flex: 0 0 26px;
-  border-radius: 50%;
+.auth-points li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  color: var(--sidebar-fg-strong);
+  font-size: 0.875rem;
+}
+
+.auth-points i {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  border-radius: var(--radius-md);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.14);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #c7d2fe;
+  background: var(--sidebar-hover);
+  border: 1px solid var(--sidebar-border);
+  color: var(--brand-300);
+  font-size: 0.9rem;
+}
+
+.auth-aside__foot {
+  color: var(--sidebar-fg);
+  opacity: 0.75;
   font-size: 0.75rem;
-  font-weight: 700;
 }
 
-.auth-steps strong {
-  display: block;
-  color: #fff;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-.auth-steps em {
-  display: block;
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 0.75rem;
-  font-style: normal;
-  margin-top: 0.1rem;
-}
-
-/* ----------------------------------------------------------------- brand */
+/* ------------------------------------------------------------------ brand */
 
 .auth-brand {
   display: flex;
@@ -115,7 +127,7 @@
 .auth-brand__mark {
   width: 42px;
   height: 42px;
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -123,13 +135,13 @@
   font-size: 1.15rem;
   color: #fff;
   background: linear-gradient(135deg, var(--brand-500), var(--brand-800));
-  box-shadow: 0 6px 16px rgba(79, 70, 229, 0.35);
+  box-shadow: var(--shadow-primary);
 }
 
 .auth-brand__name {
   font-weight: 700;
   font-size: 1.05rem;
-  color: #fff;
+  color: var(--sidebar-fg-strong);
   line-height: 1.2;
 }
 
@@ -141,29 +153,37 @@
 }
 
 .auth-aside .auth-brand__sub {
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--sidebar-fg);
 }
 
-/* ------------------------------------------------------------ right panel */
+/* ------------------------------------------------------------- form panel */
 
 .auth-main {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1.25rem;
-  background: var(--surface-page);
+  padding: 4.5rem 1rem 2.5rem;
+  background:
+    radial-gradient(700px 360px at 100% 0%, color-mix(in srgb, var(--brand-500) 7%, transparent), transparent 70%),
+    var(--surface-page);
+}
+
+@media (min-width: 576px) {
+  .auth-main {
+    padding: 4.5rem 2rem 3rem;
+  }
 }
 
 .auth-theme {
   position: absolute;
-  top: 1.25rem;
-  right: 1.25rem;
+  top: 1rem;
+  right: 1rem;
 }
 
 .auth-card {
   width: 100%;
-  max-width: 440px;
+  max-width: 420px;
   background: var(--surface-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-xl);
@@ -171,11 +191,167 @@
   padding: 2rem;
 }
 
+.auth-card h1 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+/* Short helper line under the heading */
+.auth-lead {
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+/* Field errors, small links and footnotes */
+.auth-field-error {
+  font-size: 0.75rem;
+  color: var(--danger-600);
+  margin-top: 0.3rem;
+}
+
+.auth-small {
+  font-size: 0.8125rem;
+}
+
+.auth-fine-print {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin: 1.5rem 0 0;
+}
+
 .alert-danger {
   background: var(--danger-50);
   border-color: transparent;
   color: var(--danger-600);
   border-radius: var(--radius-md);
+  font-size: 0.8125rem;
+}
+
+/* Separators between the form and the alternative actions */
+.auth-divider {
+  position: relative;
+  text-align: center;
+  margin: 1.5rem 0 1rem;
+}
+
+.auth-divider::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.auth-divider span {
+  position: relative;
+  padding: 0 0.75rem;
+  background: var(--surface-card);
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+/* "Continue with Google" — neutral outline button with the brand mark. */
+.auth-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  font-weight: 600;
+  background: var(--surface-card);
+}
+
+.auth-google:hover {
+  background: var(--surface-hover);
+}
+
+@media (max-width: 575.98px) {
+  /* Phones: the card melts into the page — no box inside a box */
+  .auth-card {
+    padding: 1rem 0.25rem;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+  }
+
+  .auth-divider span {
+    background: var(--surface-page);
+  }
+}
+
+/* ==========================================================================
+   Register only
+   ========================================================================== */
+
+.auth-card {
+  max-width: 460px;
+}
+
+@media (max-width: 575.98px) {
+  .auth-card {
+    max-width: none;
+  }
+}
+
+/* ------------------------------------------------------------ step ladder */
+
+.auth-steps {
+  list-style: none;
+  padding: 0;
+  margin: 2rem 0 0;
+  display: grid;
+  gap: 1.1rem;
+}
+
+.auth-steps li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.auth-steps__num {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sidebar-hover);
+  border: 1px solid var(--sidebar-border);
+  color: var(--brand-300);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.auth-steps strong {
+  display: block;
+  color: var(--sidebar-fg-strong);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.auth-steps em {
+  display: block;
+  color: var(--sidebar-fg);
+  font-size: 0.75rem;
+  font-style: normal;
+  margin-top: 0.1rem;
+}
+
+/* Trial pill under the heading */
+.auth-trial {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+}
+
+.auth-trial .badge {
+  background: var(--accent-50) !important;
+  color: var(--accent-700) !important;
+  border-color: transparent !important;
 }
 
 /* ------------------------------------------------------ password strength */
@@ -193,7 +369,7 @@
 }
 
 .strength__bar {
-  height: 3px;
+  height: 4px;
   flex: 1;
   border-radius: var(--radius-pill);
   background: var(--border-subtle);
@@ -212,20 +388,3 @@
   min-width: 58px;
   text-align: right;
 }
-
-/* "Continue with Google" — neutral outline button with the brand mark. */
-.auth-google {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.6rem;
-  font-weight: 600;
-  background: #fff;
-}
-.auth-google:hover { background: #f6f7fb; }
-
-.auth-divider {
-  display: flex; align-items: center; gap: 0.75rem; margin: 1.25rem 0;
-  color: #8a90a8; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em;
-}
-.auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: #e3e6f0; }

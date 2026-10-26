@@ -1,11 +1,33 @@
 .flow-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
   gap: 1rem;
 }
 
 .flow-card {
   height: 100%;
+  transition: box-shadow var(--transition-base), border-color var(--transition-base);
+}
+
+.flow-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-strong);
+}
+
+/* Keep the action row at the bottom so cards in one row line up */
+.flow-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.flow-card__actions {
+  margin-top: auto;
+  padding-top: 0.9rem;
+}
+
+.flow-card .alert {
+  overflow-wrap: anywhere;
 }
 
 .min-w-0 {
@@ -13,14 +35,21 @@
 }
 
 .wa-btn {
-  background: #25d366;
-  border-color: #25d366;
-  color: #fff;
+  background: var(--wa-600);
+  border-color: var(--wa-600);
+  color: var(--bs-white);
+  font-weight: 600;
 }
 
 .wa-btn:hover,
 .wa-btn:focus {
-  background: #1ebe5b;
-  border-color: #1ebe5b;
-  color: #fff;
+  background: var(--wa-500);
+  border-color: var(--wa-500);
+  color: var(--bs-white);
+}
+
+:host-context([data-theme='dark']) .wa-btn,
+:host-context([data-theme='dark']) .wa-btn:hover,
+:host-context([data-theme='dark']) .wa-btn:focus {
+  color: var(--slate-900);
 }

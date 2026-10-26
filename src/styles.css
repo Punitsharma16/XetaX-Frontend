@@ -5,141 +5,194 @@
    Bootstrap's own CSS variables are re-pointed at our tokens instead of being
    overridden rule by rule, which keeps components (buttons, tables, forms)
    consistent without fighting the framework.
+
+   Look & feel follows the Agentic design system: calm violet-tinted neutrals,
+   one loud primary (indigo-violet), marigold kept for AI moments, soft diffuse
+   elevation, generous spacing, visible focus and 44px targets on touch.
+   Every token name below is kept from the previous layer — components refer
+   to them — only their values changed.
    ========================================================================== */
 
 :root {
   color-scheme: light;
 
-  /* Neutral chrome */
-  --slate-50: #f8fafc;
-  --slate-100: #f1f5f9;
-  --slate-200: #e2e8f0;
-  --slate-300: #cbd5e1;
-  --slate-400: #94a3b8;
-  --slate-500: #64748b;
-  --slate-600: #475569;
-  --slate-700: #334155;
-  --slate-800: #1e293b;
-  --slate-900: #0f172a;
+  /* Neutral chrome (violet-tinted greys) */
+  --slate-50: #f8f8fc;
+  --slate-100: #f1f1f8;
+  --slate-200: #e6e6f0;
+  --slate-300: #d4d4e3;
+  --slate-400: #9a9cb8;
+  --slate-500: #6b6d8c;
+  --slate-600: #51537a;
+  --slate-700: #3a3c5c;
+  --slate-800: #25273f;
+  --slate-900: #16172b;
 
-  /* Brand — indigo, the accent that carries every primary action */
   /* WhatsApp accent */
   --wa-500: #16a34a;
   --wa-600: #128c7e;
   --wa-soft: #e7f8ee;
   --wa-border: #c5ecd4;
 
-  --brand-50: #eef2ff;
-  --brand-100: #e0e7ff;
-  --brand-200: #c7d2fe;
-  --brand-400: #818cf8;
-  --brand-500: #6366f1;
-  --brand-600: #4f46e5;
-  --brand-700: #4338ca;
-  --brand-800: #3730a3;
+  /* Brand — indigo-violet, the colour of every primary action */
+  --brand-50: #f3f0ff;
+  --brand-100: #e8e2ff;
+  --brand-200: #d3c8ff;
+  --brand-300: #b5a3fd;
+  --brand-400: #957bfa;
+  --brand-500: #7a55f2;
+  --brand-600: #5f37e3;
+  --brand-700: #4e29c4;
+  --brand-800: #3f219e;
+
+  /* Accent — marigold, for AI moments and highlights only */
+  --accent-50: #fff6e6;
+  --accent-100: #ffe7bf;
+  --accent-500: #ffa320;
+  --accent-600: #e68a00;
+  --accent-700: #8a5200;
 
   /* Status */
   --success-50: #ecfdf5;
   --success-500: #10b981;
-  --success-600: #059669;
+  --success-600: #047857;
   --danger-50: #fef2f2;
   --danger-500: #ef4444;
-  --danger-600: #dc2626;
+  --danger-600: #c62828;
   --warning-50: #fffbeb;
   --warning-500: #f59e0b;
-  --warning-600: #d97706;
+  --warning-600: #b45309;
   --info-50: #eff6ff;
   --info-500: #3b82f6;
-  --info-600: #2563eb;
+  --info-600: #1d4ed8;
 
   /* Semantic surfaces */
-  --surface-page: var(--slate-100);
+  --surface-page: #f6f6fb;
   --surface-card: #ffffff;
-  --surface-sunken: var(--slate-50);
-  --surface-hover: var(--slate-50);
+  --surface-sunken: #f5f5fa;
+  --surface-hover: #f1effa;
 
   --text-primary: var(--slate-900);
   --text-secondary: var(--slate-600);
-  --text-muted: var(--slate-400);
+  --text-muted: var(--slate-500);
 
   --border-subtle: var(--slate-200);
   --border-strong: var(--slate-300);
 
   /* Sidebar */
-  --sidebar-bg: #1e1b4b;
-  --sidebar-fg: rgba(255, 255, 255, 0.72);
+  --sidebar-bg: #16172b;
+  --sidebar-fg: rgba(236, 234, 248, 0.72);
   --sidebar-fg-strong: #ffffff;
-  --sidebar-hover: rgba(255, 255, 255, 0.08);
+  --sidebar-hover: rgba(255, 255, 255, 0.07);
   --sidebar-active: var(--brand-600);
-  --sidebar-border: rgba(255, 255, 255, 0.1);
+  --sidebar-border: rgba(255, 255, 255, 0.08);
   --sidebar-width: 256px;
   --sidebar-width-mini: 72px;
   --topbar-height: 60px;
 
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 10px;
-  --radius-xl: 14px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
   --radius-pill: 999px;
 
-  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.06);
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 4px 14px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04);
-  --shadow-lg: 0 14px 38px rgba(15, 23, 42, 0.14), 0 4px 10px rgba(15, 23, 42, 0.05);
+  --shadow-xs: 0 1px 2px rgba(22, 23, 43, 0.05);
+  --shadow-sm: 0 1px 3px rgba(22, 23, 43, 0.07), 0 1px 2px rgba(22, 23, 43, 0.04);
+  --shadow-md: 0 6px 18px rgba(22, 23, 43, 0.08), 0 2px 4px rgba(22, 23, 43, 0.04);
+  --shadow-lg: 0 18px 44px rgba(22, 23, 43, 0.14), 0 4px 10px rgba(22, 23, 43, 0.05);
+  --shadow-primary: 0 6px 16px rgba(95, 55, 227, 0.28);
 
-  --transition-fast: 120ms ease;
-  --transition-base: 200ms ease;
+  --focus-ring: 0 0 0 3px rgba(95, 55, 227, 0.28);
+
+  /* Text on brand-coloured backgrounds */
+  --text-on-brand: #ffffff;
+
+  /* Backdrop behind custom overlays / sheets */
+  --scrim: rgba(13, 14, 28, 0.5);
+
+  /* WhatsApp button text (white on the dark green) */
+  --wa-on: #ffffff;
+
+  --transition-fast: 120ms cubic-bezier(0.2, 0.7, 0.2, 1);
+  --transition-base: 200ms cubic-bezier(0.2, 0.7, 0.2, 1);
 
   /* Bootstrap bridge */
   --bs-primary: var(--brand-600);
-  --bs-primary-rgb: 79, 70, 229;
+  --bs-primary-rgb: 95, 55, 227;
+  --bs-link-color: var(--brand-600);
+  --bs-link-color-rgb: 95, 55, 227;
+  --bs-link-hover-color: var(--brand-700);
   --bs-body-bg: var(--surface-page);
   --bs-body-color: var(--text-primary);
   --bs-border-color: var(--border-subtle);
   --bs-border-radius: var(--radius-md);
   --bs-font-sans-serif: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --bs-body-font-size: 0.875rem;
+  --bs-secondary-bg: var(--surface-sunken);
+  --bs-tertiary-bg: var(--surface-sunken);
 }
 
 :root[data-theme='dark'] {
   color-scheme: dark;
 
-  --surface-page: #0b1120;
-  --surface-card: #131c31;
+  --surface-page: #0d0e1c;
+  --surface-card: #16172b;
   --wa-500: #34d399;
   --wa-600: #2dd4bf;
   --wa-soft: #0c2b1e;
   --wa-border: #14532d;
-  --surface-sunken: #0f172a;
-  --surface-hover: #1c2740;
+  --surface-sunken: #121326;
+  --surface-hover: #1f2140;
 
-  --text-primary: #e8edf7;
-  --text-secondary: #a5b2c9;
-  --text-muted: #6d7d99;
+  --text-primary: #eceaf8;
+  --text-secondary: #b3b3cf;
+  --text-muted: #9395b4;
 
-  --border-subtle: #22304d;
-  --border-strong: #2e3f63;
+  --border-subtle: #262845;
+  --border-strong: #33365a;
 
-  --sidebar-bg: #0a0f1f;
-  --sidebar-border: rgba(255, 255, 255, 0.07);
+  --sidebar-bg: #0a0b17;
+  --sidebar-border: rgba(255, 255, 255, 0.06);
 
-  --brand-50: #1e1b4b;
-  --brand-100: #272263;
+  --brand-50: #1c1740;
+  --brand-100: #251d55;
+  --brand-400: #957bfa;
+  --brand-500: #957bfa;
+  --brand-600: #8466f6;
+  --brand-700: #a48df9;
+
+  --accent-50: #2e2008;
+  --accent-100: #4a330c;
+  --accent-700: #ffbd4a;
+  --brand-200: #3a2f7a;
+  --brand-300: #6d58c9;
+  --scrim: rgba(0, 0, 0, 0.6);
+  --wa-on: #062b1d;
 
   --success-50: #052e21;
+  --success-600: #34d399;
   --danger-50: #35090b;
+  --danger-600: #f87171;
   --warning-50: #3a2606;
+  --warning-600: #fbbf24;
   --info-50: #0a2145;
+  --info-600: #60a5fa;
 
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.45);
-  --shadow-lg: 0 14px 38px rgba(0, 0, 0, 0.55);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 18px 44px rgba(0, 0, 0, 0.55);
+  --shadow-primary: 0 6px 16px rgba(132, 102, 246, 0.3);
+  --focus-ring: 0 0 0 3px rgba(149, 123, 250, 0.35);
 
+  --bs-primary-rgb: 132, 102, 246;
+  --bs-link-color-rgb: 149, 123, 250;
   --bs-body-bg: var(--surface-page);
   --bs-body-color: var(--text-primary);
   --bs-border-color: var(--border-subtle);
   --bs-secondary-color: var(--text-secondary);
   --bs-emphasis-color: var(--text-primary);
+  --bs-secondary-bg: var(--surface-sunken);
+  --bs-tertiary-bg: var(--surface-sunken);
 }
 
 /* ------------------------------------------------------------------ base -- */
@@ -159,14 +212,25 @@ body {
   font-size: 0.875rem;
   line-height: 1.5;
   color: var(--text-primary);
-  background: var(--surface-page);
+  background-color: var(--surface-page);
+  /* Faint violet + marigold washes, as in the Agentic panel */
+  background-image:
+    radial-gradient(1200px 520px at 100% -10%, rgba(95, 55, 227, 0.06), transparent 60%),
+    radial-gradient(900px 420px at -10% 110%, rgba(255, 163, 32, 0.05), transparent 60%);
+  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
+}
+
+:root[data-theme='dark'] body {
+  background-image:
+    radial-gradient(1200px 520px at 100% -10%, rgba(149, 123, 250, 0.08), transparent 60%),
+    radial-gradient(900px 420px at -10% 110%, rgba(255, 189, 74, 0.04), transparent 60%);
 }
 
 h1, h2, h3, h4, h5, h6 {
   color: var(--text-primary);
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-weight: 650;
+  letter-spacing: -0.015em;
 }
 
 a {
@@ -200,45 +264,80 @@ a:hover {
   border-radius: var(--radius-sm);
 }
 
+::selection {
+  background: var(--brand-100);
+  color: var(--text-primary);
+}
+
 /* ----------------------------------------------------------------- cards -- */
 
 .card {
   background: var(--surface-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xs);
+  box-shadow: var(--shadow-sm);
 }
 
 .card-header {
   background: transparent;
   border-bottom: 1px solid var(--border-subtle);
-  padding: 0.875rem 1.125rem;
+  padding: 0.95rem 1.25rem;
   font-weight: 600;
 }
 
+.card-header:first-child {
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
 .card-body {
-  padding: 1.125rem;
+  padding: 1.25rem;
 }
 
 .card-footer {
   background: transparent;
   border-top: 1px solid var(--border-subtle);
-  padding: 0.875rem 1.125rem;
+  padding: 0.95rem 1.25rem;
+}
+
+.card-footer:last-child {
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
 /* --------------------------------------------------------------- buttons -- */
 
 .btn {
-  --bs-btn-padding-y: 0.4rem;
-  --bs-btn-padding-x: 0.85rem;
+  --bs-btn-padding-y: 0.45rem;
+  --bs-btn-padding-x: 0.95rem;
   --bs-btn-font-size: 0.8125rem;
-  --bs-btn-font-weight: 500;
+  --bs-btn-font-weight: 550;
   --bs-btn-border-radius: var(--radius-md);
+  --bs-btn-focus-box-shadow: var(--focus-ring);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  transition: all var(--transition-fast);
+  gap: 0.45rem;
+  min-height: 36px;
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    transform var(--transition-fast);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn-sm {
+  --bs-btn-padding-y: 0.3rem;
+  --bs-btn-padding-x: 0.7rem;
+  --bs-btn-font-size: 0.78rem;
+  min-height: 30px;
+}
+
+.btn-lg {
+  min-height: 44px;
 }
 
 .btn-primary {
@@ -252,12 +351,30 @@ a:hover {
   --bs-btn-disabled-border-color: var(--brand-400);
 }
 
+.btn-primary:hover:not(:disabled) {
+  box-shadow: var(--shadow-primary);
+}
+
+.btn-outline-primary {
+  --bs-btn-color: var(--brand-600);
+  --bs-btn-border-color: var(--brand-200);
+  --bs-btn-hover-bg: var(--brand-50);
+  --bs-btn-hover-color: var(--brand-700);
+  --bs-btn-hover-border-color: var(--brand-300);
+  --bs-btn-active-bg: var(--brand-100);
+  --bs-btn-active-color: var(--brand-800);
+  --bs-btn-active-border-color: var(--brand-300);
+}
+
 .btn-outline-secondary {
   --bs-btn-color: var(--text-secondary);
   --bs-btn-border-color: var(--border-strong);
+  --bs-btn-bg: var(--surface-card);
   --bs-btn-hover-bg: var(--surface-hover);
   --bs-btn-hover-color: var(--text-primary);
   --bs-btn-hover-border-color: var(--border-strong);
+  --bs-btn-active-bg: var(--surface-hover);
+  --bs-btn-active-color: var(--text-primary);
 }
 
 .btn-light {
@@ -269,53 +386,88 @@ a:hover {
 }
 
 .btn-icon {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
+  min-height: 0;
   padding: 0;
   border-radius: var(--radius-md);
+}
+
+.btn-icon.btn-sm {
+  width: 28px;
+  height: 28px;
+  min-height: 0;
+  font-size: 0.8rem;
 }
 
 /* ----------------------------------------------------------------- forms -- */
 
 .form-label {
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 600;
   color: var(--text-secondary);
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.35rem;
 }
 
 .form-control,
 .form-select {
-  background: var(--surface-card);
+  background-color: var(--surface-card);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   color: var(--text-primary);
   font-size: 0.8125rem;
-  padding: 0.45rem 0.7rem;
+  padding: 0.5rem 0.75rem;
+  min-height: 38px;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.form-control-sm,
+.form-select-sm {
+  min-height: 32px;
+  padding: 0.3rem 0.6rem;
+}
+
+textarea.form-control {
+  min-height: 80px;
 }
 
 .form-control::placeholder {
   color: var(--text-muted);
+  opacity: 0.85;
+}
+
+.form-control:hover:not(:disabled):not(:focus),
+.form-select:hover:not(:disabled):not(:focus) {
+  border-color: var(--slate-400);
 }
 
 .form-control:focus,
 .form-select:focus {
-  background: var(--surface-card);
+  background-color: var(--surface-card);
   color: var(--text-primary);
   border-color: var(--brand-500);
-  box-shadow: 0 0 0 3px var(--brand-100);
+  box-shadow: var(--focus-ring);
 }
 
 .form-control:disabled,
-.form-select:disabled {
-  background: var(--surface-sunken);
+.form-select:disabled,
+.form-control[readonly] {
+  background-color: var(--surface-sunken);
   color: var(--text-muted);
+}
+
+.form-check-input {
+  border-color: var(--border-strong);
 }
 
 .form-check-input:checked {
   background-color: var(--brand-600);
   border-color: var(--brand-600);
+}
+
+.form-check-input:focus {
+  border-color: var(--brand-500);
+  box-shadow: var(--focus-ring);
 }
 
 .input-group-text {
@@ -337,30 +489,35 @@ a:hover {
   --bs-table-border-color: var(--border-subtle);
   --bs-table-hover-bg: var(--surface-hover);
   --bs-table-hover-color: var(--text-primary);
+  --bs-table-striped-bg: var(--surface-sunken);
   margin-bottom: 0;
   font-size: 0.8125rem;
 }
 
 .table > thead th {
   background: var(--surface-sunken);
-  color: var(--text-secondary);
+  color: var(--text-muted);
   font-size: 0.6875rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
   white-space: nowrap;
-  padding: 0.65rem 0.85rem;
+  padding: 0.7rem 0.9rem;
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .table > tbody td {
-  padding: 0.65rem 0.85rem;
+  padding: 0.75rem 0.9rem;
   vertical-align: middle;
   border-bottom: 1px solid var(--border-subtle);
 }
 
 .table > tbody tr:last-child td {
   border-bottom: 0;
+}
+
+.table-hover > tbody > tr {
+  transition: background-color var(--transition-fast);
 }
 
 /* --------------------------------------------------------- scrolling ----
@@ -430,8 +587,9 @@ a:hover {
 .badge {
   font-weight: 600;
   font-size: 0.6875rem;
-  padding: 0.3em 0.6em;
+  padding: 0.32em 0.65em;
   border-radius: var(--radius-pill);
+  letter-spacing: 0.01em;
 }
 
 .badge-soft-primary { background: var(--brand-50); color: var(--brand-700); }
@@ -447,21 +605,27 @@ a:hover {
   background: var(--surface-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-  padding: 0.35rem;
+  box-shadow: var(--shadow-lg);
+  padding: 0.4rem;
   font-size: 0.8125rem;
 }
 
 .dropdown-item {
   border-radius: var(--radius-sm);
   color: var(--text-secondary);
-  padding: 0.45rem 0.65rem;
+  padding: 0.5rem 0.7rem;
 }
 
 .dropdown-item:hover,
 .dropdown-item:focus {
   background: var(--surface-hover);
   color: var(--text-primary);
+}
+
+.dropdown-item.active,
+.dropdown-item:active {
+  background: var(--brand-50);
+  color: var(--brand-700);
 }
 
 .dropdown-divider {
@@ -480,11 +644,134 @@ a:hover {
 .modal-header,
 .modal-footer {
   border-color: var(--border-subtle);
-  padding: 1rem 1.25rem;
+  padding: 1rem 1.35rem;
+}
+
+.modal-title {
+  font-weight: 650;
+  font-size: 1.05rem;
 }
 
 .modal-body {
-  padding: 1.25rem;
+  padding: 1.35rem;
+}
+
+.modal-backdrop.show {
+  opacity: 0.45;
+}
+
+/* Phones: dialogs rise from the bottom and use the full width */
+@media (max-width: 575.98px) {
+  .modal-dialog:not(.modal-fullscreen) {
+    margin: 0;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-width: none;
+  }
+
+  .modal-dialog:not(.modal-fullscreen) .modal-content {
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    max-height: 92vh;
+  }
+
+  .modal-dialog:not(.modal-fullscreen) .modal-body {
+    overflow-y: auto;
+  }
+}
+
+/* --------------------------------------------------------------- alerts --- */
+
+.alert {
+  border-radius: var(--radius-md);
+  border-width: 1px;
+  font-size: 0.8125rem;
+}
+
+.alert-info { background: var(--info-50); border-color: transparent; color: var(--info-600); }
+.alert-success { background: var(--success-50); border-color: transparent; color: var(--success-600); }
+.alert-warning { background: var(--warning-50); border-color: transparent; color: var(--warning-600); }
+.alert-danger { background: var(--danger-50); border-color: transparent; color: var(--danger-600); }
+.alert-light { background: var(--surface-sunken); border-color: var(--border-subtle); color: var(--text-secondary); }
+
+/* WhatsApp primary action (send, connect) — readable in light and dark */
+.btn-wa {
+  --bs-btn-color: var(--wa-on);
+  --bs-btn-bg: var(--wa-600);
+  --bs-btn-border-color: var(--wa-600);
+  --bs-btn-hover-color: var(--wa-on);
+  --bs-btn-hover-bg: var(--wa-500);
+  --bs-btn-hover-border-color: var(--wa-500);
+  --bs-btn-active-color: var(--wa-on);
+  --bs-btn-active-bg: var(--wa-500);
+  --bs-btn-active-border-color: var(--wa-500);
+}
+
+/* Small inline notice inside cards and forms */
+.alert-compact {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.78rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+/* ---------------------------------------------------------- nav tabs ----- */
+
+.nav-tabs {
+  border-bottom: 1px solid var(--border-subtle);
+  gap: 0.25rem;
+}
+
+.nav-tabs .nav-link {
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  color: var(--text-secondary);
+  font-weight: 550;
+  padding: 0.6rem 0.9rem;
+  margin-bottom: -1px;
+  transition: color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.nav-tabs .nav-link:hover {
+  color: var(--text-primary);
+  border-bottom-color: var(--border-strong);
+}
+
+.nav-tabs .nav-link.active,
+.nav-tabs .nav-item.show .nav-link {
+  color: var(--brand-600);
+  background: transparent;
+  border-bottom-color: var(--brand-600);
+}
+
+.nav-pills .nav-link {
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  font-weight: 550;
+}
+
+.nav-pills .nav-link.active {
+  background: var(--brand-50);
+  color: var(--brand-700);
+}
+
+/* ----------------------------------------------------------- pagination -- */
+
+.pagination {
+  --bs-pagination-color: var(--text-secondary);
+  --bs-pagination-bg: var(--surface-card);
+  --bs-pagination-border-color: var(--border-subtle);
+  --bs-pagination-hover-bg: var(--surface-hover);
+  --bs-pagination-hover-color: var(--text-primary);
+  --bs-pagination-active-bg: var(--brand-600);
+  --bs-pagination-active-border-color: var(--brand-600);
+  --bs-pagination-focus-box-shadow: var(--focus-ring);
+  --bs-pagination-border-radius: var(--radius-md);
+  --bs-pagination-font-size: 0.8125rem;
 }
 
 /* ------------------------------------------------------------ skeletons --- */
@@ -506,15 +793,12 @@ a:hover {
   100% { background-position: 0 50%; }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .skeleton { animation: none; }
-}
-
 /* ------------------------------------------------------------ utilities --- */
 
 .page-title {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 700;
+  letter-spacing: -0.02em;
   margin: 0;
 }
 
@@ -533,6 +817,26 @@ a:hover {
 }
 
 .cursor-pointer { cursor: pointer; }
+
+/* Extra-small meta text (timestamps, counters) */
+.text-2xs { font-size: 0.7rem; line-height: 1.35; }
+
+/* Lets a flex child shrink so text-truncate works */
+.min-w-0 { min-width: 0; }
+
+/* Tab strips that scroll sideways on narrow screens instead of wrapping */
+.tabs-scroll {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabs-scroll::-webkit-scrollbar { display: none; }
+
+.tabs-scroll > * { flex: 0 0 auto; white-space: nowrap; }
 
 .hover-surface:hover { background: var(--surface-hover); }
 
@@ -575,6 +879,252 @@ a.btn + .btn {
   margin-left: 0.5rem;
 }
 
+/* ===========================================================================
+   Layout building blocks (new) — used by the page templates for a consistent,
+   clean structure. Pure presentation; no behaviour.
+   =========================================================================== */
+
+/* Page header: title + subtitle on the left, actions on the right; wraps on phones */
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.25rem;
+}
+
+.page-header-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.page-eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--brand-600);
+}
+
+.page-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* Toolbar above lists: search, filters, spacer, actions */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.toolbar-search {
+  flex: 1 1 240px;
+  max-width: 360px;
+  position: relative;
+}
+
+.toolbar-search > .bi {
+  position: absolute;
+  left: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.toolbar-search > .form-control {
+  padding-left: 2.1rem;
+}
+
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+/* Empty / zero states */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.5rem;
+  padding: 2.5rem 1.25rem;
+  color: var(--text-secondary);
+}
+
+.empty-state-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--brand-50);
+  color: var(--brand-600);
+  font-size: 1.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.empty-state-title {
+  font-size: 1rem;
+  font-weight: 650;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.empty-state-text {
+  font-size: 0.8125rem;
+  max-width: 420px;
+  margin: 0;
+}
+
+/* KPI tiles */
+.stat-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.stat-card-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.stat-card-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Section inside a card / form: title + optional hint */
+.form-section + .form-section {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.form-section-title {
+  font-size: 0.9rem;
+  font-weight: 650;
+  margin: 0 0 0.25rem;
+}
+
+.form-section-hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0 0 0.9rem;
+}
+
+/* Sticky action bar at the bottom of long forms */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding-top: 1rem;
+  margin-top: 1.25rem;
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* Soft card variant for side panels and grouped info */
+.card-soft {
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: none;
+}
+
+/* Interactive cards lift slightly */
+.card-interactive {
+  transition: box-shadow var(--transition-base), transform var(--transition-base), border-color var(--transition-base);
+  cursor: pointer;
+}
+
+.card-interactive:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--border-strong);
+  transform: translateY(-1px);
+}
+
+/* ===========================================================================
+   Touch & responsiveness
+   =========================================================================== */
+
+/* 44px tap targets and 16px inputs (no iOS zoom) on touch screens */
+@media (pointer: coarse) {
+  .btn {
+    min-height: 44px;
+  }
+
+  .btn-sm {
+    min-height: 40px;
+  }
+
+  .btn-icon,
+  .btn-icon.btn-sm {
+    width: 44px;
+    height: 44px;
+  }
+
+  .form-control,
+  .form-select {
+    min-height: 44px;
+    font-size: 16px;
+  }
+
+  .dropdown-item {
+    padding: 0.7rem 0.8rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .page-header {
+    align-items: flex-start;
+  }
+
+  .page-actions {
+    width: 100%;
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+
+  .toolbar-search {
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .skeleton { animation: none; }
+}
+
 /* =====================================================================
    AI design tokens — shared by every AI entry point across the app.
    ===================================================================== */
@@ -590,6 +1140,10 @@ a.btn + .btn {
   --bs-btn-active-border-color: var(--brand-700);
   background-image: linear-gradient(135deg, var(--brand-500), var(--brand-700));
   border: none;
+}
+
+.btn-ai:hover:not(:disabled) {
+  box-shadow: var(--shadow-primary);
 }
 
 .btn-ai:disabled {
@@ -614,7 +1168,7 @@ a.btn + .btn {
   --bs-btn-hover-color: #fff;
 }
 
-/* Small pill label marking anything AI-powered. */
+/* Small pill label marking anything AI-powered — marigold, as in Agentic. */
 .ai-badge {
   display: inline-flex;
   align-items: center;
@@ -624,8 +1178,8 @@ a.btn + .btn {
   font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  color: var(--brand-700);
-  background: var(--brand-100);
+  color: var(--accent-700);
+  background: var(--accent-50);
 }
 
 /* AI markdown answers — global because [innerHTML] content is not touched
@@ -691,4 +1245,3 @@ a.btn + .btn {
   background: var(--bs-tertiary-bg, #f6f7f9);
   font-weight: 600;
 }
-

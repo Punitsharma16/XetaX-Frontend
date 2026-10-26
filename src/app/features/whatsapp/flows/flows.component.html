@@ -14,11 +14,13 @@
 <app-whatsapp-nav />
 
 @if (error()) {
+  <div class="card">
   <app-error-state>
     <button class="btn btn-outline-secondary btn-sm" (click)="reload()">Retry</button>
   </app-error-state>
+  </div>
 } @else if (loading()) {
-  <div class="card"><div class="card-body text-muted small">Loading…</div></div>
+  <div class="card"><div class="card-body text-muted small" aria-live="polite"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Loading…</div></div>
 } @else if (!flows().length) {
   <div class="card">
     <div class="card-body">
@@ -37,7 +39,7 @@
   <div class="flow-grid">
     @for (flow of flows(); track flow.id) {
       <div class="card flow-card">
-        <div class="card-body">
+        <div class="card-body flow-card__body">
           <div class="d-flex justify-content-between align-items-start gap-2">
             <div class="min-w-0">
               <div class="fw-semibold text-truncate">{{ flow.name }}</div>
@@ -61,7 +63,7 @@
             </div>
           }
 
-          <div class="d-flex flex-wrap gap-2 mt-3">
+          <div class="flow-card__actions d-flex flex-wrap gap-2">
             @if (flow.status === 'DRAFT') {
               <button class="btn wa-btn btn-sm" [disabled]="busy()" (click)="publish(flow)">
                 <i class="bi bi-cloud-upload me-1"></i>Publish
@@ -83,7 +85,7 @@
                 <i class="bi bi-archive me-1"></i>Retire
               </button>
             } @else {
-              <button class="btn btn-outline-danger btn-sm" (click)="remove(flow)">
+              <button class="btn btn-outline-danger btn-sm" (click)="remove(flow)" aria-label="Delete">
                 <i class="bi bi-trash"></i>
               </button>
             }
@@ -166,7 +168,7 @@
     </div>
   </div>
 
-  <div modalFooter class="d-flex justify-content-end gap-2">
+  <div modalFooter class="d-flex flex-wrap justify-content-end gap-2">
     <button class="btn btn-outline-secondary" (click)="createOpen.set(false)">Cancel</button>
     <button class="btn wa-btn" [disabled]="busy()" (click)="create()">
       @if (busy()) { <span class="spinner-border spinner-border-sm me-1"></span> }
@@ -204,7 +206,7 @@
     </div>
   </div>
 
-  <div modalFooter class="d-flex justify-content-end gap-2">
+  <div modalFooter class="d-flex flex-wrap justify-content-end gap-2">
     <button class="btn btn-outline-secondary" (click)="sendOpen.set(false)">Cancel</button>
     <button class="btn wa-btn" [disabled]="busy()" (click)="send()">
       @if (busy()) { <span class="spinner-border spinner-border-sm me-1"></span> }
@@ -222,7 +224,7 @@
   (closed)="responsesOpen.set(false)"
 >
   @if (responsesLoading()) {
-    <div class="text-muted small">Loading…</div>
+    <div class="text-muted small py-3" aria-live="polite"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Loading…</div>
   } @else if (!responses().length) {
     <app-empty-state
       icon="bi-inbox"

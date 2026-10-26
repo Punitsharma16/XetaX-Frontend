@@ -2,6 +2,44 @@
   font-size: 0.83rem;
 }
 
+.docs-actions-col {
+  width: 110px;
+}
+
+/* Filenames can be long — keep the row tidy, full name stays in the DOM */
+.docs-file {
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.doc-icon-wrap {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--brand-50);
+  color: var(--brand-600);
+}
+
 .doc-icon {
   font-size: 1.1rem;
+}
+
+.docs-tip {
+  display: block;
+  color: var(--text-muted);
+  padding: 0.6rem 0.8rem;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+}
+
+@media (max-width: 767.98px) {
+  .docs-upload-btn {
+    width: 100%;
+  }
 }

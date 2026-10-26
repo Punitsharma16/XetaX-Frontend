@@ -5,7 +5,7 @@
     <p>The link may be old, or the restaurant has paused online orders.</p>
   </div>
 } @else if (!menu()) {
-  <div class="pm-empty"><div class="spinner-border text-secondary" role="status"></div></div>
+  <div class="pm-empty" aria-busy="true"><div class="spinner-border text-secondary" role="status"></div></div>
 } @else if (placed(); as result) {
   <div class="pm-done">
     <div class="pm-done__icon"><i class="bi bi-check-lg"></i></div>
@@ -125,7 +125,7 @@
         <div class="pm-total"><span>Total</span><b>{{ symbol() }}{{ total() | number: '1.0-2' }}</b></div>
 
         @if (m.orderTypes.length > 1) {
-          <div class="pm-types">
+          <div class="pm-types" role="group">
             @for (type of m.orderTypes; track type) {
               <button [class.pm-types__on]="orderType === type" (click)="orderType = type">{{ labels[type] }}</button>
             }
@@ -157,7 +157,7 @@
           <input [(ngModel)]="note" maxlength="300" placeholder="Less spicy, no onion…" />
         </label>
 
-        @if (error()) { <div class="pm-error">{{ error() }}</div> }
+        @if (error()) { <div class="pm-error" role="alert">{{ error() }}</div> }
 
         <button class="pm-btn pm-btn--wide" [disabled]="placing() || !count()" (click)="placeOrder()">
           @if (placing()) { Placing order… } @else { Place order · {{ symbol() }}{{ total() | number: '1.0-2' }} }

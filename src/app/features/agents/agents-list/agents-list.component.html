@@ -52,11 +52,11 @@
         @if (agent.welcomeMessage) {
           <p class="ag-agent__welcome">"{{ agent.welcomeMessage }}"</p>
         }
-        <div class="d-flex gap-2 mt-auto">
+        <div class="d-flex gap-2 mt-auto ag-agent__foot">
           <a class="btn ag-btn btn-sm" [routerLink]="[agent.id]">
             <i class="bi bi-gear me-1"></i>Manage
           </a>
-          <button class="btn btn-outline-danger btn-sm ms-auto" (click)="remove(agent)">
+          <button class="btn btn-outline-danger btn-sm ms-auto" (click)="remove(agent)" [attr.aria-label]="'Delete ' + agent.name">
             <i class="bi bi-trash"></i>
           </button>
         </div>

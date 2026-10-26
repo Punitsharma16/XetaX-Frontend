@@ -1,36 +1,108 @@
-.pf-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 0.75rem; }
-.pf-tile {
-  border: 1px solid var(--border-subtle, #e9ecef); border-radius: 12px; padding: 0.7rem 0.9rem;
-  background: var(--surface-card, #fff); display: flex; flex-direction: column; gap: 0.2rem;
+/* KPI tiles — same look as the global .stat-card */
+.pf-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr));
+  gap: 0.75rem;
 }
-.pf-tile span { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted, #94a3b8); }
-.pf-tile b { font-size: 1.2rem; font-variant-numeric: tabular-nums; }
-.pf-tile--hero { background: var(--brand-50, #eef2ff); border-color: transparent; }
-.pf-tile--hero b { color: var(--brand-600, #4f46e5); }
-.pf-tile--warn b { color: #b45309; }
+@media (max-width: 575.98px) {
+  .pf-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.pf-tile {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 0.9rem 1rem;
+  background: var(--surface-card);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+.pf-tile span {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.pf-tile b {
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.pf-tile--hero { background: var(--brand-50); border-color: transparent; }
+.pf-tile--hero b { color: var(--brand-600); }
+.pf-tile--warn { background: var(--warning-50); border-color: transparent; }
+.pf-tile--warn b { color: var(--warning-600); }
 
 .pf-table { font-size: 0.83rem; }
 .pf-table td.text-end, .pf-table th.text-end { font-variant-numeric: tabular-nums; }
 .pf-row--off { opacity: 0.55; }
 
-.pf-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.45); z-index: 1050; }
+.pf-plan-filter { min-width: 140px; }
+@media (max-width: 575.98px) {
+  .pf-plan-filter { flex: 1 1 100%; width: 100% !important; }
+}
+
+/* Manage drawer — slides in from the right; full width on phones */
+.pf-overlay {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, var(--slate-900) 50%, transparent);
+  z-index: 1050;
+}
 .pf-drawer {
-  position: fixed; top: 0; right: 0; height: 100vh; width: min(560px, 96vw);
-  overflow-y: auto; z-index: 1051; border-radius: 0;
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  height: 100dvh;
+  width: min(560px, 100vw);
+  overflow-y: auto;
+  z-index: 1051;
+  border-radius: 0;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  box-shadow: var(--shadow-lg);
+}
+.pf-drawer hr {
+  margin: 1.25rem 0;
+  border-color: var(--border-subtle);
+  opacity: 1;
 }
 
-.pf-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 0.5rem; }
+.pf-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 120px), 1fr));
+  gap: 0.5rem;
+}
 .pf-facts div {
-  border: 1px solid var(--border-subtle, #e9ecef); border-radius: 10px; padding: 0.45rem 0.6rem;
-  display: flex; flex-direction: column;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  padding: 0.5rem 0.7rem;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
-.pf-facts span { font-size: 0.66rem; text-transform: uppercase; color: var(--text-muted, #94a3b8); }
-.pf-facts b { font-size: 0.92rem; font-variant-numeric: tabular-nums; }
+.pf-facts span { font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: var(--text-muted); }
+.pf-facts b { font-size: 0.92rem; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 
-.pf-team { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.35rem; }
-.pf-team li { display: flex; gap: 0.5rem; align-items: baseline; font-size: 0.82rem; }
-.pf-team li span { color: var(--text-muted, #94a3b8); }
-.pf-team li em { color: #dc2626; font-style: normal; font-size: 0.72rem; }
+.pf-team { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.4rem; }
+.pf-team li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
+  align-items: baseline;
+  font-size: 0.82rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  min-width: 0;
+}
+.pf-team li span { color: var(--text-muted); overflow-wrap: anywhere; }
+.pf-team li em { color: var(--danger-600); font-style: normal; font-size: 0.72rem; }
 
 /* Rate figures line up by digit. */
 .pf-num {

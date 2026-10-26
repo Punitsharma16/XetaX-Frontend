@@ -200,3 +200,31 @@
   .stage--notes .videos { display: none; }
   .notes { width: 100%; flex: 1; }
 }
+
+/* --------------------------------------------------- a11y + small phones */
+.host-star { color: #fbbf24; }
+
+.ctl:focus-visible,
+.btn-join:focus-visible,
+.btn-end:focus-visible,
+.notes__close:focus-visible,
+.note__del:focus-visible {
+  outline: 2px solid #a5b4fc;
+  outline-offset: 2px;
+}
+
+.topbar__title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.note__text { overflow-wrap: anywhere; }
+
+@media (max-width: 575.98px) {
+  .prejoin { width: calc(100vw - 32px); padding: 1rem 0; }
+  .prejoin__side h1 { font-size: 1.3rem; overflow-wrap: anywhere; }
+  .inp { font-size: 16px; }
+  .notes__composer textarea { font-size: 16px; }
+  .topbar { gap: 0.6rem; padding: 0.6rem 0.9rem; }
+  .videos { padding: 0.6rem; gap: 0.5rem; }
+  .bar { flex-wrap: wrap; gap: 0.5rem; padding: 0.7rem 0.75rem; }
+  .bar__gap { width: 0.25rem; }
+  .ctl { width: 44px; height: 44px; }
+  .ctl--leave { width: 56px; }
+}

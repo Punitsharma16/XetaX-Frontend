@@ -28,7 +28,7 @@ interface DigestSettings {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="card mt-3">
-      <div class="card-header d-flex align-items-center justify-content-between">
+      <div class="card-header d-flex align-items-center justify-content-between gap-2">
         <span><i class="bi bi-sunrise me-2"></i>Morning digest</span>
         @if (settings(); as s) {
           @if (s.enabled) {
@@ -40,15 +40,15 @@ interface DigestSettings {
       </div>
       <div class="card-body">
         @if (loading()) {
-          <div class="text-muted" style="font-size: 0.8rem">Checking…</div>
+          <div class="text-muted card-note" aria-live="polite">Checking…</div>
         } @else if (settings(); as s) {
-          <p class="text-muted" style="font-size: 0.75rem">
+          <p class="text-muted card-hint">
             Every day at 9:00 AM: leads untouched for 3+ days, WhatsApp chats waiting for a reply,
             and tasks due today. While it is on, it always appears in your notification bell.
           </p>
 
           @if (!s.canEdit) {
-            <p class="text-muted mb-0" style="font-size: 0.8rem">
+            <p class="text-muted mb-0 card-note">
               <i class="bi bi-info-circle me-1"></i>The morning digest goes to the workspace owner.
               Only they can change where it is sent.
             </p>
@@ -93,6 +93,25 @@ interface DigestSettings {
       </div>
     </div>
   `,
+  styles: [
+    `
+      .card-header {
+        font-weight: 650;
+      }
+      .card-note {
+        font-size: 0.8rem;
+      }
+      .card-hint {
+        font-size: 0.75rem;
+        line-height: 1.55;
+      }
+      @media (max-width: 575.98px) {
+        .card-body .btn-primary {
+          width: 100%;
+        }
+      }
+    `,
+  ],
 })
 export class DigestSettingsCardComponent implements OnInit {
   private readonly api = inject(CrmApiService);

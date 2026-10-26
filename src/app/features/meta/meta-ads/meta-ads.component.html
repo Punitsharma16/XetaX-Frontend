@@ -3,7 +3,7 @@
   icon="bi-megaphone"
   subtitle="Lead-form ads land in your pipeline the second they are submitted — and you see what the spend actually produced."
 >
-  <button type="button" class="btn btn-outline-secondary" (click)="load()" title="Refresh">
+  <button type="button" class="btn btn-outline-secondary" (click)="load()" title="Refresh" aria-label="Refresh">
     <i class="bi bi-arrow-clockwise"></i>
   </button>
   @if (connected()) {
@@ -16,7 +16,7 @@
 </app-page-header>
 
 @if (!configured()) {
-  <div class="card mb-3">
+  <div class="card ma-card mb-3">
     <div class="card-body">
       <h6 class="mb-1"><i class="bi bi-gear me-2"></i>Not set up on the server yet</h6>
       <p class="text-secondary small mb-0">
@@ -27,7 +27,7 @@
   </div>
 } @else if (!connected()) {
   <!-- ------------------------------------------------------ not connected -->
-  <div class="card mb-3">
+  <div class="card ma-card mb-3">
     <div class="card-body">
       <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
         <div>
@@ -54,7 +54,7 @@
   </div>
 } @else if (connection(); as c) {
   <!-- --------------------------------------------------------- connected -->
-  <div class="card mb-3">
+  <div class="card ma-card mb-3">
     <div class="card-body">
       <div class="d-flex flex-wrap align-items-start justify-content-between gap-3">
         <div>
@@ -71,7 +71,7 @@
         <button type="button" class="btn btn-outline-danger btn-sm" (click)="disconnect()">Disconnect</button>
       </div>
 
-      <div class="row g-3 mt-1">
+      <div class="row g-3 mt-2 ma-settings">
         <div class="col-12 col-md-4">
           <label class="form-label">Leads become records in</label>
           <select class="form-select" [(ngModel)]="editFormId" (ngModelChange)="onFormChange()">
@@ -97,7 +97,7 @@
             }
           </select>
         </div>
-        <div class="col-12 d-flex justify-content-end">
+        <div class="col-12 d-flex justify-content-end ma-settings__actions">
           <button class="btn btn-primary" [disabled]="saving()" (click)="saveSettings()">
             @if (saving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
             @else { <i class="bi bi-check2 me-1"></i> }
@@ -115,7 +115,7 @@
   </div>
 
   <!-- ----------------------------------------------------------- report -->
-  <div class="card mb-3">
+  <div class="card ma-card mb-3">
     <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
       <span class="fw-semibold"><i class="bi bi-graph-up-arrow me-1"></i>What the spend produced</span>
       <select class="form-select form-select-sm w-auto" [(ngModel)]="rangeDays" (ngModelChange)="loadReport()">
@@ -160,7 +160,7 @@
                 <td class="text-end fw-semibold">{{ row.costPerWon ? (row.costPerWon | number: '1.0-0') : '—' }}</td>
               </tr>
             } @empty {
-              <tr><td colspan="6" class="text-center text-muted py-3">
+              <tr><td colspan="6" class="text-center text-muted py-4">
                 No spend pulled yet. Press <b>Update spend</b> above.
               </td></tr>
             }
@@ -168,12 +168,12 @@
         </table>
       </div>
     } @else {
-      <div class="card-body text-muted small">Loading…</div>
+      <div class="card-body text-muted small" aria-live="polite"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Loading…</div>
     }
   </div>
 
   <!-- ----------------------------------------------------- recent leads -->
-  <div class="card">
+  <div class="card ma-card">
     <div class="card-header fw-semibold"><i class="bi bi-person-plus me-1"></i>Latest leads from ads</div>
     @if (recent().length) {
       <div class="table-responsive">
@@ -184,7 +184,7 @@
               <tr>
                 <td class="text-nowrap text-muted">{{ l.at | date: 'dd MMM, h:mm a' }}</td>
                 <td>{{ l.campaign || '—' }}</td>
-                <td class="text-truncate" style="max-width: 260px">{{ l.ad || l.form || '—' }}</td>
+                <td class="text-truncate ma-ad-cell">{{ l.ad || l.form || '—' }}</td>
                 <td>
                   <span class="badge text-bg-light">
                     <i class="bi" [class.bi-instagram]="l.platform === 'instagram'" [class.bi-facebook]="l.platform !== 'instagram'"></i>
@@ -213,9 +213,9 @@
 <!-- ---------------------------------------------------------- page picker -->
 @if (pickerOpen()) {
   <div class="ma-overlay" (click)="pickerOpen.set(false)"></div>
-  <div class="ma-picker card">
+  <div class="ma-picker card" role="dialog" aria-modal="true" aria-labelledby="maPickerTitle">
     <div class="card-body">
-      <h6 class="mb-3">Choose what to connect</h6>
+      <h6 class="mb-3" id="maPickerTitle">Choose what to connect</h6>
       <div class="mb-3">
         <label class="form-label">Facebook Page</label>
         <select class="form-select" [(ngModel)]="pickPageId">
@@ -236,7 +236,7 @@
           @for (f of forms(); track f.id) { <option [ngValue]="f.id">{{ f.name }}</option> }
         </select>
       </div>
-      <div class="d-flex justify-content-end gap-2">
+      <div class="ma-picker__actions d-flex flex-wrap justify-content-end gap-2">
         <button class="btn btn-outline-secondary" (click)="pickerOpen.set(false)">Cancel</button>
         <button class="btn btn-primary" [disabled]="saving()" (click)="confirmPage()">
           @if (saving()) { <span class="spinner-border spinner-border-sm me-1"></span> }

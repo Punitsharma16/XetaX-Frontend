@@ -38,11 +38,11 @@
     <div class="inv-banner inv-banner--{{ inv.status | lowercase }} mb-3">
       <span class="badge {{ statusClass(inv.status) }}">{{ inv.status }}</span>
       <span class="inv-banner__text">
-        Total <b>Rs. {{ inv.total | number: '1.2-2' }}</b>
-        · Paid <b class="text-success">Rs. {{ inv.amountPaid | number: '1.2-2' }}</b>
-        · Balance <b>Rs. {{ balance() | number: '1.2-2' }}</b>
+        <span class="inv-banner__fig">Total <b>Rs. {{ inv.total | number: '1.2-2' }}</b></span>
+        <span class="inv-banner__fig">· Paid <b class="text-success">Rs. {{ inv.amountPaid | number: '1.2-2' }}</b></span>
+        <span class="inv-banner__fig">· Balance <b>Rs. {{ balance() | number: '1.2-2' }}</b></span>
       </span>
-      <span class="ms-auto d-flex gap-2">
+      <span class="inv-banner__actions ms-auto d-flex gap-2">
         @if (inv.status === 'DRAFT') {
           <button class="btn btn-outline-danger btn-sm" (click)="deleteDraft()">
             <i class="bi bi-trash me-1"></i>Delete draft
@@ -61,7 +61,7 @@
     <div class="col-12 col-xl-8 d-flex flex-column gap-3">
       @if (editable()) {
         <div class="ai-draft-bar">
-          <i class="bi bi-stars ai-draft-bar__spark"></i>
+          <i class="bi bi-stars ai-draft-bar__spark" aria-hidden="true"></i>
           <input class="form-control" [(ngModel)]="aiPrompt" [disabled]="aiDrafting()"
                  placeholder='Describe it — "website 15k + 1 year hosting 5k for Ramesh, 18% GST"'
                  (keydown.enter)="draftWithAi()" />
@@ -84,8 +84,8 @@
           <div class="row g-3">
             @if (isNew() && !attachedRecordId) {
               <div class="col-12">
-                <label class="form-label">Pick a contact <span class="text-muted">(every invoice belongs to one)</span></label>
-                <select class="form-select" [(ngModel)]="selectedContactId" (ngModelChange)="onContactPicked()">
+                <label class="form-label" for="invContact">Pick a contact <span class="text-muted">(every invoice belongs to one)</span></label>
+                <select id="invContact" class="form-select" [(ngModel)]="selectedContactId" (ngModelChange)="onContactPicked()">
                   <option [ngValue]="null">— none —</option>
                   @for (contact of contacts(); track contact.id) {
                     <option [ngValue]="contact.id">{{ contact.name }}</option>
@@ -99,26 +99,26 @@
               </div>
             }
             <div class="col-12 col-md-6">
-              <label class="form-label">Customer / business name <span class="text-danger">*</span></label>
-              <input class="form-control" [(ngModel)]="customerName" placeholder="Customer / business name"
+              <label class="form-label" for="invCustomerName">Customer / business name <span class="text-danger">*</span></label>
+              <input id="invCustomerName" class="form-control" [(ngModel)]="customerName" placeholder="Customer / business name"
                      [disabled]="!editable()" />
             </div>
             <div class="col-12 col-md-6">
-              <label class="form-label">Phone</label>
-              <input class="form-control" [(ngModel)]="customerPhone" placeholder="Phone" [disabled]="!editable()" />
+              <label class="form-label" for="invCustomerPhone">Phone</label>
+              <input id="invCustomerPhone" class="form-control" [(ngModel)]="customerPhone" placeholder="Phone" [disabled]="!editable()" />
             </div>
             <div class="col-12 col-md-6">
-              <label class="form-label">Email</label>
-              <input class="form-control" [(ngModel)]="customerEmail" placeholder="Email" [disabled]="!editable()" />
+              <label class="form-label" for="invCustomerEmail">Email</label>
+              <input id="invCustomerEmail" class="form-control" [(ngModel)]="customerEmail" placeholder="Email" [disabled]="!editable()" />
             </div>
             <div class="col-12 col-md-6">
-              <label class="form-label">Customer GSTIN <span class="text-muted">(optional)</span></label>
-              <input class="form-control" [(ngModel)]="customerGstin" placeholder="Customer GSTIN"
+              <label class="form-label" for="invCustomerGstin">Customer GSTIN <span class="text-muted">(optional)</span></label>
+              <input id="invCustomerGstin" class="form-control" [(ngModel)]="customerGstin" placeholder="Customer GSTIN"
                      [disabled]="!editable()" />
             </div>
             <div class="col-12">
-              <label class="form-label">Address</label>
-              <input class="form-control" [(ngModel)]="customerAddress" placeholder="Address" [disabled]="!editable()" />
+              <label class="form-label" for="invCustomerAddress">Address</label>
+              <input id="invCustomerAddress" class="form-control" [(ngModel)]="customerAddress" placeholder="Address" [disabled]="!editable()" />
             </div>
           </div>
         </div>
@@ -131,17 +131,17 @@
         </div>
         <div class="card-body">
           <div class="row g-3">
-            <div class="col-12 col-md-4">
-              <label class="form-label">Issue date</label>
-              <input type="date" class="form-control" [(ngModel)]="issueDate" [disabled]="!editable()" />
+            <div class="col-12 col-sm-6 col-md-4">
+              <label class="form-label" for="invIssueDate">Issue date</label>
+              <input id="invIssueDate" type="date" class="form-control" [(ngModel)]="issueDate" [disabled]="!editable()" />
+            </div>
+            <div class="col-12 col-sm-6 col-md-4">
+              <label class="form-label" for="invDueDate">Due date</label>
+              <input id="invDueDate" type="date" class="form-control" [(ngModel)]="dueDate" [disabled]="!editable()" />
             </div>
             <div class="col-12 col-md-4">
-              <label class="form-label">Due date</label>
-              <input type="date" class="form-control" [(ngModel)]="dueDate" [disabled]="!editable()" />
-            </div>
-            <div class="col-12 col-md-4">
-              <label class="form-label">Your GSTIN <span class="text-muted">(optional)</span></label>
-              <input class="form-control" [(ngModel)]="sellerGstin" placeholder="Seller GSTIN" [disabled]="!editable()" />
+              <label class="form-label" for="invSellerGstin">Your GSTIN <span class="text-muted">(optional)</span></label>
+              <input id="invSellerGstin" class="form-control" [(ngModel)]="sellerGstin" placeholder="Seller GSTIN" [disabled]="!editable()" />
             </div>
             @if (isNew()) {
               <div class="col-12">
@@ -158,44 +158,44 @@
           <h6 class="mb-0 inv-section"><i class="bi bi-list-ul me-2"></i>Items</h6>
         </div>
         <div class="card-body">
-          <div class="table-responsive">
+          <div class="table-responsive table-auto-height inv-items-wrap">
             <table class="table align-middle inv-items mb-2">
               <thead>
                 <tr>
-                  <th style="width: 4%">#</th>
-                  <th style="width: 32%">Description</th>
-                  <th style="width: 13%">HSN/SAC</th>
-                  <th style="width: 10%" class="text-end">Qty</th>
-                  <th style="width: 12%">Unit</th>
-                  <th style="width: 13%" class="text-end">Rate (Rs.)</th>
-                  <th style="width: 12%" class="text-end">Amount</th>
-                  <th style="width: 4%"></th>
+                  <th class="inv-col-no">#</th>
+                  <th class="inv-col-desc">Description</th>
+                  <th class="inv-col-hsn">HSN/SAC</th>
+                  <th class="inv-col-qty text-end">Qty</th>
+                  <th class="inv-col-unit">Unit</th>
+                  <th class="inv-col-rate text-end">Rate (Rs.)</th>
+                  <th class="inv-col-amount text-end">Amount</th>
+                  <th class="inv-col-x"></th>
                 </tr>
               </thead>
               <tbody>
                 @for (row of items(); track row.uid; let i = $index) {
                   <tr>
-                    <td class="text-secondary">{{ i + 1 }}</td>
-                    <td>
+                    <td class="text-secondary inv-cell-no" data-label="#">{{ i + 1 }}</td>
+                    <td class="inv-cell-desc" data-label="Description">
                       <input class="form-control form-control-sm" [(ngModel)]="row.description"
-                             placeholder="Item or service…" [disabled]="!editable()" />
+                             placeholder="Item or service…" [disabled]="!editable()" aria-label="Description" />
                     </td>
-                    <td><input class="form-control form-control-sm" [(ngModel)]="row.hsn"
-                               placeholder="—" [disabled]="!editable()" /></td>
-                    <td><input type="number" min="0" class="form-control form-control-sm text-end"
-                               [(ngModel)]="row.quantity" [disabled]="!editable()" /></td>
-                    <td>
-                      <select class="form-select form-select-sm" [(ngModel)]="row.unit" [disabled]="!editable()">
+                    <td class="inv-cell-hsn" data-label="HSN/SAC"><input class="form-control form-control-sm" [(ngModel)]="row.hsn"
+                               placeholder="—" [disabled]="!editable()" aria-label="HSN/SAC" /></td>
+                    <td class="inv-cell-qty" data-label="Qty"><input type="number" min="0" class="form-control form-control-sm text-end"
+                               [(ngModel)]="row.quantity" [disabled]="!editable()" aria-label="Qty" /></td>
+                    <td class="inv-cell-unit" data-label="Unit">
+                      <select class="form-select form-select-sm" [(ngModel)]="row.unit" [disabled]="!editable()" aria-label="Unit">
                         @for (u of units; track u) { <option [value]="u">{{ u }}</option> }
                       </select>
                     </td>
-                    <td><input type="number" min="0" class="form-control form-control-sm text-end"
-                               [(ngModel)]="row.unitPrice" [disabled]="!editable()" /></td>
-                    <td class="text-end fw-semibold">{{ lineAmount(row) | number: '1.2-2' }}</td>
-                    <td class="text-end">
+                    <td class="inv-cell-rate" data-label="Rate (Rs.)"><input type="number" min="0" class="form-control form-control-sm text-end"
+                               [(ngModel)]="row.unitPrice" [disabled]="!editable()" aria-label="Rate (Rs.)" /></td>
+                    <td class="text-end fw-semibold inv-cell-amount" data-label="Amount">{{ lineAmount(row) | number: '1.2-2' }}</td>
+                    <td class="text-end inv-cell-x">
                       @if (editable() && items().length > 1) {
                         <button class="btn btn-sm btn-outline-danger border-0" (click)="removeItem(row.uid)"
-                                title="Remove line">
+                                title="Remove line" aria-label="Remove line">
                           <i class="bi bi-x-lg"></i>
                         </button>
                       }
@@ -221,26 +221,26 @@
         <div class="card-body">
           <div class="row g-3 mb-3">
             <div class="col-6 col-md-3">
-              <label class="form-label">GST %</label>
-              <input type="number" min="0" max="100" class="form-control text-end" [(ngModel)]="taxPercent"
+              <label class="form-label" for="invTaxPercent">GST %</label>
+              <input id="invTaxPercent" type="number" min="0" max="100" class="form-control text-end" [(ngModel)]="taxPercent"
                      [disabled]="!editable()" />
             </div>
             <div class="col-6 col-md-4">
-              <label class="form-label">GST type</label>
-              <select class="form-select" [(ngModel)]="gstMode" [disabled]="!editable()">
+              <label class="form-label" for="invGstMode">GST type</label>
+              <select id="invGstMode" class="form-select" [(ngModel)]="gstMode" [disabled]="!editable()">
                 <option value="">Plain tax</option>
                 <option value="INTRA">CGST + SGST</option>
                 <option value="INTER">IGST</option>
               </select>
             </div>
-            <div class="col-6 col-md-3">
-              <label class="form-label">Discount (Rs.)</label>
-              <input type="number" min="0" class="form-control text-end" [(ngModel)]="discount"
+            <div class="col-12 col-sm-6 col-md-3">
+              <label class="form-label" for="invDiscount">Discount (Rs.)</label>
+              <input id="invDiscount" type="number" min="0" class="form-control text-end" [(ngModel)]="discount"
                      [disabled]="!editable()" />
             </div>
           </div>
 
-          <div class="inv-totals ms-auto" style="max-width: 340px">
+          <div class="inv-totals ms-auto">
             <div class="inv-line"><span>Subtotal</span><b>Rs. {{ subtotal() | number: '1.2-2' }}</b></div>
             <div class="inv-line">
               <span>{{ gstMode === 'INTER' ? 'IGST' : 'GST' }} ({{ taxPercent || 0 }}%)</span>
@@ -281,13 +281,13 @@
         <div class="card-body">
           <div class="row g-3">
             <div class="col-12">
-              <label class="form-label">Bank details <span class="text-muted">(printed on the PDF)</span></label>
-              <textarea class="form-control" rows="2" [(ngModel)]="bankDetails" [disabled]="!editable()"
+              <label class="form-label" for="invBankDetails">Bank details <span class="text-muted">(printed on the PDF)</span></label>
+              <textarea id="invBankDetails" class="form-control" rows="2" [(ngModel)]="bankDetails" [disabled]="!editable()"
                         placeholder="A/c name · A/c no · IFSC · UPI id"></textarea>
             </div>
             <div class="col-12">
-              <label class="form-label">Notes / terms</label>
-              <textarea class="form-control" rows="2" [(ngModel)]="notes" [disabled]="!editable()"
+              <label class="form-label" for="invNotes">Notes / terms</label>
+              <textarea id="invNotes" class="form-control" rows="2" [(ngModel)]="notes" [disabled]="!editable()"
                         placeholder="Payment terms, a thank-you…"></textarea>
             </div>
           </div>
@@ -295,7 +295,7 @@
       </div>
 
       @if (editable()) {
-        <div class="d-flex justify-content-end">
+        <div class="inv-save d-flex justify-content-end">
           <button class="btn btn-primary btn-lg px-4" (click)="save()" [disabled]="saving()">
             @if (saving()) {
               <span class="spinner-border spinner-border-sm"></span> Saving…
@@ -308,13 +308,13 @@
     </div>
 
     <!-- --------------------------------------------------------- sidebar -->
-    <div class="col-12 col-xl-4 d-flex flex-column gap-3">
+    <div class="col-12 col-xl-4 d-flex flex-column gap-3 inv-side">
       @if (!isNew() && !payments().length) {
         <div class="card mb-0">
-          <div class="card-body text-center py-4">
-            <i class="bi bi-cash-stack d-block mb-2" style="font-size: 1.4rem; color: var(--text-muted)"></i>
-            <div class="fw-semibold">No payments yet</div>
-            <div class="text-secondary" style="font-size: 0.8rem">Record one when money comes in — the balance updates here.</div>
+          <div class="empty-state inv-side-empty">
+            <div class="empty-state-icon" aria-hidden="true"><i class="bi bi-cash-stack"></i></div>
+            <div class="empty-state-title">No payments yet</div>
+            <div class="empty-state-text">Record one when money comes in — the balance updates here.</div>
           </div>
         </div>
       }
@@ -325,25 +325,25 @@
           </div>
           <ul class="list-group list-group-flush">
             @for (payment of payments(); track payment.id) {
-              <li class="list-group-item d-flex justify-content-between align-items-center">
-                <div>
+              <li class="list-group-item d-flex justify-content-between align-items-center gap-2 inv-payment">
+                <div class="min-w-0">
                   <div class="fw-semibold">Rs. {{ payment.amount | number: '1.2-2' }}</div>
                   <small class="text-secondary">
                     {{ payment.paidOn | date: 'dd MMM yyyy' }} · {{ payment.mode }}
                     @if (payment.reference) { · {{ payment.reference }} }
                   </small>
                 </div>
-                <i class="bi bi-check2-circle text-success"></i>
+                <i class="bi bi-check2-circle text-success" aria-hidden="true"></i>
               </li>
             }
           </ul>
         </div>
       }
       @if (isNew()) {
-        <div class="card mb-0">
+        <div class="card card-soft mb-0">
           <div class="card-body">
             <h6 class="inv-section mb-2"><i class="bi bi-lightbulb me-2"></i>Tips</h6>
-            <ul class="mb-0 ps-3" style="font-size: 0.82rem; color: var(--bs-secondary-color)">
+            <ul class="mb-0 ps-3 inv-tips">
               <li class="mb-1">Type the whole invoice in one line and hit <b>Draft with AI</b>.</li>
               <li class="mb-1">Totals, tax and discount are recalculated on the server — what you see is what the PDF says.</li>
               <li>The invoice number is issued automatically on save.</li>
@@ -358,25 +358,25 @@
   <app-modal [open]="paymentOpen()" title="Record a payment" icon="bi-cash-coin"
              (closed)="paymentOpen.set(false)">
     <div class="row g-3">
-      <div class="col-6">
-        <label class="form-label">Amount (Rs.) <span class="text-danger">*</span></label>
-        <input type="number" min="0" class="form-control" [(ngModel)]="payAmount" />
+      <div class="col-12 col-sm-6">
+        <label class="form-label" for="invPayAmount">Amount (Rs.) <span class="text-danger">*</span></label>
+        <input id="invPayAmount" type="number" min="0" class="form-control" [(ngModel)]="payAmount" />
       </div>
-      <div class="col-6">
-        <label class="form-label">Date</label>
-        <input type="date" class="form-control" [(ngModel)]="payDate" />
+      <div class="col-12 col-sm-6">
+        <label class="form-label" for="invPayDate">Date</label>
+        <input id="invPayDate" type="date" class="form-control" [(ngModel)]="payDate" />
       </div>
-      <div class="col-6">
-        <label class="form-label">Mode</label>
-        <select class="form-select" [(ngModel)]="payMode">
+      <div class="col-12 col-sm-6">
+        <label class="form-label" for="invPayMode">Mode</label>
+        <select id="invPayMode" class="form-select" [(ngModel)]="payMode">
           @for (mode of modes; track mode) {
             <option [value]="mode">{{ mode }}</option>
           }
         </select>
       </div>
-      <div class="col-6">
-        <label class="form-label">Reference <span class="text-muted">(UTR / txn id)</span></label>
-        <input class="form-control" [(ngModel)]="payReference" />
+      <div class="col-12 col-sm-6">
+        <label class="form-label" for="invPayReference">Reference <span class="text-muted">(UTR / txn id)</span></label>
+        <input id="invPayReference" class="form-control" [(ngModel)]="payReference" />
       </div>
     </div>
     <div modalFooter>

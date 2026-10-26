@@ -334,12 +334,12 @@ export function variablesComplete(
     }
   `,
   styles: [`
-    .tv { border: 1px dashed var(--bs-border-color); border-radius: 0.5rem; padding: 0.6rem 0.7rem; margin: 0.5rem 0; }
+    .tv { border: 1px dashed var(--border-strong); border-radius: var(--radius-md); background: var(--surface-sunken); padding: 0.75rem 0.85rem; margin: 0.5rem 0; }
     .tv__title { font-size: 0.78rem; font-weight: 600; margin-bottom: 0.4rem; }
-    .tv__hint { font-weight: 400; color: var(--bs-secondary-color); }
-    .tv__part { font-size: 0.74rem; color: var(--bs-secondary-color); margin: 0.2rem 0; }
+    .tv__hint { font-weight: 400; color: var(--text-muted); }
+    .tv__part { font-size: 0.74rem; color: var(--text-muted); margin: 0.2rem 0; }
     .tv__text { font-family: var(--bs-font-monospace); font-size: 0.72rem; }
-    .tv__card { border-top: 1px solid var(--bs-border-color); padding-top: 0.4rem; margin-top: 0.4rem; }
+    .tv__card { border-top: 1px solid var(--border-subtle); padding-top: 0.4rem; margin-top: 0.4rem; }
   `],
 })
 export class TemplateVariablesComponent {

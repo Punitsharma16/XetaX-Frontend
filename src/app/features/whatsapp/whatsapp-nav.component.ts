@@ -38,28 +38,43 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
         display: inline-flex;
         gap: 4px;
         padding: 4px;
-        border-radius: var(--radius-pill, 999px);
-        background: var(--surface-sunken, #f1f3f5);
-        border: 1px solid var(--border-subtle, #e9ecef);
-        margin-bottom: 1rem;
+        max-width: 100%;
+        overflow-x: auto;
+        scrollbar-width: none;
+        border-radius: var(--radius-pill);
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-subtle);
+        margin-bottom: 1.25rem;
+      }
+      .wa-nav::-webkit-scrollbar {
+        display: none;
       }
       .wa-nav__pill {
         display: inline-flex;
+        flex: 0 0 auto;
         align-items: center;
         gap: 0.4rem;
-        padding: 0.35rem 0.9rem;
-        border-radius: var(--radius-pill, 999px);
+        padding: 0.4rem 0.95rem;
+        border-radius: var(--radius-pill);
         font-size: 0.8rem;
         font-weight: 600;
-        color: var(--text-secondary, #495057);
+        white-space: nowrap;
+        color: var(--text-secondary);
         text-decoration: none;
-        transition: background 0.15s ease, color 0.15s ease;
+        transition: background var(--transition-fast), color var(--transition-fast);
       }
       .wa-nav__pill:hover {
         color: var(--wa-600);
       }
+      .wa-nav__pill:focus-visible {
+        outline: none;
+        box-shadow: var(--focus-ring);
+      }
+      .wa-nav__pill .me-1 {
+        margin-right: 0 !important;
+      }
       .wa-nav__pill.is-active {
-        background: var(--surface-card, #fff);
+        background: var(--surface-card);
         color: var(--wa-600);
         box-shadow: var(--shadow-sm);
       }

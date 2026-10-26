@@ -1,79 +1,168 @@
+/* ---- step indicator ---------------------------------------------------- */
 .wizard-steps {
   display: flex;
-  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .wizard-step {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
+  padding: 0.35rem 0.85rem 0.35rem 0.4rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--surface-card);
   font-size: 0.82rem;
-  color: var(--text-muted, #6c757d);
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
 }
 
 .wizard-step__num {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 0.72rem;
   font-weight: 700;
-  background: var(--surface-sunken, #f1f3f5);
+  background: var(--surface-sunken);
+  font-variant-numeric: tabular-nums;
 }
 
 .wizard-step--on {
-  color: var(--text-primary, #212529);
+  color: var(--text-primary);
+  border-color: var(--wa-border);
+  background: var(--wa-soft);
 }
 
 .wizard-step--on .wizard-step__num {
-  background: var(--wa-soft);
-  color: var(--wa-600);
+  background: var(--wa-600);
+  color: var(--surface-card);
+}
+
+/* ---- step 1: audience source ------------------------------------------- */
+.wa-limit-note {
+  font-size: 0.75rem;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+}
+
+.source-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 280px));
+  gap: 0.75rem;
 }
 
 .source-card {
-  flex: 1 1 0;
-  max-width: 260px;
-  border: 1px solid var(--border-subtle, #dee2e6);
-  border-radius: var(--radius-md, 10px);
-  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  padding: 0.9rem 1rem;
   cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.source-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow-xs);
 }
 
 .source-card i {
-  font-size: 1.2rem;
-  color: var(--text-muted, #6c757d);
+  font-size: 1.25rem;
+  color: var(--text-muted);
+  margin-bottom: 0.15rem;
 }
 
-.source-card--on {
+.source-card--on,
+.source-card--on:hover {
   border-color: var(--wa-600);
   background: var(--wa-soft);
 }
 
+.source-card--on i {
+  color: var(--wa-600);
+}
+
+/* ---- step 2: message ---------------------------------------------------- */
+.insert-label {
+  font-size: 0.7rem;
+}
+
+/* ---- step 3: review ------------------------------------------------------ */
 .review-list dt {
   font-size: 0.8rem;
-  color: var(--text-muted, #6c757d);
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.review-list dd {
+  margin-bottom: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.schedule-input {
+  max-width: 240px;
 }
 
 .review-message {
   font-family: inherit;
   font-size: 0.85rem;
   white-space: pre-wrap;
-  background: var(--surface-sunken, #f8f9fa);
-  border-radius: 8px;
-  padding: 0.5rem 0.7rem;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem 0.8rem;
+  color: var(--text-primary);
 }
 
+/* ---- card + footer ------------------------------------------------------- */
 .wa-card {
-  border: 1px solid var(--border-subtle, #e9ecef);
-  border-radius: var(--radius-lg, 12px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.wizard-footer {
+  background: var(--surface-card);
+  padding: 0.85rem 1.25rem;
 }
 
 .wa-btn {
   background: var(--wa-600) !important;
   border-color: var(--wa-600) !important;
-  color: #fff !important;
+  color: var(--bs-white) !important;
   font-weight: 600;
+}
+
+:host-context([data-theme='dark']) .wa-btn {
+  color: var(--slate-900) !important;
+}
+
+@media (max-width: 575.98px) {
+  .source-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .schedule-input {
+    max-width: none;
+    width: 100%;
+  }
+
+  .wizard-footer > .btn,
+  .wizard-footer > .d-flex {
+    flex: 1 1 100%;
+  }
+
+  .wizard-footer > .d-flex > .btn {
+    flex: 1 1 auto;
+  }
 }

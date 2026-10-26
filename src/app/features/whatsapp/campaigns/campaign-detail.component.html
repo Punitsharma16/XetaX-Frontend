@@ -1,7 +1,9 @@
 @if (error()) {
+  <div class="card wa-card">
   <app-error-state>
     <button class="btn btn-outline-secondary btn-sm" (click)="reload()">Retry</button>
   </app-error-state>
+  </div>
 } @else if (campaign(); as c) {
   <app-page-header [title]="c.name" icon="bi-megaphone" [subtitle]="c.targetDescription || ''">
     <a class="btn btn-outline-secondary btn-sm" routerLink="/app/whatsapp/campaigns">
@@ -32,38 +34,38 @@
   <app-campaign-cost [estimate]="estimate()" />
 
   <!-- counters -->
-  <div class="row g-2 mb-3">
-    <div class="col-6 col-md">
+  <div class="row g-2 g-md-3 mb-3">
+    <div class="col-6 col-md-4 col-xl">
       <div class="stat-card">
         <span class="badge mb-1" [class]="badge(c.status)">{{ c.status }}</span>
         <div class="stat-card__label">Status</div>
       </div>
     </div>
-    <div class="col-6 col-md">
+    <div class="col-6 col-md-4 col-xl">
       <div class="stat-card">
         <div class="stat-card__value">{{ c.totalCount }}</div>
         <div class="stat-card__label">Recipients</div>
       </div>
     </div>
-    <div class="col-6 col-md">
+    <div class="col-6 col-md-4 col-xl">
       <div class="stat-card">
         <div class="stat-card__value">{{ c.sentCount }}</div>
         <div class="stat-card__label">Sent</div>
       </div>
     </div>
-    <div class="col-6 col-md">
+    <div class="col-6 col-md-4 col-xl">
       <div class="stat-card">
         <div class="stat-card__value">{{ c.deliveredCount }}</div>
         <div class="stat-card__label">Delivered</div>
       </div>
     </div>
-    <div class="col-6 col-md">
+    <div class="col-6 col-md-4 col-xl">
       <div class="stat-card">
         <div class="stat-card__value">{{ c.readCount }}</div>
         <div class="stat-card__label">Read</div>
       </div>
     </div>
-    <div class="col-6 col-md">
+    <div class="col-6 col-md-4 col-xl">
       <div class="stat-card" [class.stat-card--bad]="c.failedCount">
         <div class="stat-card__value">{{ c.failedCount }}</div>
         <div class="stat-card__label">Failed</div>
@@ -72,7 +74,7 @@
   </div>
 
   @if (c.status === 'RUNNING' || c.status === 'QUEUED') {
-    <div class="progress mb-3" style="height: 8px">
+    <div class="progress wa-run-progress mb-3">
       <div
         class="progress-bar progress-bar-striped progress-bar-animated bg-success"
         [style.width.%]="progress()"
@@ -96,7 +98,7 @@
   <div class="card wa-card">
     <div class="card-header d-flex flex-wrap gap-2 align-items-center justify-content-between">
       <span><i class="bi bi-people me-1"></i>Recipients</span>
-      <div class="btn-group btn-group-sm">
+      <div class="filter-scroll"><div class="btn-group btn-group-sm" role="group" aria-label="Recipient status">
         @for (
           option of ['', 'PENDING', 'QUEUED', 'SENT', 'DELIVERED', 'READ', 'FAILED'];
           track option
@@ -110,7 +112,7 @@
             {{ option || 'All' }}
           </button>
         }
-      </div>
+      </div></div>
     </div>
     <div class="table-responsive">
       <table class="table table-sm table-hover align-middle mb-0">
@@ -134,7 +136,7 @@
             </tr>
           } @empty {
             <tr>
-              <td colspan="4" class="text-center text-muted py-3">No recipients in this view.</td>
+              <td colspan="4" class="text-center text-muted py-4">No recipients in this view.</td>
             </tr>
           }
         </tbody>
@@ -166,5 +168,7 @@
     </p>
   }
 } @else {
-  <div class="card p-4 text-center text-muted">Loading…</div>
+  <div class="card wa-card p-4 text-center text-muted" aria-live="polite">
+    <span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Loading…
+  </div>
 }

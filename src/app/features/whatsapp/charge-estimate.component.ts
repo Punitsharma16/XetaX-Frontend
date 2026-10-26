@@ -94,14 +94,15 @@ import { CHARGE_LABELS, ChargeCategory, ChargeEstimate } from './whatsapp.servic
   `,
   styles: [`
     .ce {
-      border: 1px solid var(--border-subtle, #dee2e6);
-      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      background: var(--surface-card);
       padding: 0.75rem 0.9rem;
     }
     .ce__head {
       display: flex; justify-content: space-between; align-items: baseline;
       padding-bottom: 0.4rem; margin-bottom: 0.3rem;
-      border-bottom: 1px solid var(--border-subtle, #dee2e6);
+      border-bottom: 1px solid var(--border-subtle);
     }
     .ce__title { font-weight: 600; }
     .ce__total { font-weight: 700; font-size: 1.05rem; font-variant-numeric: tabular-nums; }
@@ -109,13 +110,13 @@ import { CHARGE_LABELS, ChargeCategory, ChargeEstimate } from './whatsapp.servic
       display: flex; justify-content: space-between; gap: 1rem;
       padding: 0.2rem 0; font-size: 0.85rem;
     }
-    .ce__count { color: var(--text-muted, #6c757d); }
+    .ce__count { color: var(--text-muted); }
     .ce__amount { font-variant-numeric: tabular-nums; }
     .ce__notes {
-      margin-top: 0.5rem; font-size: 0.72rem; color: var(--text-muted, #6c757d);
+      margin-top: 0.5rem; font-size: 0.72rem; color: var(--text-muted);
       display: grid; gap: 0.15rem;
     }
-    .ce__warn { color: var(--bs-warning-text-emphasis, #997404); }
+    .ce__warn { color: var(--warning-600); }
   `],
 })
 export class ChargeEstimateComponent {

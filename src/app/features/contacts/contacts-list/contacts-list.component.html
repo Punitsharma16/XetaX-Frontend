@@ -19,21 +19,24 @@
   </a>
 </app-page-header>
 
+<div class="card contacts-card">
 <!-- toolbar -->
-<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
-  <div class="contacts-search">
+<div class="toolbar">
+  <div class="toolbar-search contacts-search">
     <i class="bi bi-search"></i>
     <input
       class="form-control form-control-sm"
+      aria-label="Search contacts"
       placeholder="Search name, number, email, business…"
       [(ngModel)]="search"
       (input)="onSearch()"
     />
   </div>
-  <span class="text-muted small">{{ total() }} contact{{ total() === 1 ? '' : 's' }}</span>
+  <span class="text-muted small text-nowrap">{{ total() }} contact{{ total() === 1 ? '' : 's' }}</span>
 
   @if (selected().size) {
-    <div class="ms-auto d-flex align-items-center gap-2">
+    <div class="toolbar-spacer"></div>
+    <div class="d-flex flex-wrap align-items-center gap-2 contacts-bulk">
       <span class="badge badge-soft-primary">{{ selected().size }} selected</span>
       <button class="btn btn-success btn-sm" (click)="openCompose('whatsapp')">
         <i class="bi bi-whatsapp me-1"></i>Bulk WhatsApp
@@ -60,20 +63,19 @@
     </a>
   </app-empty-state>
 } @else {
-  <div class="card">
     <div class="table-responsive">
       <table class="table table-hover align-middle mb-0 contacts-table">
         <thead>
           <tr>
-            <th style="width: 36px">
-              <input type="checkbox" class="form-check-input" [checked]="allSelected()" (change)="toggleAll()" />
+            <th class="col-check">
+              <input type="checkbox" class="form-check-input" [checked]="allSelected()" (change)="toggleAll()" aria-label="Select all contacts" />
             </th>
             <th>Name</th>
             <th>Phone</th>
             <th>Email</th>
             <th>Business</th>
             <th>Address</th>
-            <th class="text-end" style="width: 90px"></th>
+            <th class="text-end col-actions"></th>
           </tr>
         </thead>
         <tbody>
@@ -90,16 +92,16 @@
                   <div class="min-w-0">
                     <div class="fw-semibold text-truncate">{{ contact.name }}</div>
                     @if (contact.notes) {
-                      <small class="text-muted text-truncate d-block" style="max-width: 220px">{{ contact.notes }}</small>
+                      <small class="text-muted text-truncate d-block cell-w-lg">{{ contact.notes }}</small>
                     }
                   </div>
                 </a>
               </td>
               <td class="text-nowrap">{{ contact.phone || '—' }}</td>
-              <td class="text-truncate" style="max-width: 200px">{{ contact.email || '—' }}</td>
-              <td class="text-truncate" style="max-width: 160px">{{ contact.company || '—' }}</td>
-              <td class="text-truncate" style="max-width: 200px">{{ contact.address || '—' }}</td>
-              <td class="text-end">
+              <td class="text-truncate cell-w-md">{{ contact.email || '—' }}</td>
+              <td class="text-truncate cell-w-sm">{{ contact.company || '—' }}</td>
+              <td class="text-truncate cell-w-md">{{ contact.address || '—' }}</td>
+              <td class="text-end text-nowrap">
                 <a class="btn btn-light btn-sm" [routerLink]="['/app/contacts', contact.id]" title="Open / edit">
                   <i class="bi bi-pencil me-1"></i>Edit
                 </a>
@@ -109,8 +111,8 @@
         </tbody>
       </table>
     </div>
-  </div>
 }
+</div>
 
 <!-- -------------------------------------------------------- bulk compose -->
 <app-modal
@@ -176,7 +178,7 @@
          (change)="onImportFile($event)" [disabled]="importing()" />
 
   @if (importResult(); as result) {
-    <div class="alert alert-light border small mt-3 mb-0">
+    <div class="alert alert-light border small mt-3 mb-0" role="status">
       <strong>{{ result.imported }}</strong> imported,
       <strong>{{ result.skipped }}</strong> skipped as duplicates,
       <strong>{{ result.failed }}</strong> failed.

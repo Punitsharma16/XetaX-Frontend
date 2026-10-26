@@ -3,7 +3,7 @@
   icon="bi-plug"
   subtitle="Receive records from external systems over a secured webhook endpoint."
 >
-  <button type="button" class="btn btn-outline-secondary" (click)="load()" title="Refresh">
+  <button type="button" class="btn btn-outline-secondary" (click)="load()" title="Refresh" aria-label="Refresh">
     <i class="bi bi-arrow-clockwise"></i>
   </button>
   <button type="button" class="btn btn-ai-outline" (click)="aiOpen.set(true)" title="Ask AI about your integrations">
@@ -16,15 +16,15 @@
 
 <!-- Ready-made: Facebook & Instagram lead ads -->
 <a class="card mb-3 text-decoration-none int-fb" routerLink="/app/ads">
-  <div class="card-body py-3 d-flex align-items-center gap-3">
+  <div class="card-body py-3 d-flex align-items-center flex-wrap flex-sm-nowrap gap-3">
     <span class="int-fb__icon"><i class="bi bi-megaphone"></i></span>
-    <span class="flex-grow-1">
+    <span class="flex-grow-1 int-fb__text">
       <b class="d-block">Facebook &amp; Instagram lead ads</b>
       <small class="text-secondary">
         Lead-form submissions become records instantly, and you see what each campaign actually cost per sale.
       </small>
     </span>
-    <span class="btn btn-outline-primary btn-sm">Set up</span>
+    <span class="btn btn-outline-primary btn-sm int-fb__cta">Set up</span>
   </div>
 </a>
 
@@ -39,7 +39,7 @@
           <em>Pick the target form — a key pair is generated.</em>
         </div>
       </div>
-      <i class="bi bi-chevron-right flow__sep"></i>
+      <i class="bi bi-chevron-right flow__sep" aria-hidden="true"></i>
       <div class="flow__step">
         <span class="flow__num">2</span>
         <div>
@@ -47,7 +47,7 @@
           <em>Match incoming keys to form fields.</em>
         </div>
       </div>
-      <i class="bi bi-chevron-right flow__sep"></i>
+      <i class="bi bi-chevron-right flow__sep" aria-hidden="true"></i>
       <div class="flow__step">
         <span class="flow__num">3</span>
         <div>
@@ -55,7 +55,7 @@
           <em>Saving the mapping switches it to ACTIVE.</em>
         </div>
       </div>
-      <i class="bi bi-chevron-right flow__sep"></i>
+      <i class="bi bi-chevron-right flow__sep" aria-hidden="true"></i>
       <div class="flow__step">
         <span class="flow__num">4</span>
         <div>
@@ -66,7 +66,7 @@
     </div>
 
     @if (pendingCount() > 0) {
-      <div class="alert alert-warning mt-3 mb-0 py-2 px-3" style="font-size: 0.75rem">
+      <div class="alert alert-warning alert-compact mt-3 mb-0">
         <i class="bi bi-exclamation-triangle me-1"></i>
         {{ pendingCount() }} integration(s) are still <strong>PENDING</strong> — they reject
         payloads until their field mapping is saved.
@@ -107,15 +107,15 @@
   <div class="row g-3">
     @for (integration of integrations(); track integration.id) {
       <div class="col-12 col-xl-6">
-        <div class="card h-100">
-          <div class="card-body">
+        <div class="card h-100 int-card">
+          <div class="card-body d-flex flex-column">
             <!-- Head -->
             <div class="d-flex align-items-start gap-3 mb-3">
               <span class="int-icon"><i class="bi" [class]="meta(integration.type).icon"></i></span>
 
               <div class="flex-fill min-w-0">
                 <div class="d-flex align-items-center gap-2 flex-wrap">
-                  <span class="fw-semibold">{{ integration.name }}</span>
+                  <span class="fw-semibold int-name">{{ integration.name }}</span>
                   <span
                     class="badge"
                     [class.badge-soft-success]="integration.status === Status.ACTIVE"
@@ -125,7 +125,7 @@
                     {{ integration.status }}
                   </span>
                 </div>
-                <div class="text-muted" style="font-size: 0.7rem">
+                <div class="int-meta">
                   {{ meta(integration.type).label }} ·
                   <i class="bi bi-ui-checks-grid"></i> {{ formName(integration) }}
                   @if (integration.description) {
@@ -182,12 +182,12 @@
             </div>
 
             @if (integration.status === Status.PENDING) {
-              <div class="alert alert-warning py-2 px-3 mb-2" style="font-size: 0.72rem">
+              <div class="alert alert-warning alert-compact alert-xs mb-2">
                 <i class="bi bi-exclamation-triangle me-1"></i>
                 Not live yet — save a field mapping to activate this endpoint.
               </div>
             } @else if (integration.status === Status.DISABLED) {
-              <div class="alert alert-secondary py-2 px-3 mb-2" style="font-size: 0.72rem">
+              <div class="alert alert-secondary alert-compact alert-xs mb-2">
                 <i class="bi bi-pause-circle me-1"></i>
                 Turned off — payloads are rejected. The URL, key and mappings are kept.
               </div>
@@ -199,7 +199,7 @@
               record with an empty field.
             -->
             @if (hasDiagnostics(integration)) {
-              <div class="alert alert-warning py-2 px-3 mb-2" style="font-size: 0.72rem">
+              <div class="alert alert-warning alert-compact alert-xs mb-2">
                 <div class="fw-semibold mb-1">
                   <i class="bi bi-exclamation-circle me-1"></i>Last payload didn't line up
                 </div>
@@ -242,6 +242,7 @@
                   class="btn btn-light btn-icon"
                   (click)="copy(webhookUrl(integration), 'Webhook URL')"
                   title="Copy URL"
+                  aria-label="Copy URL"
                 >
                   <i class="bi bi-clipboard"></i>
                 </button>
@@ -260,6 +261,7 @@
                   class="btn btn-light btn-icon"
                   (click)="toggleReveal(integration.id)"
                   [title]="isRevealed(integration.id) ? 'Hide key' : 'Reveal key'"
+                  [attr.aria-label]="isRevealed(integration.id) ? 'Hide key' : 'Reveal key'"
                 >
                   <i class="bi" [class.bi-eye]="!isRevealed(integration.id)" [class.bi-eye-slash]="isRevealed(integration.id)"></i>
                 </button>
@@ -268,13 +270,14 @@
                   class="btn btn-light btn-icon"
                   (click)="copy(integration.apiKey, 'API key')"
                   title="Copy key"
+                  aria-label="Copy key"
                 >
                   <i class="bi bi-clipboard"></i>
                 </button>
               </div>
             </div>
 
-            <div class="d-flex gap-2 mt-3">
+            <div class="int-card__actions d-flex flex-wrap gap-2 mt-auto">
               <button type="button" class="btn btn-light flex-fill" (click)="openMapping(integration)">
                 <i class="bi bi-diagram-2"></i> Field mapping
               </button>
@@ -336,7 +339,7 @@
             <option [value]="f.id">{{ f.name }}</option>
           }
         </select>
-        <div class="form-text" style="font-size: 0.7rem">
+        <div class="form-text form-text-xs">
           Incoming payloads become records of this form, and only its fields can be mapped.
         </div>
         <div class="invalid-feedback">Choose the form incoming records are written to.</div>
@@ -353,7 +356,7 @@
     </div>
 
     @if (!editing()) {
-      <div class="alert alert-info mt-3 mb-0 py-2 px-3" style="font-size: 0.75rem">
+      <div class="alert alert-info alert-compact mt-3 mb-0">
         <i class="bi bi-info-circle me-1"></i>
         The webhook URL and API key are generated on save, and the field mapping opens next —
         the endpoint stays <strong>PENDING</strong> until that mapping is saved.
@@ -385,7 +388,7 @@
   (closed)="closeMapping()"
 >
   @if (mappingFor(); as integration) {
-    <p class="text-muted mb-2" style="font-size: 0.75rem">
+    <p class="modal-note mb-2">
       Map each key of the incoming JSON to a field on
       <strong>{{ formName(integration) }}</strong>. Keys are matched
       case-insensitively, and anything unmapped is ignored. Saving replaces the
@@ -397,14 +400,14 @@
       }
     </p>
 
-    <p class="text-muted mb-3" style="font-size: 0.75rem">
+    <p class="modal-note mb-3">
       <i class="bi bi-diagram-3 me-1"></i>
       For a value nested inside the JSON, use a dot path — <code>customer.email</code>,
       <code>items.0.sku</code>. Pointing at an object stores the whole object.
     </p>
 
     @if (mappingSuggestions().length) {
-      <div class="alert alert-light py-2 px-3 mb-3" style="font-size: 0.72rem">
+      <div class="alert alert-light alert-compact alert-xs suggest-box mb-3">
         <div class="mb-1">
           The last payload sent these keys with nothing mapped to them — click one to use it:
         </div>
@@ -424,7 +427,7 @@
   }
 
   @if (mappingLoading()) {
-    <div class="skeleton" style="height: 140px"></div>
+    <div class="skeleton sk-map"></div>
   } @else if (!mappingFields().length) {
     <app-empty-state
       icon="bi-input-cursor-text"
@@ -436,7 +439,7 @@
       </a>
     </app-empty-state>
   } @else {
-    <div class="map-head">
+    <div class="map-head" aria-hidden="true">
       <span>Incoming JSON key</span>
       <span></span>
       <span>Form field</span>
@@ -455,7 +458,7 @@
             aria-label="Source field"
           />
 
-          <i class="bi bi-arrow-right map-arrow"></i>
+          <i class="bi bi-arrow-right map-arrow" aria-hidden="true"></i>
 
           <select
             class="form-select form-select-sm"
@@ -521,21 +524,21 @@
 >
   @if (testFor(); as integration) {
     @if (integration.status !== Status.ACTIVE) {
-      <div class="alert alert-warning py-2 px-3 mb-3" style="font-size: 0.75rem">
+      <div class="alert alert-warning alert-compact mb-3">
         <i class="bi bi-exclamation-triangle me-1"></i>
         This integration is <strong>{{ integration.status }}</strong> — the endpoint will reject
         payloads until a field mapping is saved.
       </div>
     }
 
-    <p class="text-muted mb-2" style="font-size: 0.75rem">
+    <p class="modal-note mb-2">
       Send this from the external system. Replace the sample keys with whatever
       you mapped as <em>incoming JSON keys</em>.
     </p>
 
     <pre class="curl-box">{{ curlSnippet(integration) }}</pre>
 
-    <div class="d-flex gap-2">
+    <div class="d-flex flex-wrap gap-2">
       <button type="button" class="btn btn-light btn-sm" (click)="copyCurl(integration)">
         <i class="bi bi-clipboard"></i> Copy curl
       </button>
@@ -551,7 +554,7 @@
     <div class="mt-3">
       <div class="section-label mb-2">Fields on {{ formName(integration) }}</div>
       @if (!testFields().length) {
-        <span class="text-muted" style="font-size: 0.75rem">No fields on this form yet.</span>
+        <span class="modal-note">No fields on this form yet.</span>
       } @else {
         <div class="d-flex flex-wrap gap-1">
           @for (field of testFields(); track field.id) {

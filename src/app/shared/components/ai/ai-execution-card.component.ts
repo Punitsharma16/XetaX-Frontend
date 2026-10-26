@@ -54,14 +54,14 @@ export interface AiExecutionStep {
   styles: [
     `
       .ai-exec {
-        border: 1px solid var(--brand-200, #c7d2fe);
-        background: color-mix(in srgb, var(--brand-50, #eef2ff) 55%, var(--bs-body-bg, #fff));
-        border-radius: var(--radius-lg, 10px);
+        border: 1px solid var(--brand-200);
+        background: color-mix(in srgb, var(--brand-50) 55%, var(--surface-card));
+        border-radius: var(--radius-lg);
         padding: 0.85rem 1rem;
         max-width: 420px;
       }
       .ai-exec--failed {
-        border-color: var(--bs-danger-border-subtle, #f1aeb5);
+        border-color: color-mix(in srgb, var(--danger-500) 35%, transparent);
       }
       .ai-exec__title {
         display: flex;
@@ -77,14 +77,14 @@ export interface AiExecutionStep {
         width: 24px;
         height: 24px;
         flex: 0 0 24px;
-        border-radius: 8px;
-        background: var(--brand-600, #4f46e5);
+        border-radius: var(--radius-sm);
+        background: var(--brand-600);
         color: #fff;
         font-size: 0.75rem;
       }
       .ai-exec__subtitle {
         font-size: 0.75rem;
-        color: var(--bs-secondary-color, #6c757d);
+        color: var(--text-muted);
         margin: 0.15rem 0 0 calc(24px + 0.5rem);
       }
       .ai-exec__steps {
@@ -100,7 +100,7 @@ export interface AiExecutionStep {
         font-size: 0.8rem;
       }
       .ai-exec__step[data-state='pending'] .ai-exec__label {
-        color: var(--bs-secondary-color, #6c757d);
+        color: var(--text-muted);
       }
       .ai-exec__icon {
         width: 16px;
@@ -109,19 +109,19 @@ export interface AiExecutionStep {
         text-align: center;
       }
       .ai-exec__icon--done {
-        color: var(--bs-success, #198754);
+        color: var(--success-500);
       }
       .ai-exec__icon--failed {
-        color: var(--bs-danger, #dc3545);
+        color: var(--danger-500);
       }
       .ai-exec__icon--pending {
-        color: var(--bs-secondary-color, #adb5bd);
+        color: var(--border-strong);
       }
       .spinner-border-sm {
         --bs-spinner-width: 0.85rem;
         --bs-spinner-height: 0.85rem;
         --bs-spinner-border-width: 0.14em;
-        color: var(--brand-600, #4f46e5);
+        color: var(--brand-600);
       }
     `,
   ],

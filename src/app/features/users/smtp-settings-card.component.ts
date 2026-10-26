@@ -24,7 +24,7 @@ interface SmtpStatus {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="card mt-3">
-      <div class="card-header d-flex align-items-center justify-content-between">
+      <div class="card-header d-flex align-items-center justify-content-between gap-2">
         <span><i class="bi bi-envelope-at me-2"></i>Email (SMTP)</span>
         @if (status()?.configured) {
           <span class="badge badge-soft-primary">Configured</span>
@@ -34,9 +34,9 @@ interface SmtpStatus {
       </div>
       <div class="card-body">
         @if (loading()) {
-          <div class="text-muted" style="font-size: 0.8rem">Checking…</div>
+          <div class="text-muted card-note" aria-live="polite">Checking…</div>
         } @else if (!status()?.canEdit) {
-          <p class="text-muted mb-0" style="font-size: 0.8rem">
+          <p class="text-muted mb-0 card-note">
             <i class="bi bi-info-circle me-1"></i>Only the organisation admin can change email settings.
             @if (status()?.configured) {
               Emails are currently sent from <b>{{ status()?.username }}</b>.
@@ -45,7 +45,7 @@ interface SmtpStatus {
             }
           </p>
         } @else {
-          <p class="text-muted" style="font-size: 0.75rem">
+          <p class="text-muted card-hint">
             Meeting invites and email automations are sent from this account. For Gmail:
             host <code>smtp.gmail.com</code>, port <code>587</code>, and use an
             <b>App&nbsp;Password</b> as the password (Google Account → Security → App passwords).
@@ -97,6 +97,25 @@ interface SmtpStatus {
       </div>
     </div>
   `,
+  styles: [
+    `
+      .card-header {
+        font-weight: 650;
+      }
+      .card-note {
+        font-size: 0.8rem;
+      }
+      .card-hint {
+        font-size: 0.75rem;
+        line-height: 1.55;
+      }
+      @media (max-width: 575.98px) {
+        .card-body .btn-primary {
+          width: 100%;
+        }
+      }
+    `,
+  ],
 })
 export class SmtpSettingsCardComponent implements OnInit {
   private readonly api = inject(CrmApiService);

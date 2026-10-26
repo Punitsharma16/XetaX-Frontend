@@ -1,27 +1,27 @@
 <div class="row g-3">
   <!-- ------------------------------------------------------ WhatsApp chat -->
   <div class="col-12 col-xl-6">
-    <div class="card h-100 d-flex flex-column">
-      <div class="card-header d-flex align-items-center justify-content-between">
-        <span><i class="bi bi-whatsapp me-2 text-success"></i>WhatsApp
+    <div class="card comm-card h-100 d-flex flex-column">
+      <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <span class="comm-card__title"><i class="bi bi-whatsapp me-2 comm-wa-icon"></i>WhatsApp
           @if (phone()) { <small class="text-muted ms-1">{{ phone() }}</small> }
         </span>
-        <button class="btn btn-light btn-sm" (click)="refresh()" title="Refresh">
+        <button class="btn btn-light btn-sm" (click)="refresh()" title="Refresh" aria-label="Refresh">
           <i class="bi bi-arrow-clockwise"></i>
         </button>
       </div>
 
       @if (!phone()) {
-        <div class="card-body text-center text-muted py-4">
-          <i class="bi bi-telephone-x d-block mb-2" style="font-size: 1.3rem"></i>
+        <div class="card-body comm-empty text-center text-muted py-4">
+          <span class="comm-empty__icon" aria-hidden="true"><i class="bi bi-telephone-x"></i></span>
           No phone number saved — add one to start chatting.
         </div>
       } @else {
         <div class="comm-chat">
           @if (chatLoading()) {
-            <div class="text-center text-muted py-3"><span class="spinner-border spinner-border-sm"></span></div>
+            <div class="text-center text-muted py-3" aria-live="polite"><span class="spinner-border spinner-border-sm"></span></div>
           } @else if (!chat().length) {
-            <div class="text-center text-muted py-3" style="font-size: 0.8rem">
+            <div class="text-center text-muted py-3 comm-note">
               No conversation yet — send the first message below.
             </div>
           } @else {
@@ -58,7 +58,7 @@
             <textarea class="form-control form-control-sm" rows="2" [(ngModel)]="waMessage"
                       placeholder="Write a message…"></textarea>
             <div class="d-flex gap-1 mt-2 align-items-center flex-wrap">
-              <small class="text-muted me-1" style="font-size: 0.68rem" title="The customer taps these to reply in one click">
+              <small class="text-muted me-1 comm-qr-label" title="The customer taps these to reply in one click">
                 <i class="bi bi-hand-index-thumb"></i> Quick replies:
               </small>
               <input class="form-control form-control-sm comm-btn-input" [(ngModel)]="waButtons[0]" placeholder="Button 1" maxlength="20" />
@@ -83,7 +83,7 @@
             <app-template-variables [template]="waTemplateObj"
                                     hint="type a value, or {fieldKey} to use this record's data"
                                     (valueChange)="waVars = $event" />
-            <div class="text-muted" style="font-size: 0.72rem">
+            <div class="text-muted comm-hint">
               <i class="bi bi-info-circle me-1"></i>Approved templates can be sent any time — no 24h window needed.
             </div>
           }
@@ -101,9 +101,9 @@
 
   <!-- -------------------------------------------------------- email side -->
   <div class="col-12 col-xl-6">
-    <div class="card h-100 d-flex flex-column">
-      <div class="card-header d-flex align-items-center justify-content-between">
-        <span><i class="bi bi-envelope me-2"></i>Emails
+    <div class="card comm-card h-100 d-flex flex-column">
+      <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <span class="comm-card__title"><i class="bi bi-envelope me-2 comm-mail-icon"></i>Emails
           @if (email()) { <small class="text-muted ms-1">{{ email() }}</small> }
         </span>
         @if (email()) {
@@ -114,8 +114,8 @@
       </div>
 
       @if (!email()) {
-        <div class="card-body text-center text-muted py-4">
-          <i class="bi bi-envelope-x d-block mb-2" style="font-size: 1.3rem"></i>
+        <div class="card-body comm-empty text-center text-muted py-4">
+          <span class="comm-empty__icon" aria-hidden="true"><i class="bi bi-envelope-x"></i></span>
           No email address saved — add one to send emails.
         </div>
       } @else {
@@ -138,7 +138,7 @@
                 </label>
               }
             </div>
-            <div class="d-flex justify-content-end gap-2 mt-2">
+            <div class="d-flex flex-wrap justify-content-end gap-2 mt-2">
               <button class="btn btn-outline-secondary btn-sm" (click)="emailComposerOpen.set(false)">Cancel</button>
               <button class="btn btn-primary btn-sm" [disabled]="emailSending()" (click)="sendEmail()">
                 @if (emailSending()) { <span class="spinner-border spinner-border-sm me-1"></span> }
@@ -151,15 +151,15 @@
 
         <div class="comm-emails">
           @if (emailsLoading()) {
-            <div class="text-center text-muted py-3"><span class="spinner-border spinner-border-sm"></span></div>
+            <div class="text-center text-muted py-3" aria-live="polite"><span class="spinner-border spinner-border-sm"></span></div>
           } @else if (!emails().length) {
-            <div class="text-center text-muted py-3" style="font-size: 0.8rem">
+            <div class="text-center text-muted py-3 comm-note">
               No emails have been sent to this address yet.
             </div>
           } @else {
             @for (log of emails(); track log.id) {
               <div class="comm-email" [class.comm-email--failed]="log.status === 'FAILED'">
-                <div class="d-flex align-items-center gap-2">
+                <div class="d-flex align-items-center gap-2 min-w-0">
                   <span class="badge" [class.badge-soft-success]="log.status === 'SENT'"
                         [class.badge-soft-danger]="log.status === 'FAILED'">{{ log.status }}</span>
                   <b class="text-truncate">{{ log.subject || '(no subject)' }}</b>

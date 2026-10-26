@@ -11,8 +11,8 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 px-3 py-2 border-top border-subtle">
-      <div class="text-muted" style="font-size: 0.75rem">
+    <div class="pager d-flex flex-wrap align-items-center justify-content-between gap-2 px-3 py-2 border-top border-subtle">
+      <div class="pager-summary text-muted" aria-live="polite">
         @if (totalElements() > 0) {
           Showing <strong>{{ from() }}</strong>–<strong>{{ to() }}</strong> of
           <strong>{{ totalElements() }}</strong>
@@ -21,10 +21,9 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
         }
       </div>
 
-      <div class="d-flex align-items-center gap-2">
+      <div class="pager-controls d-flex align-items-center gap-2">
         <select
-          class="form-select form-select-sm"
-          style="width: auto"
+          class="form-select form-select-sm pager-size"
           [value]="size()"
           (change)="onSizeChange($event)"
           aria-label="Rows per page"
@@ -54,7 +53,7 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
             <i class="bi bi-chevron-left"></i>
           </button>
 
-          <span class="btn btn-outline-secondary disabled px-3">
+          <span class="btn btn-outline-secondary disabled px-3 pager-current">
             {{ page() + 1 }} / {{ totalPages() || 1 }}
           </span>
 
@@ -80,6 +79,33 @@ import { ChangeDetectionStrategy, Component, computed, input, output } from '@an
       </div>
     </div>
   `,
+  styles: [
+    `
+      :host {
+        display: block;
+      }
+      .pager-summary {
+        font-size: 0.75rem;
+        font-variant-numeric: tabular-nums;
+      }
+      .pager-size {
+        width: auto;
+      }
+      .pager-current {
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
+      @media (max-width: 575.98px) {
+        .pager {
+          justify-content: center !important;
+        }
+        .pager-summary {
+          width: 100%;
+          text-align: center;
+        }
+      }
+    `,
+  ],
 })
 export class PaginationComponent {
   /** Zero-based page index. */

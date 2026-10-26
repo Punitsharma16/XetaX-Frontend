@@ -38,7 +38,7 @@ interface PanelMessage {
   template: `
     @if (open) {
       <div class="aip-backdrop" (click)="close()"></div>
-      <aside class="aip">
+      <aside class="aip" role="dialog" aria-label="AI Assistant">
         <header class="aip__head">
           <span class="aip__spark"><i class="bi bi-stars"></i></span>
           <div class="min-w-0">
@@ -46,7 +46,7 @@ interface PanelMessage {
             <div class="aip__context text-truncate">{{ contextLabel }}</div>
           </div>
           @if (messages().length) {
-            <button type="button" class="btn btn-sm btn-outline-secondary aip__reset" (click)="reset()" title="New conversation">
+            <button type="button" class="btn btn-sm btn-outline-secondary aip__reset" (click)="reset()" title="New conversation" aria-label="New conversation">
               <i class="bi bi-plus-circle"></i>
             </button>
           }
@@ -113,7 +113,7 @@ interface PanelMessage {
       .aip-backdrop {
         position: fixed;
         inset: 0;
-        background: rgba(15, 18, 34, 0.35);
+        background: rgba(15, 18, 34, 0.4);
         z-index: 1050;
       }
       .aip {
@@ -122,9 +122,9 @@ interface PanelMessage {
         right: 0;
         bottom: 0;
         width: min(430px, 100vw);
-        background: var(--bs-body-bg);
-        border-left: 1px solid var(--bs-border-color);
-        box-shadow: -12px 0 32px rgba(15, 18, 34, 0.18);
+        background: var(--surface-card);
+        border-left: 1px solid var(--border-subtle);
+        box-shadow: var(--shadow-lg);
         z-index: 1055;
         display: flex;
         flex-direction: column;
@@ -134,7 +134,7 @@ interface PanelMessage {
         align-items: center;
         gap: 0.6rem;
         padding: 0.8rem 1rem;
-        border-bottom: 1px solid var(--bs-border-color);
+        border-bottom: 1px solid var(--border-subtle);
       }
       .aip__spark {
         width: 32px;
@@ -143,7 +143,7 @@ interface PanelMessage {
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 10px;
+        border-radius: var(--radius-md);
         color: #fff;
         background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
       }
@@ -153,7 +153,7 @@ interface PanelMessage {
       }
       .aip__context {
         font-size: 0.72rem;
-        color: var(--bs-secondary-color);
+        color: var(--text-muted);
       }
       .aip__reset {
         margin-left: auto;
@@ -175,7 +175,7 @@ interface PanelMessage {
       }
       .aip__hint {
         font-size: 0.76rem;
-        color: var(--bs-secondary-color);
+        color: var(--text-muted);
         margin: 0;
       }
       .aip__prompts {
@@ -186,7 +186,7 @@ interface PanelMessage {
       }
       .aip__chip {
         border: 1px solid var(--brand-200);
-        background: var(--bs-body-bg);
+        background: var(--surface-card);
         color: var(--brand-700);
         border-radius: var(--radius-pill);
         padding: 0.3rem 0.7rem;
@@ -215,8 +215,8 @@ interface PanelMessage {
         font-size: 0.8rem;
         line-height: 1.45;
         word-break: break-word;
-        background: var(--bs-tertiary-bg, #f6f7f9);
-        border: 1px solid var(--bs-border-color);
+        background: var(--surface-sunken);
+        border: 1px solid var(--border-subtle);
       }
       .aip-msg--user .aip-msg__bubble {
         background: var(--brand-600);
@@ -225,15 +225,15 @@ interface PanelMessage {
         white-space: pre-wrap;
       }
       .aip-msg__bubble--error {
-        background: var(--bs-danger-bg-subtle, #f8d7da);
-        border-color: var(--bs-danger-border-subtle, #f1aeb5);
+        background: var(--danger-50);
+        border-color: color-mix(in srgb, var(--danger-500) 35%, transparent);
       }
       .aip__composer {
         display: flex;
         gap: 0.5rem;
         align-items: flex-end;
         padding: 0.7rem 0.9rem;
-        border-top: 1px solid var(--bs-border-color);
+        border-top: 1px solid var(--border-subtle);
       }
       .aip__composer textarea {
         resize: none;

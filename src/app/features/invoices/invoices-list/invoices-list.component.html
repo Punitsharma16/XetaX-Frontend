@@ -10,85 +10,75 @@
 
 <!-- ------------------------------------------------------- summary tiles -->
 @if (summary(); as s) {
-  <div class="row g-3 mb-3">
+  <div class="row g-3 mb-4">
     <div class="col-6 col-lg-3">
-      <div class="card inv-tile h-100">
-        <div class="card-body py-3">
-          <div class="inv-tile__label"><i class="bi bi-receipt me-1"></i>Total invoiced</div>
-          <div class="inv-tile__value">Rs. {{ s.invoiced | number: '1.2-2' }}</div>
-          <div class="inv-tile__hint">{{ s.totalCount }} invoice(s)</div>
-        </div>
+      <div class="stat-card inv-tile h-100">
+        <div class="stat-card-label inv-tile__label"><i class="bi bi-receipt me-1"></i>Total invoiced</div>
+        <div class="stat-card-value inv-tile__value">Rs. {{ s.invoiced | number: '1.2-2' }}</div>
+        <div class="inv-tile__hint">{{ s.totalCount }} invoice(s)</div>
       </div>
     </div>
     <div class="col-6 col-lg-3">
-      <div class="card inv-tile inv-tile--green h-100">
-        <div class="card-body py-3">
-          <div class="inv-tile__label"><i class="bi bi-check2-circle me-1"></i>Received</div>
-          <div class="inv-tile__value">Rs. {{ s.received | number: '1.2-2' }}</div>
-          <div class="inv-tile__hint">{{ s.paidCount }} fully paid</div>
-        </div>
+      <div class="stat-card inv-tile inv-tile--green h-100">
+        <div class="stat-card-label inv-tile__label"><i class="bi bi-check2-circle me-1"></i>Received</div>
+        <div class="stat-card-value inv-tile__value">Rs. {{ s.received | number: '1.2-2' }}</div>
+        <div class="inv-tile__hint">{{ s.paidCount }} fully paid</div>
       </div>
     </div>
     <div class="col-6 col-lg-3">
-      <div class="card inv-tile inv-tile--amber h-100">
-        <div class="card-body py-3">
-          <div class="inv-tile__label"><i class="bi bi-hourglass-split me-1"></i>Pending</div>
-          <div class="inv-tile__value">Rs. {{ s.pending | number: '1.2-2' }}</div>
-          <div class="inv-tile__hint">{{ s.openCount }} open · {{ s.draftCount }} draft</div>
-        </div>
+      <div class="stat-card inv-tile inv-tile--amber h-100">
+        <div class="stat-card-label inv-tile__label"><i class="bi bi-hourglass-split me-1"></i>Pending</div>
+        <div class="stat-card-value inv-tile__value">Rs. {{ s.pending | number: '1.2-2' }}</div>
+        <div class="inv-tile__hint">{{ s.openCount }} open · {{ s.draftCount }} draft</div>
       </div>
     </div>
     <div class="col-6 col-lg-3">
-      <div class="card inv-tile inv-tile--red h-100">
-        <div class="card-body py-3">
-          <div class="inv-tile__label"><i class="bi bi-exclamation-octagon me-1"></i>Overdue</div>
-          <div class="inv-tile__value">Rs. {{ s.overdue | number: '1.2-2' }}</div>
-          <div class="inv-tile__hint">past the due date</div>
-        </div>
+      <div class="stat-card inv-tile inv-tile--red h-100">
+        <div class="stat-card-label inv-tile__label"><i class="bi bi-exclamation-octagon me-1"></i>Overdue</div>
+        <div class="stat-card-value inv-tile__value">Rs. {{ s.overdue | number: '1.2-2' }}</div>
+        <div class="inv-tile__hint">past the due date</div>
       </div>
     </div>
   </div>
 }
 
-<!-- ------------------------------------------------------------ filters -->
-<div class="card mb-3">
-  <div class="card-body py-3">
-    <div class="row g-2 align-items-end">
-      <div class="col-12 col-md-3">
-        <label class="form-label inv-filter-label">Search</label>
-        <input class="form-control form-control-sm" placeholder="Invoice no. or customer…"
+<!-- ------------------------------------------------- filters + list -->
+<div class="card">
+  <div class="toolbar inv-toolbar">
+    <div class="inv-filter inv-filter--search">
+      <label class="form-label inv-filter-label" for="invFilterQ">Search</label>
+      <div class="toolbar-search">
+        <i class="bi bi-search" aria-hidden="true"></i>
+        <input id="invFilterQ" class="form-control form-control-sm" placeholder="Invoice no. or customer…"
                [(ngModel)]="q" (ngModelChange)="onSearchInput()" />
       </div>
-      <div class="col-6 col-md-2">
-        <label class="form-label inv-filter-label">Status</label>
-        <select class="form-select form-select-sm" [(ngModel)]="status" (ngModelChange)="onFilterChange()">
-          <option value="">All</option>
-          @for (st of statuses; track st) {
-            <option [value]="st">{{ st }}</option>
-          }
-        </select>
-      </div>
-      <div class="col-6 col-md-2">
-        <label class="form-label inv-filter-label">From</label>
-        <input type="date" class="form-control form-control-sm" [(ngModel)]="fromDate"
-               (ngModelChange)="onFilterChange()" />
-      </div>
-      <div class="col-6 col-md-2">
-        <label class="form-label inv-filter-label">To</label>
-        <input type="date" class="form-control form-control-sm" [(ngModel)]="toDate"
-               (ngModelChange)="onFilterChange()" />
-      </div>
-      <div class="col-6 col-md-2">
-        <button class="btn btn-outline-secondary btn-sm" (click)="resetFilters()">
-          <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
-        </button>
-      </div>
+    </div>
+    <div class="inv-filter">
+      <label class="form-label inv-filter-label" for="invFilterStatus">Status</label>
+      <select id="invFilterStatus" class="form-select form-select-sm" [(ngModel)]="status" (ngModelChange)="onFilterChange()">
+        <option value="">All</option>
+        @for (st of statuses; track st) {
+          <option [value]="st">{{ st }}</option>
+        }
+      </select>
+    </div>
+    <div class="inv-filter">
+      <label class="form-label inv-filter-label" for="invFilterFrom">From</label>
+      <input id="invFilterFrom" type="date" class="form-control form-control-sm" [(ngModel)]="fromDate"
+             (ngModelChange)="onFilterChange()" />
+    </div>
+    <div class="inv-filter">
+      <label class="form-label inv-filter-label" for="invFilterTo">To</label>
+      <input id="invFilterTo" type="date" class="form-control form-control-sm" [(ngModel)]="toDate"
+             (ngModelChange)="onFilterChange()" />
+    </div>
+    <div class="inv-filter inv-filter--action">
+      <button class="btn btn-outline-secondary btn-sm" (click)="resetFilters()">
+        <i class="bi bi-arrow-counterclockwise me-1"></i>Reset
+      </button>
     </div>
   </div>
-</div>
 
-<!-- --------------------------------------------------------------- list -->
-<div class="card">
   @if (loading()) {
     <div class="card-body"><app-table-skeleton [rows]="6" /></div>
   } @else if (!page().content.length) {
@@ -125,7 +115,7 @@
               <td>
                 {{ invoice.dueDate ? (invoice.dueDate | date: 'dd MMM yy') : '—' }}
                 @if (isOverdue(invoice)) {
-                  <span class="badge text-bg-danger ms-1" style="font-size: 0.6rem">OVERDUE</span>
+                  <span class="badge text-bg-danger ms-1 inv-overdue">OVERDUE</span>
                 }
               </td>
               <td class="text-end">{{ invoice.total | number: '1.2-2' }}</td>
@@ -137,18 +127,18 @@
         </tbody>
       </table>
     </div>
-    <div class="card-footer d-flex align-items-center justify-content-between">
+    <div class="card-footer d-flex flex-wrap align-items-center justify-content-between gap-2">
       <small class="text-secondary">
         Showing {{ page().numberOfElements }} of {{ page().totalElements }}
       </small>
       <div class="btn-group">
         <button class="btn btn-outline-secondary btn-sm" [disabled]="page().first"
-                (click)="goTo(pageIndex() - 1)"><i class="bi bi-chevron-left"></i></button>
-        <button class="btn btn-outline-secondary btn-sm" disabled>
+                (click)="goTo(pageIndex() - 1)" aria-label="Previous page"><i class="bi bi-chevron-left"></i></button>
+        <button class="btn btn-outline-secondary btn-sm inv-page-indicator" disabled>
           {{ page().number + 1 }} / {{ page().totalPages || 1 }}
         </button>
         <button class="btn btn-outline-secondary btn-sm" [disabled]="page().last"
-                (click)="goTo(pageIndex() + 1)"><i class="bi bi-chevron-right"></i></button>
+                (click)="goTo(pageIndex() + 1)" aria-label="Next page"><i class="bi bi-chevron-right"></i></button>
       </div>
     </div>
   }

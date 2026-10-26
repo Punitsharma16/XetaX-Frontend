@@ -3,21 +3,23 @@
 .picker-card {
   border: 1px solid var(--border-subtle);
   background: var(--surface-card);
-  cursor: pointer;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast),
-    border-color var(--transition-fast);
+  color: inherit;
+  min-width: 0;
 }
 
 .picker-card:hover {
-  transform: translateY(-2px);
   border-color: var(--brand-200);
-  box-shadow: var(--shadow-md);
+}
+
+.picker-card:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
 .picker-icon {
   width: 40px;
   height: 40px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -25,6 +27,23 @@
 }
 
 /* ---------------------------------------------------------------- records */
+
+.meta-xs {
+  font-size: 0.7rem;
+}
+
+.choice-label {
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.col-check {
+  width: 34px;
+}
+
+.col-actions {
+  width: 110px;
+}
 
 .cell-clamp {
   max-width: 240px;
@@ -92,8 +111,11 @@
 }
 
 /* ------------------------------------------------------------ quick filters */
+/* Toolbar on top of the records table (same card). */
 .quick-filters {
-  padding: 0.6rem 0.8rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-card);
 }
 
 .quick-filters__row {
@@ -106,7 +128,7 @@
 .quick-filters__label {
   font-size: 0.78rem;
   font-weight: 600;
-  color: var(--bs-secondary-color, #6c757d);
+  color: var(--text-secondary);
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
@@ -120,14 +142,16 @@
 }
 
 .quick-filters__more.is-open {
-  background: var(--bs-secondary-bg, #e9ecef);
+  background: var(--brand-50);
+  border-color: var(--brand-200);
+  color: var(--brand-700);
 }
 
 /* Advanced panel — per-field contains / range / date-span rows. */
 .quick-filters__adv {
   margin-top: 0.6rem;
   padding-top: 0.6rem;
-  border-top: 1px dashed var(--bs-border-color);
+  border-top: 1px dashed var(--border-subtle);
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
   gap: 0.5rem 1.25rem;
@@ -143,7 +167,7 @@
   flex: 0 0 110px;
   font-size: 0.76rem;
   font-weight: 600;
-  color: var(--bs-secondary-color, #6c757d);
+  color: var(--text-secondary);
 }
 
 .adv-row__pair {
@@ -155,13 +179,20 @@
 }
 
 .adv-row__dash {
-  color: var(--bs-secondary-color, #6c757d);
+  color: var(--text-muted);
   flex: 0 0 auto;
 }
 
-@media (max-width: 576px) {
+@media (max-width: 575.98px) {
+  .quick-filters {
+    padding: 0.75rem;
+  }
+  .quick-filters__label {
+    flex-basis: 100%;
+  }
   .quick-filters__select {
-    min-width: 120px;
+    min-width: 0;
+    max-width: none;
     flex: 1 1 45%;
   }
   .quick-filters__adv {
@@ -196,23 +227,23 @@
 }
 
 .import-result {
-  border: 1px solid var(--bs-success-border-subtle, #a3cfbb);
-  background: var(--bs-success-bg-subtle, #d1e7dd);
+  border: 1px solid transparent;
+  background: var(--success-50);
+  color: var(--text-primary);
   border-radius: var(--radius-md);
   padding: 0.6rem 0.8rem;
   font-size: 0.8rem;
 }
 
 .import-result--bad {
-  border-color: var(--bs-danger-border-subtle, #f1aeb5);
-  background: var(--bs-danger-bg-subtle, #f8d7da);
+  background: var(--danger-50);
 }
 
 .import-result__errors {
   max-height: 160px;
   overflow-y: auto;
   font-size: 0.72rem;
-  color: var(--bs-secondary-color);
+  color: var(--text-secondary);
   margin-top: 0.3rem;
 }
 
@@ -220,13 +251,15 @@
 .sel-bar {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.5rem 0.9rem;
-  background: var(--brand-50, #eef2ff);
-  border-bottom: 1px solid var(--border-subtle, #e9ecef);
+  flex-wrap: wrap;
+  gap: 0.5rem 0.6rem;
+  padding: 0.6rem 1rem;
+  background: var(--brand-50);
+  color: var(--brand-700);
+  border-bottom: 1px solid var(--border-subtle);
   font-size: 0.82rem;
 }
 
 tr.row-selected > td {
-  background: var(--brand-50, #eef2ff);
+  background: var(--brand-50);
 }

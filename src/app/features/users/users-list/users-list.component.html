@@ -14,38 +14,39 @@
   }
 </app-page-header>
 
-<div class="tm-tabs mb-3">
-  <button class="tm-tabs__pill" [class.is-active]="tab() === 'members'" (click)="tab.set('members')">
+<div class="tm-tabs mb-3" role="tablist">
+  <button type="button" class="tm-tabs__pill" role="tab" [attr.aria-selected]="tab() === 'members'" [class.is-active]="tab() === 'members'" (click)="tab.set('members')">
     <i class="bi bi-people"></i> Members
     @if (members().length) { <span class="tm-count">{{ members().length }}</span> }
   </button>
-  <button class="tm-tabs__pill" [class.is-active]="tab() === 'roles'" (click)="tab.set('roles')">
+  <button type="button" class="tm-tabs__pill" role="tab" [attr.aria-selected]="tab() === 'roles'" [class.is-active]="tab() === 'roles'" (click)="tab.set('roles')">
     <i class="bi bi-shield-lock"></i> Roles
     @if (roles().length) { <span class="tm-count">{{ roles().length }}</span> }
   </button>
 </div>
 
 @if (error()) {
-  <app-error-state>
+  <div class="card tm-card"><app-error-state>
     <button class="btn btn-outline-secondary btn-sm" (click)="load()">Retry</button>
-  </app-error-state>
+  </app-error-state></div>
 } @else if (loading()) {
   <div class="card tm-card p-3"><app-table-skeleton [rows]="4" [cols]="4" /></div>
 } @else if (tab() === 'members') {
 
   <!-- ------------------------------------------------------- MEMBERS -->
   @if (!members().length) {
-    <div class="card tm-card p-3">
+    <div class="card tm-card">
       <app-empty-state
         icon="bi-people"
         title="No team members yet"
         message="Add a member and give them a role — they will work on your CRM data within that role."
-      />
-      <div class="text-center pb-3">
-        <button class="btn tm-btn" (click)="openMemberModal()">
-          <i class="bi bi-person-plus me-1"></i>Add first member
-        </button>
-      </div>
+      >
+        <div class="mt-2">
+          <button class="btn tm-btn" (click)="openMemberModal()">
+            <i class="bi bi-person-plus me-1"></i>Add first member
+          </button>
+        </div>
+      </app-empty-state>
     </div>
   } @else {
     <div class="card tm-card">
@@ -55,7 +56,7 @@
             <tr>
               <th>Member</th>
               <th>Email</th>
-              <th style="width: 220px">Role</th>
+              <th class="tm-col-role">Role</th>
               <th class="text-end"></th>
             </tr>
           </thead>
@@ -63,7 +64,7 @@
             @for (member of members(); track member.userId) {
               <tr>
                 <td>
-                  <span class="tm-avatar">{{ (member.name || '?').charAt(0).toUpperCase() }}</span>
+                  <span class="tm-avatar" aria-hidden="true">{{ (member.name || '?').charAt(0).toUpperCase() }}</span>
                   <span class="fw-medium ms-2">{{ member.name }}</span>
                 </td>
                 <td class="text-muted">{{ member.email }}</td>
@@ -82,7 +83,7 @@
                   </select>
                 </td>
                 <td class="text-end">
-                  <button class="btn btn-link btn-sm text-danger p-0" title="Remove"
+                  <button class="btn btn-link btn-sm text-danger p-0 tm-remove" title="Remove" aria-label="Remove"
                           (click)="removeMember(member)">
                     <i class="bi bi-person-dash"></i>
                   </button>
@@ -107,7 +108,7 @@
     @for (role of roles(); track role.id) {
       <div class="card tm-card tm-role">
         <div class="tm-role__head">
-          <span class="tm-role__name">
+          <span class="tm-role__name min-w-0">
             <i class="bi me-1" [class.bi-shield-fill-check]="role.system" [class.bi-shield]="!role.system"></i>
             {{ role.name }}
           </span>
@@ -150,24 +151,24 @@
            (closed)="memberOpen.set(false)">
   <div class="row g-3">
     <div class="col-12 col-md-6">
-      <label class="form-label">Name</label>
-      <input class="form-control" [(ngModel)]="mName" placeholder="Ravi Kumar" />
+      <label class="form-label" for="tmMemberName">Name</label>
+      <input id="tmMemberName" class="form-control" [(ngModel)]="mName" placeholder="Ravi Kumar" />
     </div>
     <div class="col-12 col-md-6">
-      <label class="form-label">Role</label>
-      <select class="form-select" [(ngModel)]="mRoleId">
+      <label class="form-label" for="tmMemberRole">Role</label>
+      <select id="tmMemberRole" class="form-select" [(ngModel)]="mRoleId">
         @for (role of assignableRoles(); track role.id) {
           <option [ngValue]="role.id">{{ role.name }}</option>
         }
       </select>
     </div>
     <div class="col-12 col-md-6">
-      <label class="form-label">Email <span class="text-muted fw-normal">(login id)</span></label>
-      <input type="email" class="form-control" [(ngModel)]="mEmail" placeholder="ravi@company.com" />
+      <label class="form-label" for="tmMemberEmail">Email <span class="text-muted fw-normal">(login id)</span></label>
+      <input id="tmMemberEmail" type="email" class="form-control" [(ngModel)]="mEmail" placeholder="ravi@company.com" />
     </div>
     <div class="col-12 col-md-6">
-      <label class="form-label">Password</label>
-      <input type="text" class="form-control" [(ngModel)]="mPassword" placeholder="6+ characters" />
+      <label class="form-label" for="tmMemberPassword">Password</label>
+      <input id="tmMemberPassword" type="text" class="form-control" [(ngModel)]="mPassword" placeholder="6+ characters" />
       <div class="form-text">Share it with the member — they should change it after their first login.</div>
     </div>
   </div>
@@ -185,8 +186,8 @@
 <app-modal [open]="roleOpen()" [title]="editingRole ? 'Edit role' : 'New role'"
            icon="bi-shield-lock" size="lg" (closed)="roleOpen.set(false)">
   <div class="mb-3">
-    <label class="form-label">Role name</label>
-    <input class="form-control" [(ngModel)]="rName" placeholder="SALES AGENT" />
+    <label class="form-label" for="tmRoleName">Role name</label>
+    <input id="tmRoleName" class="form-control" [(ngModel)]="rName" placeholder="SALES AGENT" />
   </div>
 
   <label class="form-label">Permissions — tick everything this role may do</label>
@@ -213,7 +214,7 @@
     }
   </div>
 
-  <div modalFooter class="d-flex justify-content-between align-items-center w-100">
+  <div modalFooter class="tm-role-foot d-flex flex-wrap justify-content-between align-items-center gap-2 w-100">
     <span class="text-muted small">{{ rPerms.size }} permissions selected</span>
     <div class="d-flex gap-2">
       <button class="btn btn-outline-secondary" (click)="roleOpen.set(false)">Cancel</button>

@@ -1,25 +1,27 @@
 /* Phone: the card IS the screen. Desktop (≥768px): a medium card centred on a
-   soft tinted backdrop — never full-width, never tiny. */
+   soft tinted backdrop — never full-width, never tiny.
+   --pc-color is the agent's own theme colour (set from the template). */
 :host {
   display: block;
   min-height: 100dvh;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--bs-font-sans-serif);
 }
 
 .pc-wrap {
-  --pc-color: #4f46e5;
+  --pc-color: var(--brand-600);
   min-height: 100dvh;
   display: flex;
   align-items: stretch;
   justify-content: center;
-  background: #f4f5fb;
+  background: var(--surface-page);
+  color: var(--text-primary);
 }
 
 .pc-card {
   width: 100%;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: var(--surface-card);
   overflow: hidden;
   height: 100dvh;
 }
@@ -29,40 +31,55 @@
   align-items: center;
   gap: 0.75rem;
   padding: 0.9rem 1rem;
+  padding-top: max(0.9rem, env(safe-area-inset-top));
   background: var(--pc-color);
   color: #fff;
 }
+.pc-head__text { min-width: 0; }
 .pc-avatar {
-  width: 38px; height: 38px; border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 40px;
+  border-radius: 50%;
   background: rgba(255, 255, 255, 0.22);
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-size: 1.05rem;
 }
-.pc-title { font-weight: 700; font-size: 1rem; line-height: 1.2; }
-.pc-sub { font-size: 0.74rem; opacity: 0.85; }
+.pc-title {
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pc-sub { font-size: 0.75rem; opacity: 0.85; }
 
 .pc-body {
   flex: 1;
   overflow-y: auto;
   padding: 1rem;
-  background: #f6f7fb;
+  background: var(--surface-sunken);
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 .pc-msg {
   max-width: 82%;
-  padding: 0.6rem 0.8rem;
+  padding: 0.6rem 0.85rem;
   border-radius: 16px;
   font-size: 0.92rem;
   line-height: 1.45;
   white-space: pre-wrap;
   word-break: break-word;
-  background: #fff;
-  border: 1px solid #e7e9f2;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-xs);
   border-bottom-left-radius: 5px;
   align-self: flex-start;
-  color: #1f2437;
+  color: var(--text-primary);
 }
 .pc-msg--me {
   background: var(--pc-color);
@@ -72,41 +89,72 @@
   border-bottom-left-radius: 16px;
   border-bottom-right-radius: 5px;
 }
-.pc-msg--human { border-left: 3px solid #22c55e; }
-.pc-sys { align-self: center; color: #8a90a8; font-size: 0.72rem; font-style: italic; }
-.pc-typing { align-self: flex-start; color: #8a90a8; font-size: 0.78rem; padding: 0 0.4rem; }
+.pc-msg--human { border-left: 3px solid var(--success-500); }
+.pc-sys { align-self: center; color: var(--text-muted); font-size: 0.72rem; font-style: italic; text-align: center; }
+.pc-typing { align-self: flex-start; color: var(--text-muted); font-size: 0.78rem; padding: 0 0.4rem; }
 
 .pc-foot {
   display: flex;
   gap: 0.5rem;
   padding: 0.65rem 0.75rem;
-  border-top: 1px solid #eceef5;
-  background: #fff;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-card);
 }
 .pc-foot input {
   flex: 1;
-  border: 1px solid #dde0ec;
-  border-radius: 999px;
-  padding: 0.6rem 0.95rem;
-  font-size: 0.95rem;
+  min-width: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  padding: 0.6rem 1rem;
+  font-size: 16px; /* no iOS zoom */
+  background: var(--surface-card);
+  color: var(--text-primary);
   outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
-.pc-foot input:focus { border-color: var(--pc-color); }
+.pc-foot input::placeholder { color: var(--text-muted); }
+.pc-foot input:focus {
+  border-color: var(--pc-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pc-color) 22%, transparent);
+}
 .pc-send {
-  width: 42px; height: 42px; border-radius: 50%; border: 0;
-  background: var(--pc-color); color: #fff;
-  display: flex; align-items: center; justify-content: center;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--pc-color);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
+  transition: transform var(--transition-fast), opacity var(--transition-fast);
 }
+.pc-send:hover:not(:disabled) { transform: scale(1.05); }
+.pc-send:focus-visible { outline: none; box-shadow: var(--focus-ring); }
 .pc-send:disabled { opacity: 0.45; cursor: default; }
-.pc-pow { font-size: 0.66rem; text-align: center; color: #a9aec4; padding: 0.25rem 0 0.45rem; background: #fff; }
+.pc-pow {
+  font-size: 0.66rem;
+  text-align: center;
+  color: var(--text-muted);
+  padding: 0.25rem 0 max(0.45rem, env(safe-area-inset-bottom));
+  background: var(--surface-card);
+}
 
 .pc-card--empty {
-  height: auto; margin: auto; max-width: 420px; padding: 2.5rem 1.5rem;
-  text-align: center; color: #5b6078; border-radius: 18px;
+  height: auto;
+  margin: auto 1rem;
+  max-width: 420px;
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  color: var(--text-secondary);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-md);
 }
 .pc-card--empty i { font-size: 2.4rem; color: var(--pc-color); }
-.pc-card--empty h5 { margin-top: 0.75rem; color: #1f2437; }
+.pc-card--empty h5 { margin-top: 0.75rem; color: var(--text-primary); }
 
 /* ---- desktop: medium centred card ---- */
 @media (min-width: 768px) {
@@ -116,13 +164,17 @@
     background:
       radial-gradient(60% 50% at 20% 10%, color-mix(in srgb, var(--pc-color) 18%, transparent), transparent 70%),
       radial-gradient(50% 45% at 85% 90%, color-mix(in srgb, var(--pc-color) 14%, transparent), transparent 70%),
-      #f0f2fa;
+      var(--surface-page);
   }
   .pc-card {
     width: 460px;
     height: min(720px, 92vh);
-    border-radius: 20px;
-    border: 1px solid #e5e8f3;
-    box-shadow: 0 24px 70px rgba(23, 26, 46, 0.16);
+    border-radius: var(--radius-xl);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-lg);
+  }
+  .pc-card--empty {
+    height: auto;
+    margin: auto;
   }
 }

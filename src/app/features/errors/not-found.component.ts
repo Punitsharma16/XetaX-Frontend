@@ -21,8 +21,14 @@ import { RouterLink } from '@angular/router';
   styles: [
     `
       .err-wrap {
-        max-width: 460px;
+        max-width: 480px;
+        padding: 2.5rem 1.5rem;
+        background: var(--surface-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-sm);
         margin: 8vh auto;
+        width: 100%;
         text-align: center;
       }
       .err-code {

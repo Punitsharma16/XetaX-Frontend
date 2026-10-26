@@ -11,7 +11,7 @@
 @if (sender(); as s) {
   @if (!s.configured) {
     <div class="sender-notice mb-3">
-      <i class="bi bi-exclamation-triangle-fill"></i>
+      <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
       <div>
         <strong>No sender email yet.</strong> Campaigns go out from your own email account —
         add it under <a routerLink="/app/profile">Profile → Email (SMTP)</a> first.
@@ -26,9 +26,11 @@
 }
 
 @if (error()) {
+  <div class="card em-card">
   <app-error-state>
     <button class="btn btn-outline-secondary btn-sm" (click)="load(0)">Retry</button>
   </app-error-state>
+  </div>
 } @else if (loading()) {
   <div class="card em-card p-3"><app-table-skeleton [rows]="5" [cols]="6" /></div>
 } @else if (!page().content.length) {
@@ -54,7 +56,7 @@
             <th>Subject</th>
             <th>Audience</th>
             <th>Status</th>
-            <th style="min-width: 160px">Progress</th>
+            <th class="col-progress">Progress</th>
             <th class="text-end">Sent</th>
             <th class="text-end">Failed</th>
             <th>Created</th>
@@ -68,16 +70,16 @@
                   campaign.name
                 }}</a>
               </td>
-              <td class="text-muted small text-truncate" style="max-width: 220px">{{ campaign.subject }}</td>
+              <td class="text-muted small text-truncate col-subject">{{ campaign.subject }}</td>
               <td class="text-muted small">{{ campaign.targetDescription || campaign.sourceType }}</td>
               <td>
                 <span class="badge" [class]="badge(campaign.status)">{{ campaign.status }}</span>
               </td>
               <td>
-                <div class="progress" style="height: 6px">
+                <div class="progress em-progress">
                   <div class="progress-bar bg-success" [style.width.%]="progress(campaign)"></div>
                 </div>
-                <span class="text-muted" style="font-size: 0.7rem"
+                <span class="text-muted em-progress-count"
                   >{{ campaign.sentCount + campaign.failedCount }}/{{ campaign.totalCount }}</span
                 >
               </td>

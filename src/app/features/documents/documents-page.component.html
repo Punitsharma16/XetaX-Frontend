@@ -7,7 +7,7 @@
 <!-- upload card -->
 <div class="card mb-3">
   <div class="card-body">
-    <div class="row g-2 align-items-end">
+    <div class="row g-3 align-items-end">
       <div class="col-12 col-md-4">
         <label class="form-label" for="docFile">File <span class="text-danger">*</span></label>
         <input id="docFile" type="file" class="form-control"
@@ -19,14 +19,14 @@
         <input id="docName" class="form-control" [(ngModel)]="uploadName" placeholder="e.g. Price list 2026" />
       </div>
       <div class="col-12 col-md-4">
-        <button class="btn btn-primary" [disabled]="uploading()" (click)="upload()">
+        <button class="btn btn-primary docs-upload-btn" [disabled]="uploading()" (click)="upload()">
           @if (uploading()) { <span class="spinner-border spinner-border-sm me-1"></span> }
           @else { <i class="bi bi-upload me-1"></i> }
           Upload
         </button>
       </div>
       <div class="col-12">
-        <small class="text-muted">
+        <small class="docs-tip">
           <i class="bi bi-magic me-1"></i>Tip: upload a <b>.docx</b> with placeholders like
           <code>{{ '{' }}{{ '{' }}full_name{{ '}' }}{{ '}' }}</code> — when sent from a record,
           they are replaced with that record's data. Max 5 MB.
@@ -57,7 +57,7 @@
             <th>Size</th>
             <th>Variables</th>
             <th>Uploaded</th>
-            <th class="text-end" style="width: 110px">Actions</th>
+            <th class="text-end docs-actions-col">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -65,11 +65,11 @@
             <tr>
               <td>
                 <div class="d-flex align-items-center gap-2">
-                  <i class="bi doc-icon" [class]="icon(document)"></i>
+                  <span class="doc-icon-wrap"><i class="bi doc-icon" [class]="icon(document)"></i></span>
                   <span class="fw-semibold">{{ document.name }}</span>
                 </div>
               </td>
-              <td class="text-muted">{{ document.originalFilename }}</td>
+              <td class="text-muted docs-file">{{ document.originalFilename }}</td>
               <td class="text-muted">{{ (document.size || 0) / 1024 | number: '1.0-0' }} KB</td>
               <td>
                 @if (document.supportsVariables) {
@@ -77,12 +77,12 @@
                     <i class="bi bi-magic me-1"></i>Supported
                   </span>
                 } @else {
-                  <span class="text-muted" style="font-size: 0.75rem">—</span>
+                  <span class="text-muted small">—</span>
                 }
               </td>
               <td class="text-muted">{{ document.createdAt | date: 'd MMM y' }}</td>
               <td class="text-end text-nowrap">
-                <button class="btn btn-light btn-sm" title="Download" (click)="download(document)"
+                <button class="btn btn-light btn-sm" title="Download" aria-label="Download" (click)="download(document)"
                         [disabled]="downloading() !== null">
                   @if (downloading() === document.id) {
                     <span class="spinner-border spinner-border-sm"></span>
@@ -90,7 +90,7 @@
                     <i class="bi bi-download"></i>
                   }
                 </button>
-                <button class="btn btn-light btn-sm text-danger" title="Delete" (click)="remove(document)">
+                <button class="btn btn-light btn-sm text-danger" title="Delete" aria-label="Delete" (click)="remove(document)">
                   <i class="bi bi-trash"></i>
                 </button>
               </td>

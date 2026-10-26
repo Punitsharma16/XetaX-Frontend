@@ -21,7 +21,7 @@ import { WhatsAppConfig, WhatsAppService } from './whatsapp.service';
       <div class="card-header wa-cc__head">
         <span><i class="bi bi-plug me-2"></i>Integrations</span>
       </div>
-      <div class="card-body d-flex align-items-center gap-3 py-3">
+      <div class="card-body d-flex flex-wrap align-items-center gap-3 py-3">
         <div class="wa-cc__icon" [class.wa-cc__icon--on]="config()?.status === 'CONNECTED'">
           <i class="bi bi-whatsapp"></i>
         </div>
@@ -58,7 +58,7 @@ import { WhatsAppConfig, WhatsAppService } from './whatsapp.service';
         </div>
 
         @if (config()?.status === 'CONNECTED') {
-          <div class="d-flex gap-2">
+          <div class="d-flex flex-wrap gap-2">
             <a class="btn btn-outline-secondary btn-sm" routerLink="/app/whatsapp">Manage</a>
             <button class="btn btn-outline-danger btn-sm" (click)="disconnect()">
               Disconnect
@@ -75,8 +75,8 @@ import { WhatsAppConfig, WhatsAppService } from './whatsapp.service';
   styles: [
     `
       .wa-cc {
-        border: 1px solid var(--border-subtle, #e9ecef);
-        border-radius: var(--radius-lg, 12px);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
         box-shadow: var(--shadow-sm);
       }
       .wa-cc__head {
@@ -87,13 +87,13 @@ import { WhatsAppConfig, WhatsAppService } from './whatsapp.service';
         width: 42px;
         height: 42px;
         flex: 0 0 42px;
-        border-radius: 12px;
+        border-radius: var(--radius-md);
         display: inline-flex;
         align-items: center;
         justify-content: center;
         font-size: 1.25rem;
-        background: var(--surface-sunken, #f1f3f5);
-        color: var(--text-muted, #6c757d);
+        background: var(--surface-sunken);
+        color: var(--text-muted);
       }
       .wa-cc__icon--on {
         background: var(--wa-soft);
@@ -116,24 +116,24 @@ import { WhatsAppConfig, WhatsAppService } from './whatsapp.service';
         height: 8px;
         flex: 0 0 8px;
         border-radius: 50%;
-        background: var(--text-muted, #adb5bd);
+        background: var(--text-muted);
       }
       .wa-cc__dot--on {
         background: var(--wa-500);
       }
       .wa-cc__dot--bad {
-        background: var(--danger-600, #dc3545);
+        background: var(--danger-600);
       }
       .wa-cc__btn {
         background: var(--wa-600);
         border: 1px solid var(--wa-600);
-        color: #fff;
+        color: var(--bs-white);
         font-weight: 600;
       }
       .wa-cc__btn:hover {
         background: var(--wa-500);
         border-color: var(--wa-500);
-        color: #fff;
+        color: var(--bs-white);
       }
       .min-w-0 {
         min-width: 0;

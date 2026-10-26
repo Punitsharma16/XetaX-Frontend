@@ -30,6 +30,17 @@ import { MultiSelectDropdownComponent } from './multi-select-dropdown.component'
         font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
         font-size: 0.75rem;
       }
+
+      .choice-list .form-check {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+
+      .field-error {
+        margin-top: 0.25rem;
+        font-size: 0.75rem;
+        color: var(--danger-600);
+      }
     `,
   ],
 })

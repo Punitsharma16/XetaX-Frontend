@@ -15,9 +15,9 @@ import { AuthUser } from '../../../core/models/auth.model';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="d-flex flex-column align-items-center justify-content-center" style="min-height: 100vh; gap: 12px">
-      <span class="spinner-border text-primary" role="status" aria-hidden="true"></span>
-      <span class="text-muted" style="font-size: 0.875rem">Signing you in…</span>
+    <div class="d-flex flex-column align-items-center justify-content-center gap-3 min-vh-100 px-3 text-center" role="status" aria-live="polite">
+      <span class="spinner-border text-primary" aria-hidden="true"></span>
+      <span class="text-muted">Signing you in…</span>
     </div>
   `,
 })

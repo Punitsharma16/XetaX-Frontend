@@ -1,9 +1,9 @@
 <!-- ============================================================ header -->
-<header class="dash-head">
-  <div class="dash-head__text">
-    <div class="dash-eyebrow">{{ today | date: 'EEEE, d MMMM' }}</div>
-    <h1 class="dash-title">{{ greeting }}, {{ user()?.name?.split(' ')?.[0] || 'there' }}</h1>
-    <p class="dash-sub">
+<header class="page-header dash-head">
+  <div class="page-header-text">
+    <span class="page-eyebrow">{{ today | date: 'EEEE, d MMMM' }}</span>
+    <h1 class="page-title dash-title">{{ greeting }}, {{ user()?.name?.split(' ')?.[0] || 'there' }}</h1>
+    <p class="page-subtitle dash-sub d-flex flex-wrap align-items-center gap-2">
       Here is where your workspace stands right now.
       @if (summary()?.ownOnly) {
         <span class="dash-scope"><i class="bi bi-person-check"></i> Only records assigned to you</span>
@@ -11,7 +11,7 @@
     </p>
   </div>
 
-  <div class="dash-head__actions">
+  <div class="page-actions dash-head__actions">
     <form class="ask" (submit)="$event.preventDefault(); askAi(aiQ.value)" role="search">
       <i class="bi bi-stars ask__spark"></i>
       <input #aiQ class="ask__input" type="text" placeholder="Ask your CRM — “new leads this week?”, “build an automation…”" aria-label="Ask the AI assistant" />
@@ -19,7 +19,7 @@
         <i class="bi bi-arrow-right"></i>
       </button>
     </form>
-    <button type="button" class="btn btn-outline-secondary dash-icon-btn" (click)="load()" title="Refresh" aria-label="Refresh">
+    <button type="button" class="btn btn-outline-secondary btn-icon dash-icon-btn" (click)="load()" title="Refresh" aria-label="Refresh">
       <i class="bi bi-arrow-clockwise"></i>
     </button>
     <a class="btn btn-primary" routerLink="/app/forms"><i class="bi bi-plus-lg"></i> New form</a>
@@ -27,10 +27,10 @@
 </header>
 
 @if (failed()) {
-  <div class="card dash-card">
-    <div class="dash-empty">
-      <i class="bi bi-cloud-slash"></i>
-      <div>Could not load your dashboard.</div>
+  <div class="card dash-card" role="alert">
+    <div class="empty-state">
+      <div class="empty-state-icon dash-empty__icon--danger"><i class="bi bi-cloud-slash"></i></div>
+      <p class="empty-state-title">Could not load your dashboard.</p>
       <button class="btn btn-outline-primary btn-sm mt-2" (click)="load()">Try again</button>
     </div>
   </div>
@@ -40,7 +40,7 @@
   <section class="stat-grid" aria-label="Key numbers">
     @if (loading()) {
       @for (i of [1, 2, 3, 4, 5, 6]; track i) {
-        <div class="stat stat--skeleton">
+        <div class="stat-card stat stat--skeleton">
           <div class="skeleton" style="width: 36px; height: 36px; border-radius: 10px"></div>
           <div class="skeleton mt-3" style="height: 10px; width: 55%"></div>
           <div class="skeleton mt-2" style="height: 22px; width: 40%"></div>
@@ -48,8 +48,8 @@
       }
     } @else {
       @for (stat of stats(); track stat.key) {
-        <a class="stat" [class]="'stat stat--' + stat.tone" [routerLink]="stat.route">
-          <div class="stat__top">
+        <a class="stat-card card-interactive stat" [class]="'stat stat--' + stat.tone" [routerLink]="stat.route">
+          <div class="stat__top d-flex align-items-center justify-content-between mb-2">
             <span class="stat__icon"><i class="bi" [class]="stat.icon"></i></span>
             @if (stat.delta !== undefined) {
               <span class="stat__delta" [class.stat__delta--up]="stat.delta > 0" [class.stat__delta--down]="stat.delta < 0">
@@ -57,8 +57,8 @@
               </span>
             }
           </div>
-          <div class="stat__label">{{ stat.label }}</div>
-          <div class="stat__value">{{ stat.value }}</div>
+          <div class="stat-card-label stat__label">{{ stat.label }}</div>
+          <div class="stat-card-value stat__value">{{ stat.value }}</div>
           <div class="stat__hint">{{ stat.hint }}</div>
           @if (stat.spark) {
             <svg class="stat__spark" viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true">
@@ -75,7 +75,7 @@
   <div class="dash-grid">
 
     <!-- ---------------------------------------------------- main column -->
-    <div class="dash-main">
+    <div class="dash-main d-flex flex-column">
 
       <!-- Activity: new records per day -->
       @if (summary()?.recordsVisible) {
@@ -86,7 +86,7 @@
               <div class="dash-card__sub">Last 14 days, per day</div>
             </div>
             @if (activity(); as a) {
-              <div class="dash-card__aside">
+              <div class="dash-card__aside d-flex flex-column align-items-end gap-1">
                 <span class="dash-card__big">{{ a.last14 }}</span>
                 @if (trend() !== undefined) {
                   <span class="stat__delta" [class.stat__delta--up]="trend()! > 0" [class.stat__delta--down]="trend()! < 0">
@@ -104,9 +104,9 @@
               }
             </div>
           } @else if (!bars().length) {
-            <div class="dash-empty dash-empty--flat">
-              <i class="bi bi-bar-chart"></i>
-              <div>Activity appears here once records start coming in.</div>
+            <div class="empty-state dash-empty">
+              <div class="empty-state-icon"><i class="bi bi-bar-chart"></i></div>
+              <p class="empty-state-text">Activity appears here once records start coming in.</p>
             </div>
           } @else {
             <div class="chart" role="img" [attr.aria-label]="'New records per day for the last 14 days, ' + activity()?.last14 + ' in total'">
@@ -148,20 +148,20 @@
               }
             </div>
           } @else if (!summary()?.pipelines?.length) {
-            <div class="dash-empty dash-empty--flat">
-              <i class="bi bi-signpost-split"></i>
-              <div>No records yet — your pipeline overview appears here as work comes in.</div>
+            <div class="empty-state dash-empty">
+              <div class="empty-state-icon"><i class="bi bi-signpost-split"></i></div>
+              <p class="empty-state-text">No records yet — your pipeline overview appears here as work comes in.</p>
               <a class="btn btn-primary btn-sm mt-2" routerLink="/app/forms"><i class="bi bi-grid-1x2 me-1"></i>Start from a template</a>
             </div>
           } @else {
-            <div class="pipes">
+            <div class="pipes d-flex flex-column">
               @for (pipeline of summary()!.pipelines; track pipeline.formId) {
                 <a class="pipe" [routerLink]="['/app/forms', pipeline.formId]">
-                  <div class="pipe__head">
+                  <div class="pipe__head d-flex align-items-center gap-2 mb-2">
                     <span class="pipe__icon" [style.background]="(pipeline.color || '#4f46e5') + '1a'" [style.color]="pipeline.color || '#4f46e5'">
                       <i class="bi" [class]="pipeline.icon || 'bi-table'"></i>
                     </span>
-                    <span class="pipe__name">{{ pipeline.formName }}</span>
+                    <span class="pipe__name text-truncate">{{ pipeline.formName }}</span>
                     <span class="pipe__total"><b>{{ pipeline.records }}</b> records · <b>{{ closedIn(pipeline) }}</b> closed</span>
                   </div>
                   <div class="pipe__bar">
@@ -169,7 +169,7 @@
                       <span class="pipe__slice" [style.width.%]="slicePercent(pipeline, slice)" [style.background]="slice.color || '#94a3b8'" [class.pipe__slice--empty]="!slice.count" [title]="slice.name + ': ' + slice.count"></span>
                     }
                   </div>
-                  <div class="pipe__legend">
+                  <div class="pipe__legend d-flex flex-wrap column-gap-3 row-gap-1 mt-2">
                     @for (slice of pipeline.stages; track slice.name) {
                       <span class="pipe__chip" [class.pipe__chip--zero]="!slice.count">
                         <i [style.background]="slice.color || '#94a3b8'"></i>{{ slice.name }} <b>{{ slice.count }}</b>@if (slice.isFinal) { <i class="bi bi-lock-fill pipe__lock"></i> }
@@ -193,13 +193,13 @@
             </div>
             <a class="btn btn-light btn-sm" routerLink="/app/records">View all</a>
           </div>
-          <div class="rows">
+          <div class="rows d-flex flex-column">
             @for (record of summary()!.recent; track record.recordId) {
               <a class="row-item" [routerLink]="['/app/records']" [queryParams]="{ formId: record.formId }">
                 <span class="row-item__avatar">{{ initial(record.title) }}</span>
                 <span class="row-item__main">
-                  <span class="row-item__title">{{ record.title || 'Untitled record' }}</span>
-                  <span class="row-item__meta">{{ record.formName }}</span>
+                  <span class="row-item__title d-block text-truncate">{{ record.title || 'Untitled record' }}</span>
+                  <span class="row-item__meta d-block text-truncate">{{ record.formName }}</span>
                 </span>
                 @if (record.stageName) { <span class="row-item__stage">{{ record.stageName }}</span> }
                 <span class="row-item__time">{{ record.createdAt | date: 'd MMM, h:mm a' }}</span>
@@ -211,7 +211,7 @@
     </div>
 
     <!-- ---------------------------------------------------- side column -->
-    <aside class="dash-side">
+    <aside class="dash-side d-flex flex-column">
 
       <!-- Today -->
       <section class="card dash-card">
@@ -224,11 +224,11 @@
         @if (loading()) {
           <div class="dash-card__body"><div class="skeleton" style="height: 12px; width: 70%"></div><div class="skeleton mt-2" style="height: 12px; width: 50%"></div></div>
         } @else {
-          <div class="today">
+          <div class="today d-flex flex-column">
             @if (activity(); as a) {
               <a class="today__row" routerLink="/app/tasks">
                 <span class="today__ic today__ic--info"><i class="bi bi-check2-square"></i></span>
-                <span class="today__text"><b>{{ a.tasks.dueToday }}</b> task{{ a.tasks.dueToday === 1 ? '' : 's' }} due today
+                <span class="today__text flex-grow-1 text-truncate"><b>{{ a.tasks.dueToday }}</b> task{{ a.tasks.dueToday === 1 ? '' : 's' }} due today
                   @if (a.tasks.overdue > 0) { <span class="today__warn">{{ a.tasks.overdue }} overdue</span> }
                 </span>
                 <i class="bi bi-chevron-right today__chev"></i>
@@ -237,7 +237,7 @@
             @if (desk()?.enabled) {
               <a class="today__row" routerLink="/app/dashboard" [queryParams]="{ desk: 'open' }">
                 <span class="today__ic" [class.today__ic--warn]="desk()!.open > 0"><i class="bi bi-headset"></i></span>
-                <span class="today__text"><b>{{ desk()!.open }}</b> customer{{ desk()!.open === 1 ? '' : 's' }} waiting for a person
+                <span class="today__text flex-grow-1 text-truncate"><b>{{ desk()!.open }}</b> customer{{ desk()!.open === 1 ? '' : 's' }} waiting for a person
                   @if (desk()!.mine > 0) { <span class="today__muted">· {{ desk()!.mine }} in your chats</span> }
                 </span>
                 <i class="bi bi-chevron-right today__chev"></i>
@@ -246,7 +246,7 @@
             @for (meeting of summary()?.meetings ?? []; track meeting.id) {
               <a class="today__row" routerLink="/app/meetings">
                 <span class="today__ic today__ic--teal"><i class="bi bi-camera-video"></i></span>
-                <span class="today__text"><b>{{ meeting.title }}</b>
+                <span class="today__text flex-grow-1 text-truncate"><b>{{ meeting.title }}</b>
                   <span class="today__muted">
                     @if (meeting.status === 'LIVE') { · live now } @else { · {{ meeting.scheduledAt | date: 'EEE d MMM, h:mm a' }} }
                   </span>
@@ -255,7 +255,8 @@
               </a>
             }
             @if (!activity() && !desk()?.enabled && !summary()?.meetings?.length) {
-              <div class="dash-empty dash-empty--flat"><i class="bi bi-cup-hot"></i><div>Nothing waiting on you right now.</div></div>
+              <div class="empty-state dash-empty"><div class="empty-state-icon"><i class="bi bi-cup-hot"></i></div><p class="empty-state-text">Nothing waiting on you right now.</p></div>
+
             }
           </div>
         }
@@ -270,33 +271,33 @@
               <div class="dash-card__sub">How customers reach you</div>
             </div>
           </div>
-          <div class="chans">
+          <div class="chans d-flex flex-column">
             <a class="chan" routerLink="/app/whatsapp">
               <span class="chan__dot" [class.chan__dot--on]="s.whatsapp.connected"></span>
               <i class="bi bi-whatsapp chan__ic"></i>
-              <span class="chan__text"><b>WhatsApp</b><small>{{ s.whatsapp.connected ? s.whatsapp.sent7d + ' sent this week' : 'Not connected yet' }}</small></span>
+              <span class="chan__text flex-grow-1"><b>WhatsApp</b><small>{{ s.whatsapp.connected ? s.whatsapp.sent7d + ' sent this week' : 'Not connected yet' }}</small></span>
               <i class="bi bi-chevron-right today__chev"></i>
             </a>
             <a class="chan" routerLink="/app/profile">
               <span class="chan__dot" [class.chan__dot--on]="s.emailConfigured"></span>
               <i class="bi bi-envelope-at chan__ic"></i>
-              <span class="chan__text"><b>Email</b><small>{{ s.emailConfigured ? 'Sending as your address' : 'Add SMTP from your profile' }}</small></span>
+              <span class="chan__text flex-grow-1"><b>Email</b><small>{{ s.emailConfigured ? 'Sending as your address' : 'Add SMTP from your profile' }}</small></span>
               <i class="bi bi-chevron-right today__chev"></i>
             </a>
             <a class="chan" routerLink="/app/agents">
               <span class="chan__dot" [class.chan__dot--on]="s.agents > 0"></span>
               <i class="bi bi-robot chan__ic"></i>
-              <span class="chan__text"><b>AI agents</b><small>{{ s.agents > 0 ? s.agents + ' live on website / WhatsApp' : 'Launch a website chatbot' }}</small></span>
+              <span class="chan__text flex-grow-1"><b>AI agents</b><small>{{ s.agents > 0 ? s.agents + ' live on website / WhatsApp' : 'Launch a website chatbot' }}</small></span>
               <i class="bi bi-chevron-right today__chev"></i>
             </a>
             @if (billing(); as b) {
               <a class="meter" routerLink="/app/ai">
-                <div class="meter__head">
+                <div class="meter__head d-flex justify-content-between align-items-center gap-2">
                   <span><i class="bi bi-stars me-1"></i>AI messages · <b>{{ b.planLabel }}</b></span>
                   <span class="meter__nums">{{ aiUsed() }} / {{ aiQuota() }}</span>
                 </div>
                 <div class="meter__track"><div class="meter__fill" [class.meter__fill--hot]="aiPct() >= 80" [style.width.%]="aiPct()"></div></div>
-                <div class="meter__foot">
+                <div class="meter__foot d-flex flex-wrap column-gap-3">
                   <span>{{ aiPct() }}% used this month</span>
                   @if (b.topupBalance > 0) { <span>+{{ b.topupBalance }} top-up</span> }
                   @if (planNote()) { <span>{{ planNote() }}</span> }
@@ -319,7 +320,7 @@
           </div>
           <div class="dash-card__body pt-0">
             <div class="setup-progress"><span [style.width.%]="(setupDone() / setupSteps().length) * 100"></span></div>
-            <div class="setup">
+            <div class="setup d-flex flex-column">
               @for (step of setupSteps(); track step.label) {
                 <a class="setup-step" [class.setup-step--done]="step.done" [routerLink]="step.route">
                   <span class="setup-step__check"><i class="bi" [class]="step.done ? 'bi-check-lg' : step.icon"></i></span>

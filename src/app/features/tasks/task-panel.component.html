@@ -1,7 +1,7 @@
 <div class="card">
   <div class="card-header task-panel__head d-flex align-items-center justify-content-between">
     <span><i class="bi bi-check2-square me-2"></i>Tasks & reminders</span>
-    <div class="d-flex align-items-center gap-2">
+    <div class="task-panel__tools d-flex align-items-center gap-2">
       <label class="task-done-toggle">
         <input type="checkbox" class="form-check-input" [checked]="showDone()"
                (change)="showDone.set(!showDone())" /> show done
@@ -37,8 +37,8 @@
         </div>
 
         <div class="col-12">
-          <label class="tc-label">Reminder</label>
-          <div class="tc-remind">
+          <span class="tc-label" id="tcRemindLabel">Reminder</span>
+          <div class="tc-remind" role="group" aria-labelledby="tcRemindLabel">
             <label class="tc-check tc-check--fixed" title="A panel notification is always sent">
               <input type="checkbox" class="form-check-input" checked disabled />
               <i class="bi bi-app-indicator"></i> Panel notification
@@ -67,9 +67,9 @@
   }
 
   @if (loading()) {
-    <div class="card-body text-center text-muted py-3"><span class="spinner-border spinner-border-sm"></span></div>
+    <div class="card-body text-center text-muted py-4" aria-live="polite" aria-busy="true"><span class="spinner-border spinner-border-sm task-spinner"></span></div>
   } @else if (!tasks().length) {
-    <div class="card-body text-center text-muted py-3" style="font-size: 0.8rem">
+    <div class="card-body task-empty text-center text-muted">
       No tasks yet — click "New task" to add the first one.
     </div>
   } @else {
@@ -77,7 +77,7 @@
       @for (task of tasks(); track task.id) {
         <div class="list-group-item task-row" [class.task-row--done]="task.status === 'DONE'">
           <input type="checkbox" class="form-check-input" [checked]="task.status === 'DONE'"
-                 (change)="toggleDone(task)" title="Mark done" />
+                 (change)="toggleDone(task)" title="Mark done" aria-label="Mark done" />
           <span class="min-w-0 flex-grow-1">
             <span class="task-row__title">{{ task.title }}</span>
             <span class="task-row__meta">
@@ -92,7 +92,7 @@
               @if (task.notes) { · {{ task.notes }} }
             </span>
           </span>
-          <button class="btn btn-light btn-sm text-danger" (click)="remove(task)" title="Delete">
+          <button class="btn btn-light btn-sm text-danger" (click)="remove(task)" title="Delete" aria-label="Delete">
             <i class="bi bi-trash"></i>
           </button>
         </div>

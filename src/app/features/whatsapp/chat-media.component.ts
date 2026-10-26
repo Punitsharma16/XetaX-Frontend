@@ -55,25 +55,25 @@ import { ToastService } from '../../core/services/toast.service';
   styles: [`
     .cm { margin: 0.25rem 0; }
     .cm__img {
-      max-width: 220px; max-height: 220px; width: auto; height: auto;
-      border-radius: 8px; display: block; object-fit: cover;
+      max-width: min(220px, 100%); max-height: 220px; width: auto; height: auto;
+      border-radius: var(--radius-md); display: block; object-fit: cover;
     }
-    .cm__video { max-width: 240px; border-radius: 8px; display: block; }
-    .cm__audio { max-width: 240px; height: 34px; display: block; }
+    .cm__video { max-width: min(240px, 100%); border-radius: var(--radius-md); display: block; }
+    .cm__audio { max-width: min(240px, 100%); height: 34px; display: block; }
     .cm__file {
       display: inline-flex; align-items: center; gap: 0.4rem;
-      padding: 0.35rem 0.55rem; border-radius: 8px; text-decoration: none;
-      background: var(--surface-muted, #f1f3f5); color: inherit; max-width: 240px;
+      padding: 0.35rem 0.55rem; border-radius: var(--radius-md); text-decoration: none;
+      background: var(--surface-sunken); border: 1px solid var(--border-subtle); color: inherit; max-width: min(240px, 100%);
     }
-    .cm__file:hover { background: var(--surface-hover, #e9ecef); }
+    .cm__file:hover { background: var(--surface-hover); }
     .cm__name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .cm__size { font-size: 0.66rem; color: var(--text-muted, #6c757d); flex: none; }
+    .cm__size { font-size: 0.66rem; color: var(--text-muted); flex: none; }
     .cm__actions { display: flex; gap: 0.15rem; margin-top: 2px; }
     .cm__action {
       border: 0; background: none; padding: 0 0.2rem; line-height: 1;
-      font-size: 0.8rem; color: var(--text-muted, #6c757d); cursor: pointer; text-decoration: none;
+      font-size: 0.8rem; color: var(--text-muted); cursor: pointer; text-decoration: none;
     }
-    .cm__action:hover { color: var(--bs-primary, #0d6efd); }
+    .cm__action:hover { color: var(--brand-600); }
   `],
 })
 export class ChatMediaComponent {

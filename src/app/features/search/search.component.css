@@ -56,7 +56,24 @@
   background: var(--stage-color, var(--brand-500));
 }
 
-hr {
-  border-color: var(--border-subtle);
-  opacity: 1;
+.filters-empty {
+  font-size: 0.75rem;
+  padding: 0.75rem;
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+}
+
+.meta-xs {
+  font-size: 0.7rem;
+}
+
+.col-open {
+  width: 70px;
+}
+
+@media (max-width: 767.98px) {
+  .search-actions > .btn {
+    flex: 1 1 0;
+  }
 }

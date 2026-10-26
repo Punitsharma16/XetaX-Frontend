@@ -35,7 +35,7 @@
     <div class="row g-3">
       @for (f of forms(); track f.id) {
         <div class="col-12 col-md-6 col-xl-3">
-          <button type="button" class="card w-100 h-100 picker-card" (click)="openForm(f)">
+          <button type="button" class="card card-interactive w-100 h-100 picker-card" (click)="openForm(f)">
             <div class="card-body text-start">
               <span
                 class="picker-icon"
@@ -44,8 +44,8 @@
               >
                 <i class="bi" [class]="f.icon || 'bi-table'"></i>
               </span>
-              <div class="fw-semibold mt-3">{{ f.name }}</div>
-              <div class="text-muted" style="font-size: 0.7rem">{{ f.slug }}</div>
+              <div class="fw-semibold mt-3 text-truncate">{{ f.name }}</div>
+              <div class="text-muted text-truncate meta-xs">{{ f.slug }}</div>
             </div>
           </button>
         </div>
@@ -75,16 +75,16 @@
     <!-- <button type="button" class="btn btn-outline-secondary" (click)="downloadSample()" title="Download sample CSV (opens in Excel)">
       <i class="bi bi-file-earmark-arrow-down"></i>
     </button> -->
-    <button type="button" class="btn btn-outline-secondary" (click)="openImport()" [disabled]="!fields().length" title="Bulk upload records from CSV">
+    <button type="button" class="btn btn-outline-secondary btn-icon" (click)="openImport()" [disabled]="!fields().length" title="Bulk upload records from CSV" aria-label="Bulk upload records from CSV">
       <i class="bi bi-upload"></i>
     </button>
-    <button type="button" class="btn btn-outline-secondary" (click)="exportCsv()" [disabled]="exporting()" title="Download these records as CSV">
+    <button type="button" class="btn btn-outline-secondary btn-icon" (click)="exportCsv()" [disabled]="exporting()" title="Download these records as CSV" aria-label="Download these records as CSV">
       <i class="bi bi-download"></i>
     </button>
-    <a class="btn btn-outline-secondary" routerLink="/app/records" title="Switch form">
+    <a class="btn btn-outline-secondary btn-icon" routerLink="/app/records" title="Switch form" aria-label="Switch form">
       <i class="bi bi-grid"></i>
     </a>
-    <a class="btn btn-outline-secondary" [routerLink]="['/app/forms', form()!.id]" title="Configure form">
+    <a class="btn btn-outline-secondary btn-icon" [routerLink]="['/app/forms', form()!.id]" title="Configure form" aria-label="Configure form">
       <i class="bi bi-sliders"></i>
     </a>
     <button type="button" class="btn btn-primary" (click)="openCreate()" [disabled]="!fields().length">
@@ -105,9 +105,10 @@
       </app-empty-state>
     </div>
   } @else {
+    <div class="card records-card">
     <!-- Predefined quick filters — applied automatically on selection. -->
-    <div class="card quick-filters mb-3">
-        <div class="quick-filters__row">
+    <div class="quick-filters">
+        <div class="quick-filters__row" role="group" aria-label="Filters">
           <span class="quick-filters__label"><i class="bi bi-funnel"></i> Filters</span>
 
           @if (stages().length) {
@@ -252,7 +253,6 @@
         }
     </div>
 
-    <div class="card">
       @if (recordsLoading()) {
         <app-table-skeleton [rows]="8" [cols]="6" />
       } @else if (!view().content.length) {
@@ -273,7 +273,7 @@
         </app-empty-state>
       } @else {
         @if (selectedIds().size) {
-          <div class="sel-bar">
+          <div class="sel-bar" role="status">
             <span class="fw-medium">{{ selectedIds().size }} selected</span>
             <button class="btn btn-outline-primary btn-sm" (click)="openDocSend()">
               <i class="bi bi-file-earmark-arrow-up me-1"></i>Send document
@@ -289,7 +289,7 @@
             <thead>
               <tr>
                 @if (canTransfer) {
-                  <th style="width: 34px">
+                  <th class="col-check">
                     <input type="checkbox" class="form-check-input"
                            [checked]="view().content.length > 0 && selectedIds().size === view().content.length"
                            (change)="toggleSelectAll(viewIds())" />
@@ -302,7 +302,7 @@
                   <th>Stage</th>
                 }
                 <th>Created</th>
-                <th class="text-end" style="width: 110px">Actions</th>
+                <th class="text-end col-actions">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -369,15 +369,16 @@
                     </td>
                   }
 
-                  <td class="text-muted" style="font-size: 0.7rem; white-space: nowrap">
+                  <td class="text-muted text-nowrap meta-xs">
                     {{ formatDate(record.createdAt) }}
                   </td>
 
-                  <td class="text-end">
+                  <td class="text-end text-nowrap">
                     <a
                       class="btn btn-light btn-icon me-1"
                       [routerLink]="['/app/records', slug(), record.id]"
                       title="Edit record"
+                      aria-label="Edit record"
                     >
                       <i class="bi bi-pencil"></i>
                     </a>
@@ -386,6 +387,7 @@
                       class="btn btn-light btn-icon text-danger"
                       (click)="remove(record)"
                       title="Delete record"
+                      aria-label="Delete record"
                     >
                       <i class="bi bi-trash"></i>
                     </button>
@@ -397,7 +399,7 @@
         </div>
 
         @if (hasMoreColumns()) {
-          <div class="px-3 py-2 text-muted" style="font-size: 0.7rem">
+          <div class="px-3 py-2 text-muted meta-xs border-top">
             <i class="bi bi-info-circle me-1"></i>
             Showing the first 6 fields — open a record to see everything.
           </div>
@@ -582,12 +584,12 @@
   </select>
 
   <label class="form-label">Send via</label>
-  <div class="d-flex gap-3 mb-3">
-    <label class="d-inline-flex align-items-center gap-2" style="font-size: 0.85rem; cursor: pointer">
+  <div class="d-flex flex-wrap gap-3 mb-3">
+    <label class="d-inline-flex align-items-center gap-2 choice-label">
       <input type="radio" class="form-check-input" name="docChannel" value="WHATSAPP"
              [(ngModel)]="docSendChannel" /> <i class="bi bi-whatsapp text-success"></i> WhatsApp
     </label>
-    <label class="d-inline-flex align-items-center gap-2" style="font-size: 0.85rem; cursor: pointer">
+    <label class="d-inline-flex align-items-center gap-2 choice-label">
       <input type="radio" class="form-check-input" name="docChannel" value="EMAIL"
              [(ngModel)]="docSendChannel" /> <i class="bi bi-envelope"></i> Email
     </label>
@@ -601,7 +603,7 @@
   <textarea class="form-control" rows="3" [(ngModel)]="docSendMessage" placeholder="Optional message…"></textarea>
 
   @if (selectedDoc()?.supportsVariables) {
-    <label class="d-inline-flex align-items-center gap-2 mt-3" style="font-size: 0.8rem; cursor: pointer">
+    <label class="d-inline-flex align-items-center gap-2 mt-3 choice-label">
       <input type="checkbox" class="form-check-input" [(ngModel)]="docSendPersonalize" />
       Fill {{ '{' }}{{ '{' }}variables{{ '}' }}{{ '}' }} with each record's own data
     </label>

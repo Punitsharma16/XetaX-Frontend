@@ -4,7 +4,7 @@
   subtitle="Run conditions and actions automatically when records are created or updated."
 >
   <app-search-box placeholder="Search automations…" (search)="onSearch($event)" />
-  <button type="button" class="btn btn-outline-secondary" (click)="load()" title="Refresh">
+  <button type="button" class="btn btn-outline-secondary" (click)="load()" title="Refresh" aria-label="Refresh">
     <i class="bi bi-arrow-clockwise"></i>
   </button>
   <button
@@ -56,7 +56,7 @@
             <th>Form</th>
             <th>Trigger</th>
             <th>Status</th>
-            <th class="text-end" style="width: 160px">Actions</th>
+            <th class="text-end col-actions">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -70,7 +70,7 @@
                       {{ automation.name }}
                     </a>
                     @if (automation.description) {
-                      <span class="text-muted d-block text-truncate" style="font-size: 0.7rem">
+                      <span class="auto-desc d-block text-truncate">
                         {{ automation.description }}
                       </span>
                     }
@@ -78,7 +78,7 @@
                 </div>
               </td>
 
-              <td>{{ formName(automation) }}</td>
+              <td class="text-nowrap">{{ formName(automation) }}</td>
 
               <td>
                 <span class="badge badge-soft-info">{{ triggerLabel(automation.trigger) }}</span>
@@ -95,8 +95,9 @@
               </td>
 
               <td class="text-end">
+                <div class="row-actions">
                 <a
-                  class="btn btn-light btn-sm me-1"
+                  class="btn btn-light btn-sm"
                   [routerLink]="['/app/automations', automation.id]"
                   title="Conditions & actions"
                 >
@@ -104,9 +105,10 @@
                 </a>
                 <button
                   type="button"
-                  class="btn btn-light btn-icon me-1"
+                  class="btn btn-light btn-icon"
                   (click)="openEdit(automation)"
                   title="Edit"
+                  aria-label="Edit"
                 >
                   <i class="bi bi-pencil"></i>
                 </button>
@@ -115,9 +117,11 @@
                   class="btn btn-light btn-icon text-danger"
                   (click)="remove(automation)"
                   title="Delete"
+                  aria-label="Delete"
                 >
                   <i class="bi bi-trash"></i>
                 </button>
+                </div>
               </td>
             </tr>
           }
@@ -188,7 +192,7 @@
     </div>
 
     @if (!editing()) {
-      <div class="alert alert-info mt-3 mb-0 py-2 px-3" style="font-size: 0.75rem">
+      <div class="alert alert-info editor-hint mt-3 mb-0">
         <i class="bi bi-info-circle me-1"></i>
         After saving, open <strong>Rules</strong> to add the conditions and actions.
       </div>

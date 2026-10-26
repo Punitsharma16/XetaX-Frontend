@@ -9,13 +9,13 @@ import { RouterLink } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="err-wrap">
-      <div class="err-icon"><i class="bi bi-shield-lock"></i></div>
+      <div class="err-icon" aria-hidden="true"><i class="bi bi-shield-lock"></i></div>
       <h1 class="h4 mb-2">Access denied</h1>
       <p class="text-secondary mb-4">
         Your account does not have permission to open this page. If you believe this
         is a mistake, contact your workspace administrator.
       </p>
-      <div class="d-flex gap-2 justify-content-center">
+      <div class="d-flex flex-wrap gap-2 justify-content-center">
         <button type="button" class="btn btn-outline-secondary" (click)="back()">
           <i class="bi bi-arrow-left"></i> Go back
         </button>
@@ -28,8 +28,14 @@ import { RouterLink } from '@angular/router';
   styles: [
     `
       .err-wrap {
-        max-width: 460px;
+        max-width: 480px;
+        padding: 2.5rem 1.5rem;
+        background: var(--surface-card);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-xl);
+        box-shadow: var(--shadow-sm);
         margin: 6vh auto;
+        width: 100%;
         text-align: center;
       }
       .err-icon {

@@ -3,9 +3,9 @@
 }
 
 .auto-icon {
-  width: 30px;
-  height: 30px;
-  flex: 0 0 30px;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
   border-radius: var(--radius-md);
   display: inline-flex;
   align-items: center;
@@ -15,9 +15,39 @@
   font-size: 0.85rem;
 }
 
+.auto-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  max-width: 360px;
+}
+
+.col-actions {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.25rem;
+  flex-wrap: nowrap;
+}
+
 .alert-info {
   background: var(--info-50);
   border-color: transparent;
   color: var(--info-600);
   border-radius: var(--radius-md);
+}
+
+.editor-hint {
+  font-size: 0.78rem;
+  padding: 0.6rem 0.85rem;
+}
+
+@media (max-width: 575.98px) {
+  .auto-desc {
+    max-width: 200px;
+  }
 }

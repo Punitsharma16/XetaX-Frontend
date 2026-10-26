@@ -151,6 +151,6 @@
   }
 
   @if (invalid()) {
-    <div class="text-danger mt-1" style="font-size: 0.7rem">{{ errorText() }}</div>
+    <div class="field-error" role="alert">{{ errorText() }}</div>
   }
 </div>

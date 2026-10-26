@@ -49,6 +49,7 @@
   font-weight: 800;
   color: #fff;
   background: linear-gradient(135deg, var(--brand-500), var(--brand-800));
+  box-shadow: 0 4px 12px rgba(95, 55, 227, 0.4), inset 0 -2px 0 rgba(255, 163, 32, 0.55);
 }
 
 .sidebar__brand-text {
@@ -93,10 +94,12 @@
 }
 
 .sidebar__link {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.7rem;
-  padding: 0.55rem 0.65rem;
+  min-height: 38px;
+  padding: 0.55rem 0.7rem;
   margin-bottom: 0.15rem;
   border-radius: var(--radius-md);
   color: var(--sidebar-fg);
@@ -119,9 +122,31 @@
 }
 
 .sidebar__link.is-active {
-  background: var(--sidebar-active);
+  background: rgba(149, 123, 250, 0.16);
   color: #fff;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+}
+
+/* Active marker on the left edge */
+.sidebar__link.is-active::before {
+  content: '';
+  position: absolute;
+  left: -0.6rem;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--brand-400);
+}
+
+.sidebar__link.is-active i {
+  color: var(--brand-300, #b5a3fd);
+}
+
+.sidebar__link:focus-visible,
+.sidebar__sublink:focus-visible,
+.sidebar__collapse:focus-visible {
+  outline: 2px solid var(--brand-400);
+  outline-offset: 1px;
 }
 
 /* Records toggle renders as a button but must look exactly like a link. */
@@ -170,8 +195,9 @@
 }
 
 .sidebar__sublink.is-active {
-  background: var(--sidebar-active);
+  background: rgba(149, 123, 250, 0.16);
   color: #fff;
+  font-weight: 600;
 }
 
 .sidebar__sublink--muted {
@@ -258,8 +284,10 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0 1.25rem;
-  background: var(--surface-card);
+  padding: 0 1.5rem;
+  background: color-mix(in srgb, var(--surface-card) 82%, transparent);
+  backdrop-filter: saturate(160%) blur(10px);
+  -webkit-backdrop-filter: saturate(160%) blur(10px);
   border-bottom: 1px solid var(--border-subtle);
 }
 
@@ -351,7 +379,7 @@
 
 .shell__content {
   flex: 1;
-  padding: 1.25rem;
+  padding: 1.5rem;
   min-width: 0;
 }
 
@@ -361,7 +389,8 @@
   display: none;
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.5);
+  background: rgba(13, 14, 28, 0.5);
+  backdrop-filter: blur(2px);
   z-index: 1035;
 }
 
@@ -400,6 +429,10 @@
   .shell__content {
     padding: 1rem;
   }
+
+  .topbar {
+    padding: 0 1rem;
+  }
 }
 
 /* ---------------------------------------------------------- notifications */
@@ -407,8 +440,8 @@
   position: absolute;
   top: -4px;
   right: -4px;
-  background: #e11d48;
-  color: #fff;
+  background: var(--accent-500);
+  color: #2a1a00;
   font-size: 0.6rem;
   font-weight: 700;
   border-radius: 999px;
@@ -417,7 +450,7 @@
 }
 
 .notif-menu {
-  width: 340px;
+  width: min(360px, calc(100vw - 24px));
   padding: 0;
   overflow: hidden;
 }

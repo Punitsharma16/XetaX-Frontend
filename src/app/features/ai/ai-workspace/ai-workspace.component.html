@@ -85,6 +85,7 @@
       (click)="send()"
       [disabled]="busy() || !draft().trim()"
       title="Send"
+      aria-label="Send"
     >
       @if (busy()) {
         <span class="spinner-border spinner-border-sm" role="status"></span>

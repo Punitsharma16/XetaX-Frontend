@@ -11,19 +11,21 @@
   </button>
 </app-page-header>
 
-<div class="mt-tabs mb-3">
-  <button class="mt-tabs__pill" [class.is-active]="tab() === 'upcoming'" (click)="tab.set('upcoming')">
+<div class="mt-tabs mb-3" role="tablist">
+  <button class="mt-tabs__pill" [class.is-active]="tab() === 'upcoming'" role="tab" [attr.aria-selected]="tab() === 'upcoming'" (click)="tab.set('upcoming')">
     <i class="bi bi-clock"></i> Upcoming &amp; live
   </button>
-  <button class="mt-tabs__pill" [class.is-active]="tab() === 'past'" (click)="tab.set('past')">
+  <button class="mt-tabs__pill" [class.is-active]="tab() === 'past'" role="tab" [attr.aria-selected]="tab() === 'past'" (click)="tab.set('past')">
     <i class="bi bi-archive"></i> Past
   </button>
 </div>
 
 @if (error()) {
+  <div class="card mt-card">
   <app-error-state>
     <button class="btn btn-outline-secondary btn-sm" (click)="load()">Retry</button>
   </app-error-state>
+  </div>
 } @else if (loading()) {
   <div class="card mt-card p-3"><app-table-skeleton [rows]="4" [cols]="5" /></div>
 } @else if (!visible().length) {
@@ -33,7 +35,7 @@
       [title]="tab() === 'past' ? 'No past meetings' : 'No meetings yet'"
       message="Start an instant meeting or schedule one with a client — the link is ready to share immediately."
     />
-    <div class="text-center pb-3">
+    <div class="text-center pb-3 mt-empty-cta">
       <button class="btn mt-btn" (click)="openCreate('instant')">
         <i class="bi bi-camera-video me-1"></i>Start instant meeting
       </button>
@@ -85,10 +87,10 @@
             <button class="btn btn-outline-secondary btn-sm" (click)="shareFor.set(meeting)">
               <i class="bi bi-send me-1"></i>Share
             </button>
-            <button class="btn btn-outline-secondary btn-sm" (click)="copyLink(meeting)" title="Copy guest link">
+            <button class="btn btn-outline-secondary btn-sm" (click)="copyLink(meeting)" title="Copy guest link" aria-label="Copy guest link">
               <i class="bi bi-clipboard"></i>
             </button>
-            <button class="btn btn-outline-danger btn-sm ms-auto" (click)="cancel(meeting)" title="Cancel">
+            <button class="btn btn-outline-danger btn-sm ms-auto" (click)="cancel(meeting)" title="Cancel" aria-label="Cancel">
               <i class="bi bi-x-lg"></i>
             </button>
           } @else {
@@ -112,7 +114,7 @@
 >
   <div class="row g-3">
     <div class="col-12">
-      <div class="btn-group btn-group-sm w-100">
+      <div class="btn-group btn-group-sm w-100 mt-mode" role="group">
         <button class="btn" [class.mt-btn]="mode === 'instant'" [class.btn-outline-secondary]="mode !== 'instant'" (click)="mode = 'instant'">
           <i class="bi bi-lightning-charge me-1"></i>Instant
         </button>
@@ -122,18 +124,18 @@
       </div>
     </div>
     <div class="col-12">
-      <label class="form-label">Title</label>
-      <input class="form-control" [(ngModel)]="title" placeholder="Site visit discussion" />
+      <label class="form-label" for="mtTitle">Title</label>
+      <input class="form-control" id="mtTitle" [(ngModel)]="title" placeholder="Site visit discussion" />
     </div>
     @if (mode === 'scheduled') {
       <div class="col-12">
-        <label class="form-label">Date &amp; time</label>
-        <input type="datetime-local" class="form-control" [(ngModel)]="scheduleAt" />
+        <label class="form-label" for="mtWhen">Date &amp; time</label>
+        <input type="datetime-local" class="form-control" id="mtWhen" [(ngModel)]="scheduleAt" />
       </div>
     }
     <div class="col-12"><hr class="my-1" /></div>
-    <div class="col-12 d-flex align-items-center justify-content-between">
-      <label class="form-label mb-0">
+    <div class="col-12 d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <label class="form-label mb-0 mt-invitee-label">
         Invitees <span class="text-muted fw-normal">(any number of people — phone for WhatsApp, email for invites)</span>
       </label>
       <button type="button" class="btn btn-outline-secondary btn-sm" (click)="addInvitee()">
@@ -143,13 +145,14 @@
     @for (invitee of invitees; track $index; let i = $index) {
       <div class="col-12">
         <div class="mt-invitee-row">
-          <input class="form-control form-control-sm" [(ngModel)]="invitees[i].name" placeholder="Name" />
-          <input class="form-control form-control-sm" [(ngModel)]="invitees[i].phone" placeholder="Phone (9198…)" />
-          <input type="email" class="form-control form-control-sm" [(ngModel)]="invitees[i].email" placeholder="Email" />
+          <input class="form-control form-control-sm" [(ngModel)]="invitees[i].name" placeholder="Name" aria-label="Name" />
+          <input class="form-control form-control-sm" [(ngModel)]="invitees[i].phone" placeholder="Phone (9198…)" aria-label="Phone" />
+          <input type="email" class="form-control form-control-sm" [(ngModel)]="invitees[i].email" placeholder="Email" aria-label="Email" />
           <button
             type="button"
             class="btn btn-outline-danger btn-sm"
             title="Remove"
+            aria-label="Remove"
             [disabled]="invitees.length === 1 && !invitees[0].name && !invitees[0].phone && !invitees[0].email"
             (click)="removeInvitee(i)"
           >
@@ -159,7 +162,7 @@
       </div>
     }
   </div>
-  <div modalFooter class="d-flex justify-content-end gap-2">
+  <div modalFooter class="d-flex justify-content-end flex-wrap gap-2">
     <button class="btn btn-outline-secondary" (click)="createOpen.set(false)">Cancel</button>
     <button class="btn mt-btn" [disabled]="saving()" (click)="create()">
       @if (saving()) {
@@ -181,11 +184,11 @@
   (closed)="shareFor.set(null)"
 >
   @if (shareFor(); as meeting) {
-    <p class="mb-2 fw-medium">{{ meeting.title }}</p>
+    <p class="mb-2 fw-semibold mt-share-title">{{ meeting.title }}</p>
     <div class="mt-link mb-3">
       <i class="bi bi-link-45deg"></i>
-      <span class="text-truncate">{{ meeting.guestLink }}</span>
-      <button class="btn btn-light btn-sm" (click)="copyLink(meeting)"><i class="bi bi-clipboard"></i></button>
+      <span class="text-truncate flex-fill">{{ meeting.guestLink }}</span>
+      <button class="btn btn-light btn-sm" (click)="copyLink(meeting)" aria-label="Copy guest link"><i class="bi bi-clipboard"></i></button>
     </div>
 
     @if (!whatsappConnected()) {
@@ -203,15 +206,15 @@
               <b>{{ invitee.name || 'Invitee' }}</b>
               <small>{{ invitee.phone || '' }}{{ invitee.phone && invitee.email ? ' · ' : '' }}{{ invitee.email || '' }}</small>
             </div>
-            <div class="d-flex gap-1">
+            <div class="d-flex gap-1 flex-shrink-0">
               @if (whatsappConnected()) {
                 <button class="btn btn-sm mt-share-wa" [disabled]="sharing() || !invitee.phone"
-                        title="WhatsApp" (click)="share('WHATSAPP', invitee)">
+                        title="WhatsApp" aria-label="WhatsApp" (click)="share('WHATSAPP', invitee)">
                   <i class="bi bi-whatsapp"></i>
                 </button>
               }
               <button class="btn btn-sm mt-share-mail" [disabled]="sharing() || !invitee.email"
-                      title="Email" (click)="share('EMAIL', invitee)">
+                      title="Email" aria-label="Email" (click)="share('EMAIL', invitee)">
                 <i class="bi bi-envelope"></i>
               </button>
             </div>
@@ -257,6 +260,9 @@
       }
     </div>
   } @else {
-    <p class="text-muted mb-0">No notes were taken in this meeting.</p>
+    <div class="empty-state py-4">
+      <div class="empty-state-icon"><i class="bi bi-journal-text"></i></div>
+      <p class="empty-state-title">No notes were taken in this meeting.</p>
+    </div>
   }
 </app-modal>

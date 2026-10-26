@@ -11,9 +11,9 @@
 <app-whatsapp-nav />
 
 <!-- step indicator -->
-<div class="wizard-steps mb-3">
+<div class="wizard-steps mb-3" role="list">
   @for (label of ['Audience', 'Message', 'Review']; track label; let i = $index) {
-    <div class="wizard-step" [class.wizard-step--on]="step() >= i + 1">
+    <div class="wizard-step" role="listitem" [class.wizard-step--on]="step() >= i + 1">
       <span class="wizard-step__num">{{ i + 1 }}</span>{{ label }}
     </div>
   }
@@ -24,13 +24,13 @@
     <!-- STEP 1: audience -->
     @if (step() === 1) {
       @if (dailyLimit()) {
-        <div class="alert alert-light py-2 px-3 mb-3" style="font-size: 0.75rem">
+        <div class="alert alert-light wa-limit-note py-2 px-3 mb-3">
           <i class="bi bi-speedometer2 me-1"></i>
           Your WhatsApp number can reach <strong>{{ dailyLimit() }}</strong>. An audience
           larger than that will not all go out today — Meta stops the rest.
         </div>
       }
-      <div class="d-flex gap-3 mb-3">
+      <div class="source-grid mb-4">
         <div
           class="source-card"
           [class.source-card--on]="sourceType === 'RECORDS'"
@@ -82,7 +82,7 @@
           Optional narrowing. A stage and the record's own created date are
           columns on the record, which the field filters cannot reach.
         -->
-        <div class="row g-3 mt-1">
+        <div class="row g-3 mt-2">
           <div class="col-12 col-md-5">
             <label class="form-label">
               Stage <span class="text-muted fw-normal">(optional)</span>
@@ -172,7 +172,7 @@
             ></textarea>
             @if (sourceType === 'RECORDS' && placeholderKeys().length) {
               <div class="mt-2 d-flex flex-wrap gap-1 align-items-center">
-                <span class="text-muted" style="font-size: 0.7rem">Insert field:</span>
+                <span class="text-muted insert-label">Insert field:</span>
                 @for (key of placeholderKeys(); track key) {
                   <button
                     type="button"
@@ -232,8 +232,7 @@
         <dd class="col-sm-9">
           <input
             type="datetime-local"
-            class="form-control form-control-sm d-inline-block"
-            style="max-width: 240px"
+            class="form-control form-control-sm d-inline-block schedule-input"
             [(ngModel)]="scheduleAt"
           />
           <span class="text-muted small ms-2">Leave it empty to send straight away.</span>
@@ -250,14 +249,14 @@
     }
   </div>
 
-  <div class="card-footer d-flex justify-content-between">
+  <div class="card-footer wizard-footer d-flex flex-wrap gap-2 justify-content-between">
     <button class="btn btn-outline-secondary" [disabled]="step() === 1" (click)="back()">
       Back
     </button>
     @if (step() < 3) {
       <button class="btn btn-primary" (click)="next()">Continue</button>
     } @else {
-      <div class="d-flex gap-2">
+      <div class="d-flex flex-wrap gap-2">
         <button class="btn btn-outline-primary" [disabled]="saving()" (click)="createDraft(false)">
           Save as draft
         </button>

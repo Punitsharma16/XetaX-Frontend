@@ -2,17 +2,39 @@
   min-width: 0;
 }
 
+/* ------------------------------------------------------------ skeleton -- */
+
+.sk-title {
+  height: 14px;
+  width: 30%;
+}
+
+.sk-line {
+  height: 10px;
+  width: 55%;
+}
+
+.sk-block {
+  height: 120px;
+}
+
+/* -------------------------------------------------------------- header -- */
+
 .rule-icon {
   width: 46px;
   height: 46px;
   flex: 0 0 46px;
-  border-radius: 13px;
+  border-radius: var(--radius-lg);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: var(--warning-50);
   color: var(--warning-600);
   font-size: 1.2rem;
+}
+
+.detail-header .page-title {
+  word-break: break-word;
 }
 
 .alert-warning {
@@ -22,22 +44,44 @@
   border-radius: var(--radius-md);
 }
 
+.rule-alert {
+  font-size: 0.8125rem;
+  padding: 0.6rem 0.9rem;
+}
+
 /* ----------------------------------------------------- when / if / then -- */
 
+.rule-body {
+  padding: 1.25rem;
+}
+
+/* Each step sits on a vertical rail so the rule reads top to bottom */
 .rule-section {
-  padding-bottom: 1.1rem;
-  margin-bottom: 1.1rem;
-  border-bottom: 1px dashed var(--border-subtle);
+  position: relative;
+  padding: 0 0 1.5rem 1.25rem;
+  border-left: 2px solid var(--border-subtle);
+  margin-left: 0.4rem;
+}
+
+.rule-section::before {
+  content: '';
+  position: absolute;
+  left: -7px;
+  top: 0.3rem;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--surface-card);
+  border: 2px solid var(--brand-400);
 }
 
 .rule-section--last {
   padding-bottom: 0;
-  margin-bottom: 0;
-  border-bottom: 0;
+  border-left-color: transparent;
 }
 
 .rule-label {
-  margin-bottom: 0.65rem;
+  margin-bottom: 0.75rem;
 }
 
 .rule-chip {
@@ -46,7 +90,7 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  padding: 0.2rem 0.6rem;
+  padding: 0.2rem 0.65rem;
   border-radius: var(--radius-pill);
 }
 
@@ -58,6 +102,7 @@
 .rule-chip--if {
   background: var(--surface-sunken);
   color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
 }
 
 .rule-chip--then {
@@ -65,8 +110,46 @@
   color: var(--warning-600);
 }
 
+.rule-empty {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  padding: 0.6rem 0.85rem;
+  background: var(--surface-sunken);
+  border: 1px dashed var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.condition-row {
+  margin: 0 0 0.5rem;
+  padding: 0 0.25rem 0.5rem;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.insert-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-right: 0.15rem;
+}
+
 .placeholder-chip {
   font-family: var(--font-mono, monospace);
-  font-size: 0.65rem;
-  padding: 0.1rem 0.45rem;
+  font-size: 0.7rem;
+  padding: 0.1rem 0.5rem;
+  border-radius: var(--radius-pill);
+}
+
+@media (max-width: 575.98px) {
+  .rule-body {
+    padding: 1rem;
+  }
+
+  .rule-section {
+    padding-left: 1rem;
+  }
+
+  .back-link {
+    width: 100%;
+  }
 }

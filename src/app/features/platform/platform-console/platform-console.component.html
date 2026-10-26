@@ -3,13 +3,13 @@
   icon="bi-shield-lock"
   subtitle="Every workspace on XetaX — what they are on, what they use, and the two levers you have."
 >
-  <button type="button" class="btn btn-outline-secondary" (click)="load()" title="Refresh">
+  <button type="button" class="btn btn-outline-secondary" (click)="load()" title="Refresh" aria-label="Refresh">
     <i class="bi bi-arrow-clockwise"></i>
   </button>
 </app-page-header>
 
 @if (overview(); as o) {
-  <div class="pf-tiles mb-3">
+  <div class="pf-tiles mb-4">
     <div class="pf-tile"><span>Workspaces</span><b>{{ o.workspaces }}</b></div>
     <div class="pf-tile"><span>Paying</span><b>{{ o.payingWorkspaces }}</b></div>
     <div class="pf-tile pf-tile--hero"><span>Booked</span><b>₹{{ o.bookedAmount | number: '1.0-0' }}</b></div>
@@ -44,13 +44,13 @@
               <td>{{ row.effectiveFrom }}</td>
               <td class="text-muted small">{{ row.note || '—' }}</td>
               <td class="text-end">
-                <button class="btn btn-sm btn-outline-danger" title="Delete" (click)="deleteRate(row)">
+                <button class="btn btn-sm btn-outline-danger" title="Delete" aria-label="Delete" (click)="deleteRate(row)">
                   <i class="bi bi-trash"></i>
                 </button>
               </td>
             </tr>
           } @empty {
-            <tr><td colspan="5" class="text-muted small">No rates yet — the server seeds them on first start.</td></tr>
+            <tr><td colspan="5" class="text-muted small text-center py-4">No rates yet — the server seeds them on first start.</td></tr>
           }
         </tbody>
       </table>
@@ -92,20 +92,22 @@
 </div>
 
 <div class="card">
-  <div class="card-header d-flex flex-wrap gap-2 align-items-center justify-content-between">
+  <div class="toolbar">
     <span class="fw-semibold"><i class="bi bi-buildings me-1"></i>Workspaces</span>
-    <div class="d-flex gap-2">
-      <input class="form-control form-control-sm" style="width: 220px" placeholder="Name, email, company…"
+    <div class="toolbar-spacer"></div>
+    <div class="toolbar-search">
+      <i class="bi bi-search" aria-hidden="true"></i>
+      <input class="form-control form-control-sm" placeholder="Name, email, company…" aria-label="Name, email, company…"
              [(ngModel)]="term" (keyup.enter)="load()" />
-      <select class="form-select form-select-sm w-auto" [(ngModel)]="planFilter" (ngModelChange)="load()">
-        <option value="">All plans</option>
-        @for (p of plans(); track p.key) { <option [value]="p.key">{{ p.label }}</option> }
-      </select>
     </div>
+    <select class="form-select form-select-sm w-auto pf-plan-filter" [(ngModel)]="planFilter" (ngModelChange)="load()">
+      <option value="">All plans</option>
+      @for (p of plans(); track p.key) { <option [value]="p.key">{{ p.label }}</option> }
+    </select>
   </div>
 
   @if (loading()) {
-    <div class="card-body text-muted small">Loading…</div>
+    <div class="card-body text-muted small d-flex align-items-center gap-2" role="status"><span class="spinner-border spinner-border-sm" aria-hidden="true"></span>Loading…</div>
   } @else if (workspaces().length) {
     <div class="table-responsive">
       <table class="table table-hover align-middle mb-0 pf-table">
@@ -157,14 +159,14 @@
 <!-- ------------------------------------------------------------- manage -->
 @if (selected(); as w) {
   <div class="pf-overlay" (click)="selected.set(null)"></div>
-  <aside class="pf-drawer card">
+  <aside class="pf-drawer card" role="dialog" aria-modal="true">
     <div class="card-body">
       <div class="d-flex justify-content-between align-items-start gap-2">
         <div>
           <h5 class="mb-0">{{ w.company || w.name }}</h5>
           <div class="text-muted small">{{ w.email }} @if (w.phone) { · {{ w.phone }} }</div>
         </div>
-        <button class="btn btn-sm btn-light" (click)="selected.set(null)"><i class="bi bi-x-lg"></i></button>
+        <button class="btn btn-sm btn-light" (click)="selected.set(null)" aria-label="Close"><i class="bi bi-x-lg"></i></button>
       </div>
 
       <div class="pf-facts mt-3">

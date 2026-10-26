@@ -33,7 +33,7 @@
             </div>
           </div>
           @if (s.recordId) {
-            <a class="desk-icon-btn" [routerLink]="['/app/records']" [queryParams]="{ open: s.recordId }" title="Open record"><i class="bi bi-box-arrow-up-right"></i></a>
+            <a class="desk-icon-btn" [routerLink]="['/app/records']" [queryParams]="{ open: s.recordId }" title="Open record" aria-label="Open record"><i class="bi bi-box-arrow-up-right"></i></a>
           }
         </div>
 
@@ -65,7 +65,7 @@
         <div class="desk-compose">
           <textarea class="form-control" rows="1" [(ngModel)]="draft" (keydown)="onKey($event)"
                     placeholder="Type a reply — Enter to send"></textarea>
-          <button type="button" class="btn btn-primary desk-send" (click)="send()" [disabled]="sending() || !draft.trim()">
+          <button type="button" class="btn btn-primary desk-send" (click)="send()" [disabled]="sending() || !draft.trim()" aria-label="Send">
             <i class="bi bi-send-fill"></i>
           </button>
         </div>

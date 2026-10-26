@@ -34,7 +34,7 @@ import { ConfirmService } from '../../../core/services/confirm.service';
           <h5 class="mb-1">{{ state().title }}</h5>
           <p class="text-secondary mb-0">{{ state().message }}</p>
 
-          <div class="d-flex justify-content-end gap-2 mt-4">
+          <div class="confirm-actions d-flex justify-content-end gap-2 mt-4">
             <button type="button" class="btn btn-outline-secondary" (click)="respond(false)">
               {{ state().cancelText }}
             </button>
@@ -101,6 +101,32 @@ import { ConfirmService } from '../../../core/services/confirm.service';
       .confirm-icon.is-danger {
         background: var(--danger-50);
         color: var(--danger-600);
+      }
+
+      .confirm-card h5 {
+        font-size: 1.05rem;
+        font-weight: 650;
+        overflow-wrap: anywhere;
+      }
+
+      .confirm-card p {
+        overflow-wrap: anywhere;
+      }
+
+      /* Phones: full-width buttons, primary action on top for the thumb. */
+      @media (max-width: 575.98px) {
+        .confirm-card {
+          padding: 1.25rem;
+        }
+
+        .confirm-actions {
+          flex-direction: column-reverse;
+        }
+
+        .confirm-actions .btn {
+          width: 100%;
+          margin-left: 0;
+        }
       }
 
       @keyframes fade-in {

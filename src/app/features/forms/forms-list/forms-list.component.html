@@ -4,7 +4,7 @@
   subtitle="Every form defines its own fields, pipeline stages and records."
 >
   <app-search-box placeholder="Search forms…" (search)="onSearch($event)" />
-  <button type="button" class="btn btn-outline-secondary" (click)="load()" title="Refresh">
+  <button type="button" class="btn btn-outline-secondary" (click)="load()" title="Refresh" aria-label="Refresh">
     <i class="bi bi-arrow-clockwise"></i>
   </button>
   <button
@@ -30,10 +30,10 @@
         <div class="card h-100">
           <div class="card-body">
             <div class="d-flex gap-3">
-              <div class="skeleton" style="width: 44px; height: 44px; border-radius: 12px"></div>
+              <div class="skeleton sk-icon"></div>
               <div class="flex-fill">
-                <div class="skeleton mb-2" style="height: 12px; width: 55%"></div>
-                <div class="skeleton" style="height: 9px; width: 80%"></div>
+                <div class="skeleton sk-title mb-2"></div>
+                <div class="skeleton sk-line"></div>
               </div>
             </div>
           </div>
@@ -66,7 +66,7 @@
     <app-empty-state icon="bi-search" title="No matching forms" message="Try a different search term." />
   </div>
 } @else {
-  <div class="row g-3">
+  <div class="row g-3 forms-grid">
     @for (form of visible(); track form.id) {
       <div class="col-12 col-md-6 col-xl-4">
         <div class="card h-100 form-card">
@@ -130,7 +130,7 @@
               {{ form.description || 'No description provided.' }}
             </p>
 
-            <div class="d-flex gap-2 mt-auto pt-3">
+            <div class="form-card__actions d-flex gap-2 mt-auto">
               <a class="btn btn-light flex-fill" [routerLink]="['/app/forms', form.id]">
                 <i class="bi bi-sliders"></i> Configure
               </a>
@@ -179,7 +179,7 @@
         (input)="onSlugInput()"
         [class.is-invalid]="editorForm.controls.slug.invalid && editorForm.controls.slug.touched"
       />
-      <div class="form-text" style="font-size: 0.7rem">
+      <div class="form-text slug-hint">
         Used in record URLs and the API — lowercase letters, numbers and hyphens.
       </div>
       <div class="invalid-feedback">Use lowercase letters, numbers and hyphens only.</div>
@@ -259,7 +259,7 @@
 <app-modal [open]="galleryOpen()" title="Start from a vertical pack" icon="bi-box-seam" size="xl"
            (closed)="galleryOpen.set(false)">
   <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-    <div class="tpl-tabs">
+    <div class="tpl-tabs" role="group">
       <button type="button" class="tpl-tab" [class.is-active]="galleryTab() === 'builtin'" (click)="galleryTab.set('builtin')">
         <i class="bi bi-stars me-1"></i>Industry packs <span class="tpl-tab__n">{{ builtinPacks().length }}</span>
       </button>
@@ -271,7 +271,7 @@
       <i class="bi bi-upload me-1"></i>Import pack JSON
     </button>
   </div>
-  <p class="text-muted small mb-3">
+  <p class="tpl-intro mb-3">
     A pack sets up the whole workflow for a business: form, pipeline, draft automations, WhatsApp templates,
     an AI assistant and a sales playbook. You see a full <b>preview</b> first; nothing is created until you confirm.
   </p>
@@ -296,19 +296,19 @@
         </span>
         @if (!template.builtin) {
           <span class="tpl-card__tools">
-            <a class="btn btn-light btn-sm" (click)="copyPackJson(template, $event)" title="Copy JSON"><i class="bi bi-clipboard"></i></a>
-            <a class="btn btn-light btn-sm text-danger" (click)="deletePack(template, $event)" title="Delete pack"><i class="bi bi-trash"></i></a>
+            <a class="btn btn-light btn-sm" (click)="copyPackJson(template, $event)" title="Copy JSON" aria-label="Copy JSON"><i class="bi bi-clipboard"></i></a>
+            <a class="btn btn-light btn-sm text-danger" (click)="deletePack(template, $event)" title="Delete pack" aria-label="Delete pack"><i class="bi bi-trash"></i></a>
           </span>
         }
       </button>
     } @empty {
       @if (galleryTab() === 'mine') {
-        <div class="text-muted small p-3">
+        <div class="tpl-empty">
           No packs of your own yet. Open a form's menu → <b>Save as pack</b> to turn your setup into a reusable pack,
           or import one from a colleague.
         </div>
       } @else {
-        <div class="text-muted small p-3">Loading packs…</div>
+        <div class="tpl-empty"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Loading packs…</div>
       }
     }
   </div>
@@ -321,9 +321,9 @@
     Snapshots this form's fields, stages, automations, WhatsApp drafts, the AI assistant linked to it and its playbook.
     Install it again in one click, or copy its JSON to another workspace.
   </p>
-  <label class="form-label">Pack name</label>
-  <input class="form-control" [(ngModel)]="packName" />
-  <div modalFooter class="d-flex justify-content-end gap-2 w-100">
+  <label class="form-label" for="packNameInput">Pack name</label>
+  <input class="form-control" id="packNameInput" [(ngModel)]="packName" />
+  <div modalFooter class="d-flex justify-content-end flex-wrap gap-2 w-100">
     <button class="btn btn-outline-secondary" (click)="exportFor.set(null)">Cancel</button>
     <button class="btn btn-primary" [disabled]="exporting()" (click)="confirmExport()">
       @if (exporting()) { <span class="spinner-border spinner-border-sm me-1"></span> }
@@ -335,8 +335,8 @@
 <!-- ------------------------------------------------------- import pack -->
 <app-modal [open]="importOpen()" title="Import a pack" icon="bi-upload" size="lg" (closed)="importOpen.set(false)">
   <p class="text-muted small">Paste the pack JSON (from "Copy JSON" on any pack, or a partner). It is validated before it is saved.</p>
-  <textarea class="form-control font-monospace" rows="12" [(ngModel)]="importJson" placeholder='{ "key": "my_pack", "name": "…", "fields": [...], "stages": [...] }'></textarea>
-  <div modalFooter class="d-flex justify-content-end gap-2 w-100">
+  <textarea class="form-control font-monospace" rows="12" aria-label="Pack JSON" [(ngModel)]="importJson" placeholder='{ "key": "my_pack", "name": "…", "fields": [...], "stages": [...] }'></textarea>
+  <div modalFooter class="d-flex justify-content-end flex-wrap gap-2 w-100">
     <button class="btn btn-outline-secondary" (click)="importOpen.set(false)">Cancel</button>
     <button class="btn btn-primary" [disabled]="importing() || !importJson.trim()" (click)="confirmImport()">
       @if (importing()) { <span class="spinner-border spinner-border-sm me-1"></span> }
@@ -354,7 +354,8 @@
     <div class="row g-3">
       <div class="col-12 col-lg-6">
         <h6 class="tpl-h"><i class="bi bi-input-cursor-text me-1"></i>Fields that will be created ({{ t.fields.length }})</h6>
-        <table class="table table-sm tpl-table">
+        <div class="table-responsive tpl-table-wrap">
+        <table class="table table-sm tpl-table mb-0">
           <thead><tr><th>Field</th><th>Type</th><th>Required</th></tr></thead>
           <tbody>
             @for (field of t.fields; track field.fieldKey) {
@@ -366,6 +367,7 @@
             }
           </tbody>
         </table>
+        </div>
       </div>
 
       <div class="col-12 col-lg-6">
@@ -433,8 +435,8 @@
       }
 
       <div class="col-12 col-lg-6">
-        <label class="form-label">Form name</label>
-        <input class="form-control" [(ngModel)]="templateFormName" />
+        <label class="form-label" for="tplFormName">Form name</label>
+        <input class="form-control" id="tplFormName" [(ngModel)]="templateFormName" />
       </div>
       <div class="col-12 col-lg-6">
         <label class="form-label d-block">Install</label>
@@ -447,12 +449,12 @@
       </div>
     </div>
   }
-  <div modalFooter class="d-flex justify-content-between align-items-center w-100">
-    <span class="text-muted small">
+  <div modalFooter class="d-flex justify-content-between align-items-center flex-wrap gap-2 w-100">
+    <span class="tpl-footer-note">
       <i class="bi bi-info-circle me-1"></i>Automations and the playbook are created OFF — review the messages,
       then switch them on yourself.
     </span>
-    <div class="d-flex gap-2">
+    <div class="d-flex flex-wrap gap-2 ms-auto">
       <button class="btn btn-outline-secondary" (click)="previewFor.set(null)">Back</button>
       <button class="btn btn-primary" [disabled]="applying()" (click)="confirmApply()">
         @if (applying()) { <span class="spinner-border spinner-border-sm me-1"></span> Creating… }

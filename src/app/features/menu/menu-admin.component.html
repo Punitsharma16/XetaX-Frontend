@@ -5,10 +5,11 @@
 />
 
 @if (loading()) {
-  <app-table-skeleton [rows]="5" [cols]="4" />
+  <div class="card"><app-table-skeleton [rows]="5" [cols]="4" /></div>
 } @else if (failed()) {
-  <app-error-state message="Could not load your menu." (retry)="load()" />
+  <div class="card"><app-error-state message="Could not load your menu." (retry)="load()" /></div>
 } @else if (!hasOrderForm()) {
+  <div class="card">
   <app-empty-state
     icon="bi-shop"
     title="Install the Restaurant Orders template first"
@@ -16,13 +17,15 @@
   >
     <a class="btn btn-primary mt-3" routerLink="/app/forms"><i class="bi bi-grid me-1"></i>Go to Forms</a>
   </app-empty-state>
+  </div>
 } @else {
   @if (store(); as s) {
     <!-- status -->
-    <div class="card mb-3">
+    <div class="card menu-status mb-3">
       <div class="card-body d-flex flex-wrap align-items-center gap-3">
-        <div class="flex-grow-1">
-          <div class="d-flex align-items-center gap-2">
+        <span class="menu-status__icon" [class.is-live]="s.enabled" aria-hidden="true"><i class="bi bi-shop-window"></i></span>
+        <div class="flex-grow-1 menu-status__text">
+          <div class="d-flex align-items-center gap-2 flex-wrap">
             <span class="fw-semibold">{{ s.title || 'Your menu' }}</span>
             @if (s.enabled) {
               <span class="badge text-bg-success"><i class="bi bi-broadcast me-1"></i>Live</span>
@@ -30,12 +33,13 @@
               <span class="badge text-bg-secondary">Off</span>
             }
           </div>
-          <div class="text-muted small">
+          <div class="menu-status__meta">
             {{ items().length }} item{{ items().length === 1 ? '' : 's' }} in
             {{ categories().length }} categor{{ categories().length === 1 ? 'y' : 'ies' }}.
             @if (!s.enabled) { Customers see nothing until you switch it on. }
           </div>
         </div>
+        <div class="menu-status__actions d-flex flex-wrap gap-2">
         @if (s.enabled) {
           <a class="btn btn-outline-secondary btn-sm" [href]="s.menuUrl" target="_blank" rel="noopener">
             <i class="bi bi-box-arrow-up-right me-1"></i>Open menu
@@ -46,23 +50,24 @@
           <i class="bi me-1" [class.bi-play-fill]="!s.enabled" [class.bi-stop-fill]="s.enabled"></i>
           {{ s.enabled ? 'Switch off' : 'Go live' }}
         </button>
+        </div>
       </div>
     </div>
 
     <!-- tabs -->
-    <ul class="nav nav-tabs mb-3">
+    <ul class="nav nav-tabs menu-tabs mb-3" role="tablist">
       <li class="nav-item">
-        <button class="nav-link" [class.active]="tab() === 'items'" (click)="tab.set('items')">
+        <button class="nav-link" role="tab" [attr.aria-selected]="tab() === 'items'" [class.active]="tab() === 'items'" (click)="tab.set('items')">
           <i class="bi bi-egg-fried me-1"></i>Items
         </button>
       </li>
       <li class="nav-item">
-        <button class="nav-link" [class.active]="tab() === 'categories'" (click)="tab.set('categories')">
+        <button class="nav-link" role="tab" [attr.aria-selected]="tab() === 'categories'" [class.active]="tab() === 'categories'" (click)="tab.set('categories')">
           <i class="bi bi-list-nested me-1"></i>Categories
         </button>
       </li>
       <li class="nav-item">
-        <button class="nav-link" [class.active]="tab() === 'share'" (click)="tab.set('share')">
+        <button class="nav-link" role="tab" [attr.aria-selected]="tab() === 'share'" [class.active]="tab() === 'share'" (click)="tab.set('share')">
           <i class="bi bi-qr-code me-1"></i>Link, QR &amp; settings
         </button>
       </li>
@@ -72,36 +77,42 @@
 
       <!-- ============================================================ items -->
       @case ('items') {
-        <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
-          <select class="form-select form-select-sm menu-filter"
+        <div class="card mb-3">
+        <div class="toolbar menu-toolbar">
+          <select class="form-select form-select-sm menu-filter" aria-label="All categories"
                   [ngModel]="filterCategory()" (ngModelChange)="filterCategory.set($event)">
             <option [ngValue]="null">All categories</option>
             @for (category of categories(); track category.id) {
               <option [ngValue]="category.id">{{ category.name }}</option>
             }
           </select>
-          <span class="flex-grow-1"></span>
+          <span class="toolbar-spacer"></span>
           <button class="btn btn-primary btn-sm" (click)="openNewItem()">
             <i class="bi bi-plus-lg me-1"></i>Add item
           </button>
         </div>
+        </div>
 
         @if (!categories().length) {
+          <div class="card">
           <app-empty-state
             icon="bi-list-nested"
             title="Start with a category"
             message="Items sit under headings like Starters or Drinks. Add one in the Categories tab."
           />
+          </div>
         } @else if (!items().length) {
+          <div class="card">
           <app-empty-state
             icon="bi-egg-fried"
             title="No items yet"
             message="Add your first dish — its price, an optional offer and a photo."
           />
+          </div>
         } @else {
           @for (group of groups(); track group.category.id) {
-            <div class="card mb-3">
-              <div class="card-header d-flex align-items-center gap-2">
+            <div class="card menu-group mb-3">
+              <div class="card-header d-flex align-items-center gap-2 flex-wrap">
                 <span class="fw-semibold">{{ group.category.name }}</span>
                 @if (!group.category.active) {
                   <span class="badge text-bg-secondary">Hidden</span>
@@ -109,7 +120,7 @@
                 <span class="text-muted small ms-auto">{{ group.items.length }} item{{ group.items.length === 1 ? '' : 's' }}</span>
               </div>
               @if (!group.items.length) {
-                <div class="card-body text-muted small">Nothing in this category yet.</div>
+                <div class="card-body menu-group__empty">Nothing in this category yet.</div>
               } @else {
                 <ul class="list-group list-group-flush">
                   @for (item of group.items; track item.id) {
@@ -117,7 +128,7 @@
                       @if (item.imageUrl) {
                         <img class="menu-thumb" [src]="item.imageUrl" [alt]="item.name" loading="lazy" />
                       } @else {
-                        <div class="menu-thumb menu-thumb--empty"><i class="bi bi-image"></i></div>
+                        <div class="menu-thumb menu-thumb--empty" aria-hidden="true"><i class="bi bi-image"></i></div>
                       }
                       <div class="menu-row__main">
                         <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -150,10 +161,10 @@
                           <input class="form-check-input" type="checkbox" [checked]="item.available"
                                  (change)="toggleAvailable(item)" [attr.aria-label]="'Available: ' + item.name" />
                         </div>
-                        <button class="btn btn-sm btn-outline-secondary" (click)="openItem(item)" title="Edit">
+                        <button class="btn btn-sm btn-outline-secondary" (click)="openItem(item)" title="Edit" aria-label="Edit">
                           <i class="bi bi-pencil"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline-danger" (click)="deleteItem(item)" title="Delete">
+                        <button class="btn btn-sm btn-outline-danger" (click)="deleteItem(item)" title="Delete" aria-label="Delete">
                           <i class="bi bi-trash"></i>
                         </button>
                       </div>
@@ -170,7 +181,7 @@
       @case ('categories') {
         <div class="card mb-3">
           <div class="card-body">
-            <div class="row g-2 align-items-end">
+            <div class="row g-3 align-items-end">
               <div class="col-12 col-md-4">
                 <label class="form-label" for="catName">Category name <span class="text-danger">*</span></label>
                 <input id="catName" class="form-control" [(ngModel)]="newCategoryName"
@@ -200,14 +211,14 @@
           <div class="card">
             <ul class="list-group list-group-flush">
               @for (category of categories(); track category.id; let first = $first; let last = $last) {
-                <li class="list-group-item d-flex align-items-center gap-2 flex-wrap">
-                  <div class="d-flex flex-column">
+                <li class="list-group-item cat-row d-flex align-items-center gap-2 flex-wrap">
+                  <div class="d-flex flex-column cat-row__move">
                     <button class="btn btn-sm btn-link p-0 lh-1" [disabled]="first" (click)="move(category, -1)"
-                            title="Move up"><i class="bi bi-chevron-up"></i></button>
+                            title="Move up" aria-label="Move up"><i class="bi bi-chevron-up"></i></button>
                     <button class="btn btn-sm btn-link p-0 lh-1" [disabled]="last" (click)="move(category, 1)"
-                            title="Move down"><i class="bi bi-chevron-down"></i></button>
+                            title="Move down" aria-label="Move down"><i class="bi bi-chevron-down"></i></button>
                   </div>
-                  <div class="flex-grow-1">
+                  <div class="flex-grow-1 cat-row__main">
                     <div class="fw-semibold">
                       {{ category.name }}
                       @if (!category.active) { <span class="badge text-bg-secondary ms-1">Hidden</span> }
@@ -221,17 +232,18 @@
                     <input class="form-check-input" type="checkbox" [checked]="category.active"
                            (change)="toggleCategory(category)" [attr.aria-label]="'Show ' + category.name" />
                   </div>
-                  <button class="btn btn-sm btn-outline-secondary" (click)="editCategory(category)" title="Rename">
+                  <button class="btn btn-sm btn-outline-secondary" (click)="editCategory(category)" title="Rename" aria-label="Rename">
                     <i class="bi bi-pencil"></i>
                   </button>
-                  <button class="btn btn-sm btn-outline-danger" (click)="deleteCategory(category)" title="Delete">
+                  <button class="btn btn-sm btn-outline-danger" (click)="deleteCategory(category)" title="Delete" aria-label="Delete">
                     <i class="bi bi-trash"></i>
                   </button>
                 </li>
               }
             </ul>
           </div>
-          <div class="text-muted small mt-2">
+          <div class="menu-hint mt-2">
+            <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
             Hiding a category takes all its items off the menu without deleting them.
           </div>
         }
@@ -249,7 +261,7 @@
                   <button class="btn btn-outline-secondary" (click)="copyLink()">
                     <i class="bi bi-clipboard me-1"></i>Copy
                   </button>
-                  <a class="btn btn-outline-secondary" [href]="s.menuUrl" target="_blank" rel="noopener">
+                  <a class="btn btn-outline-secondary" [href]="s.menuUrl" target="_blank" rel="noopener" aria-label="Open menu">
                     <i class="bi bi-box-arrow-up-right"></i>
                   </a>
                 </div>
@@ -304,9 +316,11 @@
                     <div class="form-text">Delivery asks the customer for an address; dine-in asks for a table number.</div>
                   </div>
                 </div>
-                <button class="btn btn-primary mt-3" [disabled]="busy()" (click)="saveSettings()">
+                <div class="form-actions">
+                <button class="btn btn-primary" [disabled]="busy()" (click)="saveSettings()">
                   <i class="bi bi-check2 me-1"></i>Save settings
                 </button>
+                </div>
               </div>
             </div>
           </div>
@@ -314,7 +328,7 @@
           <div class="col-12 col-lg-5">
             <div class="card mb-3">
               <div class="card-header fw-semibold"><i class="bi bi-qr-code me-1"></i>QR code</div>
-              <div class="card-body text-center">
+              <div class="card-body text-center menu-qr-body">
                 <img class="menu-qr" [src]="qrPreview()" alt="QR code for your menu" />
                 <div class="mt-2">
                   <a class="btn btn-primary" [href]="downloadUrl()" download>
@@ -443,7 +457,7 @@
     </div>
   </div>
 
-  <div modalFooter class="d-flex justify-content-end gap-2">
+  <div modalFooter class="d-flex justify-content-end flex-wrap gap-2">
     <button class="btn btn-outline-secondary" (click)="itemOpen.set(false)">Cancel</button>
     <button class="btn btn-primary" [disabled]="itemSaving()" (click)="saveItem()">
       @if (itemSaving()) { <span class="spinner-border spinner-border-sm me-1"></span> }
@@ -465,7 +479,7 @@
   <input id="editCatName" class="form-control mb-3" [(ngModel)]="categoryDraft.name" maxlength="80" />
   <label class="form-label" for="editCatDesc">Short description</label>
   <input id="editCatDesc" class="form-control" [(ngModel)]="categoryDraft.description" maxlength="255" />
-  <div modalFooter class="d-flex justify-content-end gap-2">
+  <div modalFooter class="d-flex justify-content-end flex-wrap gap-2">
     <button class="btn btn-outline-secondary" (click)="categoryEditing.set(null)">Cancel</button>
     <button class="btn btn-primary" (click)="saveCategory()"><i class="bi bi-check2 me-1"></i>Save</button>
   </div>

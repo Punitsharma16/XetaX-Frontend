@@ -7,6 +7,7 @@
 <!-- Query builder -->
 <div class="card mb-3">
   <div class="card-body">
+    <div class="form-section">
     <div class="row g-3 align-items-end">
       <div class="col-12 col-md-5">
         <label class="form-label" for="searchForm">Form</label>
@@ -41,6 +42,7 @@
         </div>
       </div>
     </div>
+    </div>
 
     @if (selectedSlug()) {
       @if (metaLoading()) {
@@ -48,9 +50,8 @@
           <div class="skeleton" style="height: 38px"></div>
         </div>
       } @else {
-        <hr class="my-3" />
-
-        <div class="d-flex align-items-center justify-content-between mb-2">
+        <div class="form-section">
+        <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-2">
           <span class="section-label">Filters</span>
           <button type="button" class="btn btn-light btn-sm" (click)="addRow()">
             <i class="bi bi-plus-lg"></i> Add filter
@@ -58,7 +59,7 @@
         </div>
 
         @if (!rows().length) {
-          <p class="text-muted mb-0" style="font-size: 0.75rem">
+          <p class="text-muted mb-0 filters-empty">
             No filters yet — the search will return every record, ordered by your sort choice.
           </p>
         } @else {
@@ -198,8 +199,9 @@
           </div>
         }
 
-        <hr class="my-3" />
+        </div>
 
+        <div class="form-section">
         <div class="row g-2 align-items-end">
           <div class="col-6 col-md-4">
             <label class="form-label" for="sortBy">Sort by</label>
@@ -230,7 +232,7 @@
             </select>
           </div>
 
-          <div class="col-12 col-md-5 d-flex gap-2 justify-content-md-end">
+          <div class="col-12 col-md-5 d-flex flex-wrap gap-2 justify-content-md-end search-actions">
             <button type="button" class="btn btn-outline-secondary" (click)="clearRows()">
               <i class="bi bi-eraser"></i> Clear
             </button>
@@ -243,6 +245,7 @@
             </button>
           </div>
         </div>
+        </div>
       }
     }
   </div>
@@ -251,8 +254,8 @@
 <!-- Results -->
 @if (selectedSlug()) {
   <div class="card">
-    <div class="card-header d-flex align-items-center justify-content-between">
-      <span><i class="bi bi-list-ul me-2"></i>Results</span>
+    <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+      <span class="fw-semibold"><i class="bi bi-list-ul me-2"></i>Results</span>
       @if (searched()) {
         <span class="badge badge-soft-primary">{{ page().totalElements }} found</span>
       }
@@ -284,7 +287,7 @@
                 <th>Stage</th>
               }
               <th>Created</th>
-              <th class="text-end" style="width: 70px">Open</th>
+              <th class="text-end col-open">Open</th>
             </tr>
           </thead>
           <tbody>
@@ -306,7 +309,7 @@
                   </td>
                 }
 
-                <td class="text-muted" style="font-size: 0.7rem; white-space: nowrap">
+                <td class="text-muted text-nowrap meta-xs">
                   {{ formatDate(record.createdAt) }}
                 </td>
 
@@ -315,6 +318,7 @@
                     class="btn btn-light btn-icon"
                     [routerLink]="['/app/records', selectedSlug()]"
                     title="Open in records"
+                    aria-label="Open in records"
                   >
                     <i class="bi bi-box-arrow-up-right"></i>
                   </a>

@@ -106,6 +106,46 @@ import { ChangeDetectionStrategy, Component, HostListener, input, output } from 
 
       .app-modal__footer:empty { display: none; }
 
+      .app-modal__header h5 {
+        min-width: 0;
+        font-size: 1rem;
+        font-weight: 650;
+        overflow-wrap: anywhere;
+      }
+
+      /* Phones: the dialog becomes a bottom sheet, footer actions stay in reach. */
+      @media (max-width: 575.98px) {
+        .app-modal {
+          display: flex;
+          align-items: flex-end;
+          padding: 0;
+        }
+
+        .app-modal__dialog,
+        .app-modal__dialog--sm,
+        .app-modal__dialog--lg,
+        .app-modal__dialog--xl {
+          max-width: none;
+        }
+
+        .app-modal__content {
+          border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+          border-bottom: 0;
+          max-height: calc(100dvh - 2rem);
+        }
+
+        .app-modal__header,
+        .app-modal__body {
+          padding-left: 1rem;
+          padding-right: 1rem;
+        }
+
+        .app-modal__footer {
+          flex-wrap: wrap;
+          padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+        }
+      }
+
       @keyframes modal-fade {
         from { opacity: 0; }
         to { opacity: 1; }

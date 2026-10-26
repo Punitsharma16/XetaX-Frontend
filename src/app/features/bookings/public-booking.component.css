@@ -1,10 +1,11 @@
-/* The page a customer sees on their phone — its own small world, so nothing
-   from the signed-in panel's theme leaks in. */
+/* The page a customer sees on their phone — its own small world, built on the
+   design tokens so it follows the visitor's light / dark preference. */
 :host {
   display: block;
   min-height: 100vh;
-  background: #f6f7fb;
-  color: #111827;
+  min-height: 100dvh;
+  background: var(--surface-page);
+  color: var(--text-primary);
 }
 
 .pb-shell {
@@ -14,27 +15,64 @@
 }
 
 .pb-head {
-  padding: 1.25rem 0.25rem 0.75rem;
+  padding: 1.5rem 0.25rem 1rem;
 }
 
 .pb-title {
-  font-size: 1.35rem;
+  font-size: 1.5rem;
   font-weight: 800;
+  letter-spacing: -0.02em;
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .pb-tagline {
-  margin: 0.15rem 0 0;
-  color: #6b7280;
+  margin: 0.25rem 0 0;
+  color: var(--text-secondary);
   font-size: 0.9rem;
 }
 
 .pb-card {
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 14px;
-  padding: 1rem;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 1.1rem;
   margin-bottom: 0.9rem;
+}
+
+/* Loading / closed / nothing-free states */
+.pb-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+  padding: 2.5rem 1.25rem;
+  color: var(--text-secondary);
+}
+
+.pb-state h1 {
+  color: var(--text-primary);
+}
+
+.pb-state p {
+  max-width: 380px;
+}
+
+.pb-state__spinner {
+  color: var(--brand-600);
+}
+
+.pb-state__icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--brand-50);
+  color: var(--brand-600);
+  font-size: 1.4rem;
 }
 
 .pb-step {
@@ -42,8 +80,8 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #6b7280;
-  margin: 0 0 0.6rem;
+  color: var(--text-muted);
+  margin: 0 0 0.75rem;
 }
 
 .pb-days {
@@ -51,21 +89,31 @@
   gap: 0.5rem;
   overflow-x: auto;
   padding-bottom: 0.25rem;
+  scroll-snap-type: x proximity;
 }
 
 .pb-day {
   flex: 0 0 auto;
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  border-radius: 12px;
-  padding: 0.5rem 0.75rem;
+  scroll-snap-align: start;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+  padding: 0.55rem 0.8rem;
   text-align: left;
   min-width: 108px;
+  min-height: 44px;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
 }
 
-.pb-day--on {
-  border-color: #4f46e5;
-  background: #eef2ff;
+.pb-day:hover {
+  border-color: var(--border-strong);
+}
+
+.pb-day--on,
+.pb-day--on:hover {
+  border-color: var(--brand-600);
+  background: var(--brand-50);
 }
 
 .pb-day__label {
@@ -77,26 +125,34 @@
 .pb-day__count {
   display: block;
   font-size: 0.7rem;
-  color: #6b7280;
+  color: var(--text-muted);
 }
 
 .pb-slots {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 120px), 1fr));
   gap: 0.5rem;
 }
 
 .pb-slot {
-  border: 1px solid #e5e7eb;
-  background: #fff;
-  border-radius: 12px;
-  padding: 0.5rem;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
+  padding: 0.55rem 0.5rem;
+  min-height: 44px;
   text-align: center;
+  transition: border-color var(--transition-fast), background-color var(--transition-fast);
 }
 
-.pb-slot--on {
-  border-color: #4f46e5;
-  background: #4f46e5;
+.pb-slot:hover {
+  border-color: var(--border-strong);
+}
+
+.pb-slot--on,
+.pb-slot--on:hover {
+  border-color: var(--brand-600);
+  background: var(--brand-600);
   color: #fff;
 }
 
@@ -104,61 +160,73 @@
   color: rgba(255, 255, 255, 0.85);
 }
 
+.pb-day:focus-visible,
+.pb-slot:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
 .pb-slot__time {
   display: block;
   font-weight: 700;
   font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .pb-slot__who {
   display: block;
   font-size: 0.7rem;
-  color: #6b7280;
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
 }
 
 .pb-form {
   display: grid;
   gap: 0.35rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.9rem;
 }
 
 .pb-label {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #374151;
-  margin-top: 0.35rem;
+  color: var(--text-secondary);
+  margin-top: 0.4rem;
 }
 
 .pb-summary {
-  background: #eef2ff;
-  border-radius: 10px;
-  padding: 0.5rem 0.65rem;
+  background: var(--brand-50);
+  color: var(--brand-700);
+  border-radius: var(--radius-md);
+  padding: 0.55rem 0.75rem;
   font-size: 0.82rem;
-  margin-bottom: 0.65rem;
+  margin-bottom: 0.75rem;
 }
 
 .pb-error {
-  color: #b91c1c;
+  background: var(--danger-50);
+  color: var(--danger-600);
+  border-radius: var(--radius-md);
+  padding: 0.5rem 0.75rem;
   font-size: 0.82rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
 
 .pb-note {
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 0.78rem;
   text-align: center;
-  margin: 0.5rem 0 0;
+  margin: 0.75rem 0 0;
   white-space: pre-line;
 }
 
 .pb-done {
   text-align: center;
-  padding: 1.75rem 1rem;
+  padding: 2rem 1.25rem;
 }
 
 .pb-done__icon {
-  color: #16a34a;
-  font-size: 2rem;
+  color: var(--success-500);
+  font-size: 2.25rem;
   display: block;
   margin-bottom: 0.5rem;
 }

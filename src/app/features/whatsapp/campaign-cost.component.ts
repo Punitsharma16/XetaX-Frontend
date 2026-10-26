@@ -36,11 +36,16 @@ import { CHARGE_LABELS, CampaignEstimate } from './whatsapp.service';
   styles: [`
     .cc {
       display: flex; gap: 0.6rem; align-items: flex-start;
-      border: 1px solid var(--border-subtle, #dee2e6); border-radius: 10px;
-      padding: 0.6rem 0.8rem; margin-bottom: 1rem; font-size: 0.9rem;
+      border: 1px solid var(--border-subtle); border-radius: var(--radius-lg);
+      background: var(--surface-card); box-shadow: var(--shadow-xs);
+      padding: 0.75rem 1rem; margin-bottom: 1rem; font-size: 0.9rem;
     }
-    .cc__icon { font-size: 1.1rem; line-height: 1.3; }
-    .cc__detail { font-size: 0.75rem; color: var(--text-muted, #6c757d); }
+    .cc__icon {
+      width: 32px; height: 32px; flex: 0 0 32px; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 1rem; background: var(--wa-soft); color: var(--wa-600);
+    }
+    .cc__detail { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.15rem; }
   `],
 })
 export class CampaignCostComponent {

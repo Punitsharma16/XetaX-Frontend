@@ -41,7 +41,7 @@
   @if (tab() === 'sources') {
     <div class="card ag-card mb-3">
       <div class="card-body">
-        <div class="btn-group btn-group-sm mb-3">
+        <div class="btn-group btn-group-sm mb-3 ag-src-modes" role="group">
           <button class="btn" [class.ag-btn]="srcMode === 'pdf'" [class.btn-outline-secondary]="srcMode !== 'pdf'" (click)="srcMode = 'pdf'">
             <i class="bi bi-file-earmark-pdf me-1"></i>PDF
           </button>
@@ -90,7 +90,7 @@
             <tbody>
               @for (source of sources(); track source.id) {
                 <tr>
-                  <td class="fw-medium text-truncate" style="max-width: 320px">{{ source.name }}</td>
+                  <td class="fw-medium text-truncate ag-src-name">{{ source.name }}</td>
                   <td><span class="ag-chip">{{ source.type }}</span></td>
                   <td>
                     @if (source.status === 'INDEXED') {
@@ -102,7 +102,7 @@
                   <td>{{ source.chunkCount }}</td>
                   <td class="text-muted small">{{ source.createdAt | date: 'dd MMM' }}</td>
                   <td class="text-end">
-                    <button class="btn btn-link btn-sm text-danger p-0" (click)="deleteSource(source)">
+                    <button class="btn btn-link btn-sm text-danger p-0" (click)="deleteSource(source)" [attr.aria-label]="'Delete ' + source.name">
                       <i class="bi bi-trash"></i>
                     </button>
                   </td>
@@ -112,8 +112,11 @@
           </table>
         </div>
       } @else {
-        <div class="card-body text-muted small">
+        <div class="empty-state">
+          <div class="empty-state-icon"><i class="bi bi-database"></i></div>
+          <p class="empty-state-text">
           No knowledge yet — add a PDF, URL or text above. The agent only answers from this data.
+          </p>
         </div>
       }
     </div>
@@ -125,7 +128,7 @@
       <div class="ag-play__head" [style.background]="a.themeColor">
         <i class="bi bi-robot me-2"></i>{{ a.name }} — test chat (wahi jawab jo visitors ko milenge)
       </div>
-      <div class="ag-play__body">
+      <div class="ag-play__body" aria-live="polite">
         @for (message of chat(); track $index) {
           <div class="ag-msg" [class.ag-msg--me]="message.who === 'me'"
                [style.background]="message.who === 'me' ? a.themeColor : null">
@@ -137,7 +140,7 @@
       <div class="ag-play__foot">
         <input class="form-control" [(ngModel)]="draft" placeholder="Visitor ki tarah sawal pucho…"
                (keyup.enter)="send()" />
-        <button class="btn ag-btn" [disabled]="thinking() || !draft.trim()" (click)="send()">
+        <button class="btn ag-btn" [disabled]="thinking() || !draft.trim()" (click)="send()" aria-label="Send">
           <i class="bi bi-send"></i>
         </button>
       </div>
@@ -206,7 +209,8 @@
   @if (tab() === 'channels') {
     <div class="card ag-card">
       <div class="card-body">
-        <h6 class="mb-1"><i class="bi bi-whatsapp me-2 text-success"></i>WhatsApp autopilot</h6>
+        <div class="form-section">
+        <h6 class="form-section-title"><i class="bi bi-whatsapp me-2 text-success"></i>WhatsApp autopilot</h6>
         <p class="text-secondary small mb-3">
           Let this agent answer customers on your WhatsApp number — the same knowledge and persona it uses on the website.
           Only one agent per workspace can be on WhatsApp.
@@ -231,9 +235,10 @@
             </select>
           </div>
         </div>
+        </div>
 
-        <hr />
-        <h6 class="mb-1"><i class="bi bi-journal-plus me-2"></i>Where conversations are saved</h6>
+        <div class="form-section">
+        <h6 class="form-section-title"><i class="bi bi-journal-plus me-2"></i>Where conversations are saved</h6>
         <p class="text-secondary small mb-3">
           Every chat (website or WhatsApp) becomes a record in this form — found by phone/email when it already exists.
           Website visitors get a record once the assistant learns their phone or email.
@@ -256,10 +261,11 @@
             </div>
           </div>
         </div>
+        </div>
 
         @if (cFormId) {
-          <hr />
-          <h6 class="mb-1"><i class="bi bi-signpost-split me-2"></i>Pipeline moves the AI may make</h6>
+          <div class="form-section">
+          <h6 class="form-section-title"><i class="bi bi-signpost-split me-2"></i>Pipeline moves the AI may make</h6>
           <p class="text-secondary small mb-3">
             The AI can only pick from this list — one line each on <i>when</i>. Nothing listed = it never touches the stage.
           </p>
@@ -287,7 +293,7 @@
                 <li class="list-group-item d-flex align-items-center gap-2 px-0">
                   <span class="badge text-bg-light border">{{ stageName(h.stageId) }}</span>
                   <span class="small flex-grow-1">when {{ h.hint }}</span>
-                  <button type="button" class="btn btn-sm btn-link text-danger p-0" (click)="removeHint($index)"><i class="bi bi-x-lg"></i></button>
+                  <button type="button" class="btn btn-sm btn-link text-danger p-0" (click)="removeHint($index)" aria-label="Remove"><i class="bi bi-x-lg"></i></button>
                 </li>
               }
             </ul>
@@ -303,10 +309,11 @@
               </select>
             </div>
           </div>
+          </div>
         }
 
-        <hr />
-        <h6 class="mb-1"><i class="bi bi-headset me-2"></i>Hand-off to your team</h6>
+        <div class="form-section">
+        <h6 class="form-section-title"><i class="bi bi-headset me-2"></i>Hand-off to your team</h6>
         <p class="text-secondary small mb-3">
           When a customer asks for a person (or types one of these words), the AI stops and the request lands in the
           chat desk at the bottom-right of everyone's panel.
@@ -327,8 +334,9 @@
             <div class="form-text">Then the AI takes over and asks for a call-back number.</div>
           </div>
         </div>
+        </div>
 
-        <div class="d-flex justify-content-end mt-3">
+        <div class="form-actions">
           <button class="btn ag-btn" [disabled]="savingChannels()" (click)="saveChannels()">
             @if (savingChannels()) { <span class="spinner-border spinner-border-sm me-1"></span> }
             @else { <i class="bi bi-check2 me-1"></i> }
@@ -499,7 +507,7 @@
     <!-- rule editor -->
     @if (editingRule(); as r) {
       <div class="pb-overlay" (click)="editingRule.set(null)"></div>
-      <div class="pb-editor card ag-card">
+      <div class="pb-editor card ag-card" role="dialog" aria-modal="true">
         <div class="card-body">
           <h6 class="mb-3">{{ editingIndex() >= 0 ? 'Edit rule' : 'New rule' }}</h6>
           <div class="row g-3">
@@ -582,7 +590,7 @@
               <div class="col-5 col-md-4">
                 <input class="form-control" [(ngModel)]="c.value" [disabled]="c.op === 'BLANK' || c.op === 'NOT_BLANK'" placeholder="value" />
               </div>
-              <div class="col-1 text-end"><button class="btn btn-light btn-sm text-danger" (click)="removeCondition(ci)"><i class="bi bi-x-lg"></i></button></div>
+              <div class="col-1 text-end"><button class="btn btn-light btn-sm text-danger" (click)="removeCondition(ci)" aria-label="Remove"><i class="bi bi-x-lg"></i></button></div>
             }
 
             <div class="col-12"><span class="rule-chip rule-chip--then">Then</span></div>
@@ -686,16 +694,18 @@
           <label class="form-label">Persona / instructions</label>
           <textarea class="form-control" rows="3" [(ngModel)]="sPersona"></textarea>
         </div>
-        <div class="col-12 d-flex justify-content-end">
+        <div class="col-12">
+          <div class="form-actions mt-0">
           <button class="btn ag-btn" [disabled]="savingSettings()" (click)="saveSettings()">
             @if (savingSettings()) { <span class="spinner-border spinner-border-sm me-1"></span> }
             @else { <i class="bi bi-check2 me-1"></i> }
             Save changes
           </button>
+          </div>
         </div>
       </div>
     </div>
   }
 } @else {
-  <div class="card ag-card p-4 text-center text-muted">Loading…</div>
+  <div class="card ag-card p-4 text-center text-muted" role="status"><span class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>Loading…</div>
 }

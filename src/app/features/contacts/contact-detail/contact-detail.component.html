@@ -23,32 +23,32 @@
 @if (failed()) {
   <app-error-state message="Could not load this contact." />
 } @else if (loading()) {
-  <div class="card"><div class="card-body text-center text-muted py-5">
+  <div class="card"><div class="card-body text-center text-muted py-5" role="status">
     <span class="spinner-border spinner-border-sm me-2"></span>Loading…
   </div></div>
 } @else {
   <!-- --------------------------------------------------- details (inline) -->
   <div class="card mb-3">
-    <div class="card-header"><i class="bi bi-person-vcard me-2"></i>Details</div>
+    <div class="card-header fw-semibold"><i class="bi bi-person-vcard me-2"></i>Details</div>
     <div class="card-body">
       <div class="row g-3">
         <div class="col-12 col-md-4">
-          <label class="form-label">Name <span class="text-danger">*</span></label>
-          <input class="form-control" [(ngModel)]="draft.name" placeholder="Customer / business name" />
+          <label class="form-label" for="contactName">Name <span class="text-danger">*</span></label>
+          <input id="contactName" class="form-control" [(ngModel)]="draft.name" placeholder="Customer / business name" />
         </div>
         <div class="col-12 col-md-4">
-          <label class="form-label">Phone (WhatsApp)</label>
-          <input class="form-control" [(ngModel)]="draft.phone" placeholder="98765 43210"
+          <label class="form-label" for="contactPhone">Phone (WhatsApp)</label>
+          <input id="contactPhone" class="form-control" [(ngModel)]="draft.phone" placeholder="98765 43210"
                  (ngModelChange)="checkDuplicates()" />
         </div>
         <div class="col-12 col-md-4">
-          <label class="form-label">Email</label>
-          <input type="email" class="form-control" [(ngModel)]="draft.email" placeholder="name@example.com"
+          <label class="form-label" for="contactEmail">Email</label>
+          <input id="contactEmail" type="email" class="form-control" [(ngModel)]="draft.email" placeholder="name@example.com"
                  (ngModelChange)="checkDuplicates()" />
         </div>
         @if (duplicateHits().length) {
           <div class="col-12">
-            <div class="alert alert-warning small py-2 mb-0">
+            <div class="alert alert-warning small py-2 mb-0" role="status">
               <i class="bi bi-exclamation-triangle me-1"></i>
               This phone/email already exists on:
               @for (hit of duplicateHits(); track hit.id) {
@@ -59,19 +59,19 @@
           </div>
         }
         <div class="col-12 col-md-4">
-          <label class="form-label">Business</label>
-          <input class="form-control" [(ngModel)]="draft.company" placeholder="Company / shop" />
+          <label class="form-label" for="contactCompany">Business</label>
+          <input id="contactCompany" class="form-control" [(ngModel)]="draft.company" placeholder="Company / shop" />
         </div>
         <div class="col-12 col-md-4">
-          <label class="form-label">Address</label>
-          <input class="form-control" [(ngModel)]="draft.address" placeholder="City / area" />
+          <label class="form-label" for="contactAddress">Address</label>
+          <input id="contactAddress" class="form-control" [(ngModel)]="draft.address" placeholder="City / area" />
         </div>
         <div class="col-12 col-md-4">
-          <label class="form-label">Notes</label>
-          <input class="form-control" [(ngModel)]="draft.notes" placeholder="Optional" />
+          <label class="form-label" for="contactNotes">Notes</label>
+          <input id="contactNotes" class="form-control" [(ngModel)]="draft.notes" placeholder="Optional" />
         </div>
       </div>
-      <div class="d-flex align-items-center justify-content-between mt-3">
+      <div class="form-actions justify-content-between">
         <small class="text-muted"><i class="bi bi-info-circle me-1"></i>At least a phone number or an email is required.</small>
         <button class="btn btn-primary" [disabled]="saving()" (click)="save()">
           @if (saving()) { <span class="spinner-border spinner-border-sm me-1"></span> }

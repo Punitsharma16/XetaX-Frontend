@@ -1,10 +1,38 @@
-.menu-filter { max-width: 240px; }
+/* ------------------------------------------------------------ status */
+.menu-status__icon {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: var(--radius-lg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+}
+.menu-status__icon.is-live { background: var(--success-50); color: var(--success-600); }
+.menu-status__text { min-width: 0; flex: 1 1 220px; }
+.menu-status__meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.15rem; }
+
+/* tabs scroll sideways on narrow phones instead of wrapping awkwardly */
+.menu-tabs { flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; }
+.menu-tabs::-webkit-scrollbar { display: none; }
+.menu-tabs .nav-link { white-space: nowrap; }
+
+/* ------------------------------------------------------------- items */
+.menu-toolbar { border-bottom: 0; }
+.menu-filter { max-width: 240px; flex: 1 1 180px; }
+
+.menu-group .card-header { background: var(--surface-sunken); }
+.menu-group__empty { font-size: 0.8rem; color: var(--text-muted); }
 
 .menu-row {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   flex-wrap: wrap;
+  padding: 0.75rem 1rem;
 }
 .menu-row--off { opacity: 0.6; }
 .menu-row__main { flex: 1 1 200px; min-width: 0; }
@@ -14,22 +42,24 @@
 .menu-thumb {
   width: 48px;
   height: 48px;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   object-fit: cover;
   flex: none;
+  border: 1px solid var(--border-subtle);
 }
 .menu-thumb--empty {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--surface-muted, #f1f3f5);
-  color: var(--text-muted, #adb5bd);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
 }
 
+/* Indian veg / non-veg food mark */
 .veg-mark {
   width: 14px;
   height: 14px;
-  border: 1.5px solid #198754;
+  border: 1.5px solid var(--success-600);
   border-radius: 2px;
   display: inline-flex;
   align-items: center;
@@ -41,24 +71,46 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: #198754;
+  background: var(--success-600);
 }
-.veg-mark--non { border-color: #b02a37; }
-.veg-mark--non::after { background: #b02a37; }
+.veg-mark--non { border-color: var(--danger-600); }
+.veg-mark--non::after { background: var(--danger-600); }
 
+/* -------------------------------------------------------- categories */
+.cat-row { padding: 0.7rem 1rem; }
+.cat-row__main { min-width: 0; flex: 1 1 200px; overflow-wrap: anywhere; }
+.cat-row__move .btn { color: var(--text-muted); }
+.cat-row__move .btn:hover:not(:disabled) { color: var(--brand-600); }
+
+.menu-hint { font-size: 0.8rem; color: var(--text-muted); }
+
+/* --------------------------------------------------------- item modal */
 .menu-offer {
-  border: 1px dashed var(--border-subtle, #dee2e6);
-  border-radius: 10px;
-  padding: 0.75rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  padding: 0.85rem;
 }
 
+/* ---------------------------------------------------------- share tab */
+.menu-qr-body { display: flex; flex-direction: column; align-items: center; }
 .menu-qr {
   width: 220px;
   max-width: 100%;
   aspect-ratio: 1;
-  border: 1px solid var(--border-subtle, #dee2e6);
-  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: #fff; /* QR codes need a light quiet zone to scan, also in dark mode */
+  padding: 0.35rem;
 }
 .menu-qr--small { width: 160px; }
 
 .menu-file { max-width: 320px; }
+
+@media (max-width: 575.98px) {
+  .menu-filter { max-width: none; }
+  .menu-row__actions { width: 100%; justify-content: flex-end; }
+  .menu-status__actions { width: 100%; }
+  .menu-status__actions > .btn { flex: 1 1 auto; }
+  .menu-file { max-width: none; }
+}

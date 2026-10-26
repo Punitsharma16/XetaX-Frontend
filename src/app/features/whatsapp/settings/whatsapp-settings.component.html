@@ -7,13 +7,15 @@
 <app-whatsapp-nav />
 
 @if (error()) {
+  <div class="card wa-card">
   <app-error-state>
     <button class="btn btn-outline-secondary btn-sm" (click)="reload()">Retry</button>
   </app-error-state>
+  </div>
 } @else if (loading()) {
   <div class="card wa-card p-4">
-    <div class="skeleton mb-2" style="height: 16px; width: 35%"></div>
-    <div class="skeleton" style="height: 12px; width: 60%"></div>
+    <div class="skeleton wa-skel-title mb-2"></div>
+    <div class="skeleton wa-skel-line"></div>
   </div>
 } @else {
   <!-- ============================================== connection hero card -->
@@ -54,7 +56,7 @@
         }
       </div>
 
-      <div class="d-flex gap-2 flex-wrap">
+      <div class="wa-hero__actions d-flex gap-2 flex-wrap">
         @if (connected) {
           <button class="btn btn-outline-danger btn-sm" (click)="disconnect()">
             <i class="bi bi-plug me-1"></i>Disconnect
@@ -213,7 +215,7 @@
             }
           }
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex flex-wrap gap-2">
           <button class="btn wa-btn btn-sm" (click)="openTemplateModal()">
             <i class="bi bi-plus-lg me-1"></i>New template
           </button>
@@ -272,6 +274,7 @@
                       <button
                         class="btn btn-link btn-sm p-0 me-3"
                         title="Edit at Meta — keeps the name and the template's history"
+                        aria-label="Edit at Meta — keeps the name and the template's history"
                         (click)="editTemplate(template)"
                       >
                         <i class="bi bi-pencil"></i>
@@ -280,6 +283,7 @@
                     <button
                       class="btn btn-link btn-sm text-danger p-0"
                       title="Delete on Meta and locally"
+                      aria-label="Delete on Meta and locally"
                       (click)="deleteTemplate(template)"
                     >
                       <i class="bi bi-trash"></i>
@@ -336,7 +340,7 @@
             <tr>
               <td class="fw-medium">{{ d.purpose || '—' }}</td>
               <td><code>{{ d.name }}</code></td>
-              <td class="text-muted small" style="max-width: 380px">
+              <td class="text-muted small wa-draft-body">
                 {{ d.bodyText }}
                 @if (d.status === 'FAILED' && d.error) {
                   <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ d.error }}</div>
@@ -350,7 +354,7 @@
                   @else { <i class="bi bi-send me-1"></i> }
                   Submit
                 </button>
-                <button class="btn btn-outline-secondary btn-sm ms-1" (click)="deleteDraft(d)" title="Remove draft">
+                <button class="btn btn-outline-secondary btn-sm ms-1" (click)="deleteDraft(d)" title="Remove draft" aria-label="Remove draft">
                   <i class="bi bi-trash"></i>
                 </button>
               </td>
@@ -428,7 +432,7 @@
     @if (tplCategory !== 'AUTHENTICATION') {
       <div class="col-12">
         <label class="form-label">Header <span class="text-muted fw-normal">(optional)</span></label>
-        <div class="btn-group btn-group-sm w-100 mb-2" role="group">
+        <div class="btn-group btn-group-sm w-100 mb-2 wa-seg" role="group" aria-label="Header">
           <button type="button" class="btn"
                   [class.btn-success]="tplHeaderType === 'NONE'"
                   [class.btn-outline-secondary]="tplHeaderType !== 'NONE'"
@@ -522,9 +526,9 @@
   @if (tplCategory !== 'AUTHENTICATION') {
     <hr class="my-3" />
 
-    <div class="d-flex justify-content-between align-items-center mb-2">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
       <span class="fw-semibold"><i class="bi bi-ui-radios me-1"></i>Buttons</span>
-      <div class="btn-group btn-group-sm">
+      <div class="btn-group btn-group-sm wa-btn-scroll">
         <button class="btn btn-outline-secondary" (click)="addButton('URL')">
           <i class="bi bi-link-45deg me-1"></i>Link
         </button>
@@ -595,7 +599,7 @@
           </div>
         }
         <div class="col-12 col-md-1 text-end">
-          <button class="btn btn-outline-danger btn-sm" (click)="removeButton($index)" title="Remove">
+          <button class="btn btn-outline-danger btn-sm" (click)="removeButton($index)" title="Remove" aria-label="Remove">
             <i class="bi bi-trash"></i>
           </button>
         </div>
@@ -622,7 +626,7 @@
           <div class="wa-card-draft">
             <div class="d-flex justify-content-between align-items-center mb-2">
               <span class="fw-semibold small">Card {{ $index + 1 }}</span>
-              <button class="btn btn-outline-danger btn-sm" (click)="removeCard($index)">
+              <button class="btn btn-outline-danger btn-sm" (click)="removeCard($index)" aria-label="Remove">
                 <i class="bi bi-trash"></i>
               </button>
             </div>
@@ -680,7 +684,7 @@
     </div>
   </div>
 
-  <div modalFooter class="d-flex justify-content-end gap-2">
+  <div modalFooter class="d-flex flex-wrap justify-content-end gap-2">
     <button class="btn btn-outline-secondary" (click)="tplOpen.set(false)">Cancel</button>
     <button class="btn wa-btn" [disabled]="tplSaving()" (click)="submitTemplate()">
       @if (tplSaving()) {

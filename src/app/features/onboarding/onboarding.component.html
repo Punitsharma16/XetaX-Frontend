@@ -1,7 +1,7 @@
 <div class="ob">
   <!-- ---------------------------------------------------------- header -->
-  <div class="ob__head">
-    <div class="min-w-0">
+  <div class="ob__head page-header">
+    <div class="min-w-0 page-header-text">
       <h1 class="page-title d-flex align-items-center gap-2">
         <i class="bi bi-rocket-takeoff"></i>
         {{ finished() ? "You're set" : 'Set up your workspace' }}
@@ -138,17 +138,20 @@
             <div class="ob__tpl-grid">
               @for (i of [1, 2, 3]; track i) {
                 <div class="ob__tpl ob__tpl--skeleton">
-                  <div class="skeleton" style="width: 40px; height: 40px; border-radius: 12px"></div>
-                  <div class="skeleton mt-3" style="height: 12px; width: 55%"></div>
-                  <div class="skeleton mt-2" style="height: 10px; width: 85%"></div>
+                  <div class="skeleton ob__sk-icon"></div>
+                  <div class="skeleton mt-3 ob__sk-line ob__sk-line--title"></div>
+                  <div class="skeleton mt-2 ob__sk-line"></div>
                 </div>
               }
             </div>
           } @else if (!templates()!.length) {
-            <div class="text-muted small py-3">
+            <div class="empty-state ob__tpl-empty">
+              <div class="empty-state-icon"><i class="bi bi-grid-1x2"></i></div>
+              <p class="empty-state-text">
               @if (templatesFailed()) { Templates could not be loaded right now. }
               @else { No templates are available yet. }
               You can still build a form by hand.
+              </p>
             </div>
           } @else {
             <div class="ob__tpl-grid">
@@ -349,17 +352,17 @@
 
           <div class="ob__links">
             <a class="ob__link" routerLink="/app/records">
-              <span class="ob__link-icon" style="--c: #4f46e5"><i class="bi bi-collection"></i></span>
+              <span class="ob__link-icon ob__link-icon--brand"><i class="bi bi-collection"></i></span>
               <span class="ob__link-name">Records</span>
               <span class="ob__link-desc">Add your first lead, customer or order.</span>
             </a>
             <a class="ob__link" routerLink="/app/automations">
-              <span class="ob__link-icon" style="--c: #f59e0b"><i class="bi bi-lightning-charge"></i></span>
+              <span class="ob__link-icon ob__link-icon--accent"><i class="bi bi-lightning-charge"></i></span>
               <span class="ob__link-name">Automations</span>
               <span class="ob__link-desc">Switch on the draft rules your template created.</span>
             </a>
             <a class="ob__link" routerLink="/app/ai">
-              <span class="ob__link-icon" style="--c: #8b5cf6"><i class="bi bi-stars"></i></span>
+              <span class="ob__link-icon ob__link-icon--violet"><i class="bi bi-stars"></i></span>
               <span class="ob__link-name">AI Assistant</span>
               <span class="ob__link-desc">Ask it to build forms or find records in plain language.</span>
             </a>

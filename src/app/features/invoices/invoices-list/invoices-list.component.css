@@ -1,25 +1,78 @@
+/* KPI tiles: the global stat-card, with a coloured accent edge per meaning. */
 .inv-tile {
-  border-left: 4px solid #6366f1;
+  position: relative;
+  overflow: hidden;
+  gap: 0.2rem;
 }
-.inv-tile--green { border-left-color: #16a34a; }
-.inv-tile--amber { border-left-color: #f59e0b; }
-.inv-tile--red { border-left-color: #ef4444; }
+
+.inv-tile::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--brand-500);
+}
+
+.inv-tile--green::before { background: var(--success-500); }
+.inv-tile--amber::before { background: var(--warning-500); }
+.inv-tile--red::before { background: var(--danger-500); }
 
 .inv-tile__label {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--bs-secondary-color, #6b7280);
+  color: var(--text-muted);
 }
+
 .inv-tile__value {
   font-size: 1.3rem;
   font-weight: 800;
-  margin-top: 2px;
+  overflow-wrap: anywhere;
 }
+
 .inv-tile__hint {
   font-size: 0.72rem;
-  color: var(--bs-secondary-color, #8a90a8);
+  color: var(--text-muted);
+}
+
+@media (max-width: 575.98px) {
+  .inv-tile {
+    padding: 0.85rem 0.9rem;
+  }
+
+  .inv-tile__value {
+    font-size: 1.05rem;
+  }
+}
+
+/* Toolbar: each filter keeps its caption above the control. */
+.inv-toolbar {
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.inv-filter {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 140px;
+  min-width: 0;
+  max-width: 200px;
+}
+
+.inv-filter--search {
+  flex: 2 1 240px;
+  max-width: 360px;
+}
+
+.inv-filter--search .toolbar-search {
+  max-width: none;
+  flex: none;
+}
+
+.inv-filter--action {
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .inv-filter-label {
@@ -27,14 +80,37 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--bs-secondary-color, #6b7280);
-  margin-bottom: 2px;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+}
+
+@media (max-width: 575.98px) {
+  .inv-filter {
+    flex: 1 1 calc(50% - 0.75rem);
+    max-width: none;
+  }
+
+  .inv-filter--search {
+    flex-basis: 100%;
+    max-width: none;
+  }
 }
 
 .inv-table th {
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--bs-secondary-color, #6b7280);
+  color: var(--text-muted);
 }
-.inv-row { cursor: pointer; }
+
+.inv-row {
+  cursor: pointer;
+}
+
+.inv-overdue {
+  font-size: 0.6rem;
+}
+
+.inv-page-indicator {
+  font-variant-numeric: tabular-nums;
+}

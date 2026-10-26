@@ -1,36 +1,56 @@
 /* Shared WhatsApp campaign styles */
 .wa-card {
-  border: 1px solid var(--border-subtle, #e9ecef);
-  border-radius: var(--radius-lg, 12px);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
+  overflow: hidden;
 }
 
 .wa-btn {
   background: var(--wa-600);
   border: 1px solid var(--wa-600);
-  color: #fff;
+  color: var(--bs-white);
   font-weight: 600;
 }
 
 .wa-btn:hover:not(:disabled) {
   background: var(--wa-500);
   border-color: var(--wa-500);
-  color: #fff;
+  color: var(--bs-white);
 }
 
 .wa-btn:disabled {
   opacity: 0.65;
-  color: #fff;
+  color: var(--bs-white);
 }
 
-.wa-table thead th,
-table thead th {
+/* The dark-theme WhatsApp greens are light, so text on them goes dark */
+:host-context([data-theme='dark']) .wa-btn,
+:host-context([data-theme='dark']) .wa-btn:hover:not(:disabled),
+:host-context([data-theme='dark']) .wa-btn:disabled {
+  color: var(--slate-900);
+}
+
+.col-progress {
+  min-width: 160px;
+}
+
+.wa-progress {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  margin-bottom: 0.25rem;
+}
+
+.wa-progress-count {
   font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted, #6c757d);
+  font-variant-numeric: tabular-nums;
 }
 
 .progress-bar.bg-success {
   background-color: var(--wa-600) !important;
+}
+
+.card-footer {
+  background: var(--surface-card);
 }

@@ -2,15 +2,36 @@
   min-width: 0;
 }
 
+.sk-icon {
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  border-radius: var(--radius-lg);
+}
+
+.sk-title {
+  height: 14px;
+  width: 30%;
+}
+
+.sk-line {
+  height: 10px;
+  width: 55%;
+}
+
 .detail-icon {
   width: 52px;
   height: 52px;
   flex: 0 0 52px;
-  border-radius: 14px;
+  border-radius: var(--radius-lg);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 1.35rem;
+}
+
+.detail-header .page-title {
+  word-break: break-word;
 }
 
 .slug-code {
@@ -23,6 +44,17 @@
 
 /* -------------------------------------------------------------- tab strip */
 
+/* Scrolls sideways inside itself on narrow phones instead of the page */
+.config-tabs-wrap {
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.config-tabs-wrap::-webkit-scrollbar {
+  display: none;
+}
+
 .config-tabs {
   display: inline-flex;
   gap: 0.25rem;
@@ -30,21 +62,23 @@
   background: var(--surface-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xs);
 }
 
 .config-tab {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.4rem 0.9rem;
+  padding: 0.45rem 0.95rem;
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
   color: var(--text-secondary);
   font-size: 0.8125rem;
   font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
-  transition: all var(--transition-fast);
+  transition: background var(--transition-fast), color var(--transition-fast);
 }
 
 .config-tab:hover {
@@ -52,8 +86,23 @@
   color: var(--text-primary);
 }
 
+.config-tab:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
 .config-tab.is-active {
   background: var(--brand-600);
   color: #fff;
-  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+  box-shadow: var(--shadow-primary);
+}
+
+@media (max-width: 575.98px) {
+  .detail-actions {
+    width: 100%;
+  }
+
+  .detail-actions > .btn {
+    flex: 1 1 auto;
+  }
 }
