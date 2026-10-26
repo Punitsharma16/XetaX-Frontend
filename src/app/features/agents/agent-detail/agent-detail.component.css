@@ -157,8 +157,8 @@
   display: flex;
   align-items: center;
   gap: 0.8rem;
-  background: var(--sidebar-bg);
-  border: 1px solid var(--sidebar-border);
+  background: var(--inverse-bg);
+  border: 1px solid var(--inverse-border);
   border-radius: var(--radius-md);
   padding: 0.85rem 1rem;
   font-size: 0.78rem;

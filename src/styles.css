@@ -17,15 +17,15 @@
   color-scheme: light;
 
   /* Neutral chrome (violet-tinted greys) */
-  --slate-50: #f8f8fc;
-  --slate-100: #f1f1f8;
-  --slate-200: #e6e6f0;
-  --slate-300: #d4d4e3;
-  --slate-400: #9a9cb8;
+  --slate-50: #f6f6fb;
+  --slate-100: #eeeef6;
+  --slate-200: #e1e1ee;
+  --slate-300: #cbcbdd;
+  --slate-400: #9b9cb6;
   --slate-500: #6b6d8c;
   --slate-600: #51537a;
-  --slate-700: #3a3c5c;
-  --slate-800: #25273f;
+  --slate-700: #3b3d5c;
+  --slate-800: #262842;
   --slate-900: #16172b;
 
   /* WhatsApp accent */
@@ -35,42 +35,43 @@
   --wa-border: #c5ecd4;
 
   /* Brand — indigo-violet, the colour of every primary action */
-  --brand-50: #f3f0ff;
-  --brand-100: #e8e2ff;
-  --brand-200: #d3c8ff;
-  --brand-300: #b5a3fd;
+  --brand-50: #f4f2ff;
+  --brand-100: #ebe7ff;
+  --brand-200: #d7cfff;
+  --brand-300: #b8a9fe;
   --brand-400: #957bfa;
-  --brand-500: #7a55f2;
+  --brand-500: #7552f3;
   --brand-600: #5f37e3;
-  --brand-700: #4e29c4;
-  --brand-800: #3f219e;
+  --brand-700: #4f28c4;
+  --brand-800: #41229f;
+  --brand-950: #1f124c;
 
   /* Accent — marigold, for AI moments and highlights only */
-  --accent-50: #fff6e6;
-  --accent-100: #ffe7bf;
+  --accent-50: #fff8eb;
+  --accent-100: #ffecc6;
   --accent-500: #ffa320;
-  --accent-600: #e68a00;
-  --accent-700: #8a5200;
+  --accent-600: #f98207;
+  --accent-700: #942f0c;
 
   /* Status */
-  --success-50: #ecfdf5;
-  --success-500: #10b981;
-  --success-600: #047857;
-  --danger-50: #fef2f2;
-  --danger-500: #ef4444;
-  --danger-600: #c62828;
-  --warning-50: #fffbeb;
-  --warning-500: #f59e0b;
-  --warning-600: #b45309;
-  --info-50: #eff6ff;
-  --info-500: #3b82f6;
-  --info-600: #1d4ed8;
+  --success-50: #ecfdf4;
+  --success-500: #12a06a;
+  --success-600: #0b8256;
+  --danger-50: #fff1f2;
+  --danger-500: #e5484d;
+  --danger-600: #cd2b31;
+  --warning-50: #fffaeb;
+  --warning-500: #e09a06;
+  --warning-600: #92570a;
+  --info-50: #eef6ff;
+  --info-500: #2f7cf6;
+  --info-600: #1d55b8;
 
   /* Semantic surfaces */
   --surface-page: #f6f6fb;
   --surface-card: #ffffff;
-  --surface-sunken: #f5f5fa;
-  --surface-hover: #f1effa;
+  --surface-sunken: #eeeef6;
+  --surface-hover: #eeeef6;
 
   --text-primary: var(--slate-900);
   --text-secondary: var(--slate-600);
@@ -79,13 +80,25 @@
   --border-subtle: var(--slate-200);
   --border-strong: var(--slate-300);
 
-  /* Sidebar */
-  --sidebar-bg: #1e1b4b;
-  --sidebar-fg: rgba(255, 255, 255, 0.72);
-  --sidebar-fg-strong: #ffffff;
-  --sidebar-hover: rgba(255, 255, 255, 0.08);
-  --sidebar-active: #4f46e5;
-  --sidebar-border: rgba(255, 255, 255, 0.1);
+  /* Sidebar (light, as in Agentic) */
+  --sidebar-bg: #ffffff;
+  --sidebar-fg: var(--slate-600);
+  --sidebar-fg-strong: var(--slate-900);
+  --sidebar-fg-muted: var(--slate-500);
+  --sidebar-hover: var(--slate-100);
+  --sidebar-active: var(--brand-50);
+  --sidebar-active-fg: var(--brand-700);
+  --sidebar-border: var(--slate-200);
+
+  /* Dark brand panels (login / sign-up aside, code snippets) */
+  --inverse-bg: #16172b;
+  --inverse-fg: rgba(255, 255, 255, 0.72);
+  --inverse-fg-strong: #ffffff;
+  --inverse-hover: rgba(255, 255, 255, 0.08);
+  --inverse-border: rgba(255, 255, 255, 0.1);
+
+  /* Logo mark */
+  --brand-gradient: linear-gradient(135deg, #2a1670 0%, var(--brand-700) 45%, var(--brand-500) 100%);
   --sidebar-width: 256px;
   --sidebar-width-mini: 72px;
   --topbar-height: 60px;
@@ -96,19 +109,19 @@
   --radius-xl: 20px;
   --radius-pill: 999px;
 
-  --shadow-xs: 0 1px 2px rgba(22, 23, 43, 0.05);
-  --shadow-sm: 0 1px 3px rgba(22, 23, 43, 0.07), 0 1px 2px rgba(22, 23, 43, 0.04);
-  --shadow-md: 0 6px 18px rgba(22, 23, 43, 0.08), 0 2px 4px rgba(22, 23, 43, 0.04);
-  --shadow-lg: 0 18px 44px rgba(22, 23, 43, 0.14), 0 4px 10px rgba(22, 23, 43, 0.05);
-  --shadow-primary: 0 6px 16px rgba(95, 55, 227, 0.28);
+  --shadow-xs: 0 1px 2px rgba(22, 23, 43, 0.06);
+  --shadow-sm: 0 1px 2px rgba(22, 23, 43, 0.05), 0 2px 6px rgba(22, 23, 43, 0.05);
+  --shadow-md: 0 2px 4px rgba(22, 23, 43, 0.04), 0 8px 20px -4px rgba(22, 23, 43, 0.1);
+  --shadow-lg: 0 4px 8px rgba(22, 23, 43, 0.04), 0 20px 40px -12px rgba(22, 23, 43, 0.2);
+  --shadow-primary: 0 6px 18px -6px rgba(95, 55, 227, 0.55);
 
-  --focus-ring: 0 0 0 3px rgba(95, 55, 227, 0.28);
+  --focus-ring: 0 0 0 2px var(--surface-card), 0 0 0 4px var(--brand-500);
 
   /* Text on brand-coloured backgrounds */
   --text-on-brand: #ffffff;
 
   /* Backdrop behind custom overlays / sheets */
-  --scrim: rgba(13, 14, 28, 0.5);
+  --scrim: rgba(13, 14, 28, 0.48);
 
   /* WhatsApp button text (white on the dark green) */
   --wa-on: #ffffff;
@@ -141,25 +154,35 @@
   --wa-600: #2dd4bf;
   --wa-soft: #0c2b1e;
   --wa-border: #14532d;
-  --surface-sunken: #121326;
-  --surface-hover: #1f2140;
+  --surface-sunken: #0a0b17;
+  --surface-hover: #262842;
 
   --text-primary: #eceaf8;
   --text-secondary: #b3b3cf;
   --text-muted: #9395b4;
 
-  --border-subtle: #262845;
-  --border-strong: #33365a;
+  --border-subtle: #2a2c48;
+  --border-strong: #3a3d5e;
 
-  --sidebar-bg: #0a0f1f;
-  --sidebar-border: rgba(255, 255, 255, 0.07);
+  --sidebar-bg: #16172b;
+  --sidebar-fg: #b3b3cf;
+  --sidebar-fg-strong: #eceaf8;
+  --sidebar-fg-muted: #9395b4;
+  --sidebar-hover: #262842;
+  --sidebar-active: rgba(117, 82, 243, 0.18);
+  --sidebar-active-fg: #d7cfff;
+  --sidebar-border: #2a2c48;
+
+  --inverse-bg: #0a0b17;
+  --inverse-border: rgba(255, 255, 255, 0.07);
+  --brand-gradient: linear-gradient(135deg, #140a3a 0%, #2c1782 50%, #5f37e3 100%);
 
   --brand-50: #1c1740;
   --brand-100: #251d55;
   --brand-400: #957bfa;
   --brand-500: #957bfa;
-  --brand-600: #8466f6;
-  --brand-700: #a48df9;
+  --brand-600: #957bfa;
+  --brand-700: #b8a9fe;
 
   --accent-50: #2e2008;
   --accent-100: #4a330c;
@@ -170,21 +193,21 @@
   --wa-on: #062b1d;
 
   --success-50: #052e21;
-  --success-600: #34d399;
+  --success-600: #6fe0b0;
   --danger-50: #35090b;
-  --danger-600: #f87171;
+  --danger-600: #ff9599;
   --warning-50: #3a2606;
-  --warning-600: #fbbf24;
+  --warning-600: #f7cd6b;
   --info-50: #0a2145;
-  --info-600: #60a5fa;
+  --info-600: #93bcff;
 
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.45);
-  --shadow-lg: 0 18px 44px rgba(0, 0, 0, 0.55);
-  --shadow-primary: 0 6px 16px rgba(132, 102, 246, 0.3);
-  --focus-ring: 0 0 0 3px rgba(149, 123, 250, 0.35);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 6px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.3), 0 8px 20px -4px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 4px 8px rgba(0, 0, 0, 0.3), 0 20px 40px -12px rgba(0, 0, 0, 0.6);
+  --shadow-primary: 0 6px 18px -6px rgba(117, 82, 243, 0.6);
+  --focus-ring: 0 0 0 2px var(--surface-card), 0 0 0 4px #b8a9fe;
 
-  --bs-primary-rgb: 132, 102, 246;
+  --bs-primary-rgb: 149, 123, 250;
   --bs-link-color-rgb: 149, 123, 250;
   --bs-body-bg: var(--surface-page);
   --bs-body-color: var(--text-primary);
@@ -349,6 +372,16 @@ a:hover {
   --bs-btn-active-border-color: var(--brand-800);
   --bs-btn-disabled-bg: var(--brand-400);
   --bs-btn-disabled-border-color: var(--brand-400);
+}
+
+/* Dark theme: light violet button with dark text, as in Agentic */
+:root[data-theme='dark'] .btn-primary {
+  --bs-btn-color: #0d0e1c;
+  --bs-btn-hover-color: #0d0e1c;
+  --bs-btn-active-color: #0d0e1c;
+  --bs-btn-disabled-color: #0d0e1c;
+  --bs-btn-active-bg: #d7cfff;
+  --bs-btn-active-border-color: #d7cfff;
 }
 
 .btn-primary:hover:not(:disabled) {

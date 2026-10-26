@@ -48,7 +48,7 @@
   justify-content: center;
   font-weight: 800;
   color: #fff;
-  background: linear-gradient(135deg, #6366f1, #3730a3);
+  background: var(--brand-gradient);
 }
 
 .sidebar__brand-text {
@@ -65,7 +65,7 @@
 }
 
 .sidebar__brand-sub {
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--sidebar-fg-muted);
   font-size: 0.625rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -87,7 +87,7 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.35);
+  color: var(--sidebar-fg-muted);
   padding: 0.4rem 0.65rem;
   white-space: nowrap;
 }
@@ -122,14 +122,13 @@
 
 .sidebar__link.is-active {
   background: var(--sidebar-active);
-  color: #fff;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
+  color: var(--sidebar-active-fg);
 }
 
 .sidebar__link:focus-visible,
 .sidebar__sublink:focus-visible,
 .sidebar__collapse:focus-visible {
-  outline: 2px solid #818cf8;
+  outline: 2px solid var(--brand-500);
   outline-offset: 1px;
 }
 
@@ -180,7 +179,7 @@
 
 .sidebar__sublink.is-active {
   background: var(--sidebar-active);
-  color: #fff;
+  color: var(--sidebar-active-fg);
 }
 
 .sidebar__sublink--muted {
@@ -202,7 +201,7 @@
   border: 0;
   border-radius: var(--radius-md);
   background: transparent;
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--sidebar-fg-muted);
   font-size: 0.75rem;
   white-space: nowrap;
   cursor: pointer;

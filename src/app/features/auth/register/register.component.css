@@ -32,8 +32,8 @@
   background:
     radial-gradient(900px 520px at 12% 8%, color-mix(in srgb, var(--brand-500) 45%, transparent), transparent 62%),
     radial-gradient(600px 420px at 95% 100%, color-mix(in srgb, var(--accent-500) 14%, transparent), transparent 70%),
-    linear-gradient(165deg, var(--brand-800) 0%, var(--sidebar-bg) 68%);
-  color: var(--sidebar-fg-strong);
+    linear-gradient(165deg, var(--brand-800) 0%, var(--inverse-bg) 68%);
+  color: var(--inverse-fg-strong);
   overflow: hidden;
 }
 
@@ -43,8 +43,8 @@
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(var(--sidebar-border) 1px, transparent 1px),
-    linear-gradient(90deg, var(--sidebar-border) 1px, transparent 1px);
+    linear-gradient(var(--inverse-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--inverse-border) 1px, transparent 1px);
   background-size: 44px 44px;
   mask-image: radial-gradient(circle at 30% 25%, #000 0%, transparent 75%);
   -webkit-mask-image: radial-gradient(circle at 30% 25%, #000 0%, transparent 75%);
@@ -74,7 +74,7 @@
 }
 
 .auth-aside__lead {
-  color: var(--sidebar-fg);
+  color: var(--inverse-fg);
   font-size: 0.9375rem;
   line-height: 1.65;
   margin: 0;
@@ -92,7 +92,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: var(--sidebar-fg-strong);
+  color: var(--inverse-fg-strong);
   font-size: 0.875rem;
 }
 
@@ -104,14 +104,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--sidebar-hover);
-  border: 1px solid var(--sidebar-border);
+  background: var(--inverse-hover);
+  border: 1px solid var(--inverse-border);
   color: var(--brand-300);
   font-size: 0.9rem;
 }
 
 .auth-aside__foot {
-  color: var(--sidebar-fg);
+  color: var(--inverse-fg);
   opacity: 0.75;
   font-size: 0.75rem;
 }
@@ -141,7 +141,7 @@
 .auth-brand__name {
   font-weight: 700;
   font-size: 1.05rem;
-  color: var(--sidebar-fg-strong);
+  color: var(--inverse-fg-strong);
   line-height: 1.2;
 }
 
@@ -153,7 +153,7 @@
 }
 
 .auth-aside .auth-brand__sub {
-  color: var(--sidebar-fg);
+  color: var(--inverse-fg);
 }
 
 /* ------------------------------------------------------------- form panel */
@@ -318,8 +318,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--sidebar-hover);
-  border: 1px solid var(--sidebar-border);
+  background: var(--inverse-hover);
+  border: 1px solid var(--inverse-border);
   color: var(--brand-300);
   font-size: 0.75rem;
   font-weight: 700;
@@ -327,14 +327,14 @@
 
 .auth-steps strong {
   display: block;
-  color: var(--sidebar-fg-strong);
+  color: var(--inverse-fg-strong);
   font-size: 0.875rem;
   font-weight: 600;
 }
 
 .auth-steps em {
   display: block;
-  color: var(--sidebar-fg);
+  color: var(--inverse-fg);
   font-size: 0.75rem;
   font-style: normal;
   margin-top: 0.1rem;
