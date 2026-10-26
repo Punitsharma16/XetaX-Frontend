@@ -48,8 +48,7 @@
   justify-content: center;
   font-weight: 800;
   color: #fff;
-  background: linear-gradient(135deg, var(--brand-500), var(--brand-800));
-  box-shadow: 0 4px 12px rgba(95, 55, 227, 0.4), inset 0 -2px 0 rgba(255, 163, 32, 0.55);
+  background: linear-gradient(135deg, #6366f1, #3730a3);
 }
 
 .sidebar__brand-text {
@@ -122,30 +121,15 @@
 }
 
 .sidebar__link.is-active {
-  background: rgba(149, 123, 250, 0.16);
+  background: var(--sidebar-active);
   color: #fff;
-}
-
-/* Active marker on the left edge */
-.sidebar__link.is-active::before {
-  content: '';
-  position: absolute;
-  left: -0.6rem;
-  top: 8px;
-  bottom: 8px;
-  width: 3px;
-  border-radius: 0 3px 3px 0;
-  background: var(--brand-400);
-}
-
-.sidebar__link.is-active i {
-  color: var(--brand-300, #b5a3fd);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.35);
 }
 
 .sidebar__link:focus-visible,
 .sidebar__sublink:focus-visible,
 .sidebar__collapse:focus-visible {
-  outline: 2px solid var(--brand-400);
+  outline: 2px solid #818cf8;
   outline-offset: 1px;
 }
 
@@ -195,9 +179,8 @@
 }
 
 .sidebar__sublink.is-active {
-  background: rgba(149, 123, 250, 0.16);
+  background: var(--sidebar-active);
   color: #fff;
-  font-weight: 600;
 }
 
 .sidebar__sublink--muted {

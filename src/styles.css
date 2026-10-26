@@ -80,12 +80,12 @@
   --border-strong: var(--slate-300);
 
   /* Sidebar */
-  --sidebar-bg: #16172b;
-  --sidebar-fg: rgba(236, 234, 248, 0.72);
+  --sidebar-bg: #1e1b4b;
+  --sidebar-fg: rgba(255, 255, 255, 0.72);
   --sidebar-fg-strong: #ffffff;
-  --sidebar-hover: rgba(255, 255, 255, 0.07);
-  --sidebar-active: var(--brand-600);
-  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-hover: rgba(255, 255, 255, 0.08);
+  --sidebar-active: #4f46e5;
+  --sidebar-border: rgba(255, 255, 255, 0.1);
   --sidebar-width: 256px;
   --sidebar-width-mini: 72px;
   --topbar-height: 60px;
@@ -151,8 +151,8 @@
   --border-subtle: #262845;
   --border-strong: #33365a;
 
-  --sidebar-bg: #0a0b17;
-  --sidebar-border: rgba(255, 255, 255, 0.06);
+  --sidebar-bg: #0a0f1f;
+  --sidebar-border: rgba(255, 255, 255, 0.07);
 
   --brand-50: #1c1740;
   --brand-100: #251d55;
